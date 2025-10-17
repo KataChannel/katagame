@@ -1,21 +1,22 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Home, Crown, ShoppingCart, Book, Trophy, Settings } from 'lucide-react';
+import { Home, Crown, ShoppingCart, Book, Trophy, Settings, Swords, Users, Sparkles, Gem } from 'lucide-react';
 import { touchTargets, colors, zIndex, animations } from '@/lib/mobileDesignSystem';
 
 interface MobileBottomNavProps {
-  activeTab: 'game' | 'premium' | 'shop' | 'culture' | 'achievements' | 'settings';
-  onTabChange: (tab: 'game' | 'premium' | 'shop' | 'culture' | 'achievements' | 'settings') => void;
+  activeTab: 'game' | 'premium' | 'shop' | 'culture' | 'achievements' | 'settings' | 'combat' | 'heroes' | 'pets' | 'battlepass' | 'gacha';
+  onTabChange: (tab: 'game' | 'premium' | 'shop' | 'culture' | 'achievements' | 'settings' | 'combat' | 'heroes' | 'pets' | 'battlepass' | 'gacha') => void;
   className?: string;
 }
 
 const navItems = [
   { key: 'game', label: 'Game', icon: Home, color: colors.primary[500] },
-  { key: 'premium', label: 'VIP', icon: Crown, color: colors.secondary[500] },
-  { key: 'shop', label: 'Shop', icon: ShoppingCart, color: colors.primary[600] },
-  { key: 'culture', label: 'Văn Hóa', icon: Book, color: colors.info[500] },
-  { key: 'achievements', label: 'Thành Tích', icon: Trophy, color: colors.warning[500] },
+  { key: 'combat', label: 'Chiến Đấu', icon: Swords, color: '#dc2626' },
+  { key: 'heroes', label: 'Anh Hùng', icon: Users, color: '#7c3aed' },
+  { key: 'gacha', label: 'Gacha', icon: Gem, color: '#a855f7' },
+  { key: 'battlepass', label: 'Battle Pass', icon: Trophy, color: '#ec4899' },
+  { key: 'achievements', label: 'Thành Tích', icon: Crown, color: colors.warning[500] },
 ] as const;
 
 export default function MobileBottomNav({ activeTab, onTabChange, className = '' }: MobileBottomNavProps) {
@@ -96,17 +97,6 @@ export default function MobileBottomNav({ activeTab, onTabChange, className = ''
                 >
                   {item.label}
                 </motion.span>
-
-                {/* Notification badge (example) */}
-                {item.key === 'shop' && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute top-1 right-1/4 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center z-20"
-                  >
-                    •
-                  </motion.div>
-                )}
               </button>
             );
           })}

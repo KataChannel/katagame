@@ -5,6 +5,8 @@ import { Lock, Users, TrendingUp, ChevronRight, Sparkles } from 'lucide-react';
 import { useGameStore } from '@/lib/gameStore';
 import { Province } from '@/lib/types';
 import { touchTargets, mobileSpacing, animations, colors, mobileTypography } from '@/lib/mobileDesignSystem';
+import { ElementBadge } from './ElementBadge';
+import { getProvinceElementSummary } from '@/lib/elementSystem';
 import { useState } from 'react';
 
 interface MobileProvinceCardProps {
@@ -19,6 +21,9 @@ export default function MobileProvinceCard({ province, className = '' }: MobileP
   const canUnlock = !province.unlocked && player.totalResources.gold >= 200;
   const canUpgrade = province.unlocked && player.totalResources.gold >= (province.level + 1) * 100;
   const canHireFarmer = province.unlocked && player.totalResources.gold >= 50;
+  
+  // Get element summary for bonuses
+  const elementSummary = province.element ? getProvinceElementSummary(province) : null;
 
   const handleUnlock = () => {
     if (canUnlock) {
@@ -150,10 +155,26 @@ export default function MobileProvinceCard({ province, className = '' }: MobileP
               <span className="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs font-semibold">
                 Cấp {province.level}
               </span>
+              {/* Element Badge */}
+              {province.element && (
+                <ElementBadge 
+                  element={province.element} 
+                  size="sm" 
+                  showTooltip={true}
+                />
+              )}
             </div>
             <p className="text-sm text-gray-600 line-clamp-1">
               {province.description}
             </p>
+            {/* Element Production Bonus */}
+            {elementSummary && (
+              <div className="flex items-center gap-1 mt-1">
+                <span className="text-xs text-yellow-600 font-semibold">
+                  ⚡ +{((elementSummary.productionBonus - 1) * 100).toFixed(0)}% {elementSummary.resourceType}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Expand Icon */}

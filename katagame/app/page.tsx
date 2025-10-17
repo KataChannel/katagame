@@ -20,9 +20,14 @@ import { Settings, Crown, Home, ShoppingCart, Book, Trophy } from 'lucide-react'
 import MobileBottomNav, { DesktopNav } from '@/components/MobileNavigation';
 import MobileResourceBar from '@/components/MobileResourceBar';
 import MobileProvinceCard from '@/components/MobileProvinceCard';
+import CombatTab from '@/components/CombatTab';
+import HeroesTab from '@/components/HeroesTab';
+import PetsTab from '@/components/PetsTab';
+import BattlePassTab from '@/components/BattlePassTab';
+import GachaTab from '@/components/GachaTab';
 
 export default function Game() {
-  const [activeTab, setActiveTab] = useState<'game' | 'premium' | 'shop' | 'culture' | 'achievements' | 'settings'>('game');
+  const [activeTab, setActiveTab] = useState<'game' | 'premium' | 'shop' | 'culture' | 'achievements' | 'settings' | 'combat' | 'heroes' | 'pets' | 'battlepass' | 'gacha'>('game');
   const [showTutorial, setShowTutorial] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { player, provinces, gameSpeed, setGameSpeed, tutorial, completeTutorial, notifications } = useGameStore();
@@ -174,6 +179,16 @@ export default function Game() {
         {activeTab === 'premium' && <PremiumPass />}
         
         {activeTab === 'shop' && <Shop />}
+        
+        {activeTab === 'combat' && <CombatTab />}
+        
+        {activeTab === 'heroes' && <HeroesTab />}
+        
+        {activeTab === 'pets' && <PetsTab />}
+        
+        {activeTab === 'battlepass' && <BattlePassTab />}
+        
+        {activeTab === 'gacha' && <GachaTab />}
         
         {activeTab === 'culture' && <CultureCenter />}
         

@@ -1,8 +1,28 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Resource, Province, Farmer, Player, GameState, PremiumPass, Achievement } from './types';
+import { Resource, Province, Farmer, Player, GameState, PremiumPass, Achievement, Hero, Pet, CombatResult, BattlePassProgress } from './types';
 import { v4 as uuidv4 } from 'uuid';
 import { SoundManager } from './soundManager';
+import { calculateTotalProduction, getProductionBonus } from './elementSystem';
+import {
+  initializeSeason,
+  addXP,
+  claimReward,
+  getAvailableRewards,
+  upgradeToPremium,
+  isSeasonActive,
+  getDaysRemaining,
+} from './battlePassSystem';
+import {
+  initializeGachaState,
+  performSinglePull,
+  performTenPull,
+  updateGachaStateAfterPull,
+  isDailyFreePullAvailable,
+  SINGLE_PULL_COST,
+  TEN_PULL_COST,
+  PullResult,
+} from './gachaSystem';
 
 // Helper functions
 const createEmptyResource = (): Resource => ({
@@ -91,7 +111,7 @@ const initialPlayer: Player = {
   name: 'Người chơi',
   level: 1,
   experience: 0,
-  totalResources: { gold: 200, rice: 100, lumber: 50, stone: 30, culture: 20 },
+  totalResources: { gold: 200, rice: 100, lumber: 50, stone: 30, culture: 20, gems: 1500 },
   unlockedProvinces: ['hanoi'],
   premiumPass: null,
   achievements: [],
@@ -112,10 +132,26 @@ interface GameStore extends GameState {
   startTutorial: () => void;
   nextTutorialStep: () => void;
   completeTutorial: () => void;
+  // MVP 2: Hero & Pet Actions
+  addHero: (hero: Hero) => void;
+  upgradeHero: (heroId: string) => void;
+  addPet: (pet: Pet) => void;
+  equipPet: (petId: string, provinceId?: string) => void;
+  recordCombat: (result: CombatResult) => void;
   // Notifications
   notifications: Array<{id: string, type: string, title: string, message: string}>;
   addNotification: (notification: {type: string, title: string, message: string}) => void;
   removeNotification: (id: string) => void;
+  // Battle Pass System
+  initializeBattlePass: (seasonNumber: number) => void;
+  addBattlePassXP: (amount: number) => void;
+  claimBattlePassReward: (level: number, trackType: 'free' | 'premium') => void;
+  upgradeBattlePassPremium: () => void;
+  // Gacha System
+  initializeGacha: () => void;
+  performGachaPull: () => PullResult | null;
+  performGachaTenPull: () => PullResult[] | null;
+  performDailyFreePull: () => PullResult | null;
 }
 
 export const useGameStore = create<GameStore>()(
@@ -129,6 +165,12 @@ export const useGameStore = create<GameStore>()(
         completed: false,
         currentStep: 0,
       },
+      // MVP 2: New state
+      heroes: [],
+      pets: [],
+      battlePass: undefined,
+      combatHistory: [],
+      gacha: undefined,
       notifications: [],
 
       addNotification: (notification) => {
@@ -471,6 +513,391 @@ export const useGameStore = create<GameStore>()(
         tutorial: { ...state.tutorial, currentStep: state.tutorial.currentStep + 1 }
       })),
       completeTutorial: () => set({ tutorial: { completed: true, currentStep: -1 } }),
+
+      // MVP 2: Hero Management
+      addHero: (hero: Hero) => {
+        set((state) => ({
+          heroes: [...(state.heroes || []), hero],
+        }));
+        get().addNotification({
+          type: 'success',
+          title: 'Anh Hùng Mới!',
+          message: `${hero.displayName} đã gia nhập đội ngũ của bạn!`,
+        });
+      },
+
+      upgradeHero: (heroId: string) => {
+        set((state) => ({
+          heroes: (state.heroes || []).map(hero =>
+            hero.id === heroId
+              ? {
+                  ...hero,
+                  level: hero.level + 1,
+                  stats: {
+                    ...hero.stats,
+                    maxHp: hero.stats.maxHp + 100,
+                    hp: hero.stats.hp + 100,
+                    attack: hero.stats.attack + 10,
+                    defense: hero.stats.defense + 5,
+                  },
+                }
+              : hero
+          ),
+        }));
+      },
+
+      // MVP 2: Pet Management
+      addPet: (pet: Pet) => {
+        set((state) => ({
+          pets: [...(state.pets || []), pet],
+        }));
+        get().addNotification({
+          type: 'success',
+          title: 'Thú Cưng Mới!',
+          message: `${pet.displayName} đã theo bạn!`,
+        });
+      },
+
+      equipPet: (petId: string, provinceId?: string) => {
+        set((state) => ({
+          pets: (state.pets || []).map(pet =>
+            pet.id === petId
+              ? { ...pet, equipped: true, assignedProvince: provinceId }
+              : pet
+          ),
+        }));
+      },
+
+      // MVP 2: Combat System
+      recordCombat: (result: CombatResult) => {
+        set((state) => ({
+          combatHistory: [...(state.combatHistory || []), result],
+        }));
+        
+        if (result.victory) {
+          // Add rewards
+          get().addNotification({
+            type: 'success',
+            title: 'Chiến Thắng!',
+            message: `Đánh bại ${result.enemyType}. Nhận được phần thưởng!`,
+          });
+          
+          // Add experience (50 XP per victory)
+          get().addExperience(50);
+          
+          // Add battle pass XP based on enemy difficulty
+          const battlePassXP = result.enemyType === 'boss' ? 200 :
+                               result.enemyType === 'elite' ? 100 : 50;
+          get().addBattlePassXP(battlePassXP);
+          
+          // Add rewards to player resources
+          set((state) => ({
+            player: {
+              ...state.player,
+              totalResources: addResources(state.player.totalResources, result.rewards),
+            },
+          }));
+        }
+      },
+
+      // Battle Pass System
+      initializeBattlePass: (seasonNumber: number) => {
+        const newSeason = initializeSeason(seasonNumber);
+        set({ battlePass: newSeason });
+        get().addNotification({
+          type: 'info',
+          title: 'Mùa Battle Pass Mới!',
+          message: `Mùa ${seasonNumber} đã bắt đầu! Hoàn thành thử thách để nhận phần thưởng!`,
+        });
+      },
+
+      addBattlePassXP: (amount: number) => {
+        const state = get();
+        if (!state.battlePass) return;
+
+        // Check if season is still active
+        if (!isSeasonActive(state.battlePass)) {
+          get().addNotification({
+            type: 'warning',
+            title: 'Mùa Đã Kết Thúc',
+            message: 'Mùa Battle Pass hiện tại đã kết thúc. Chờ mùa mới!',
+          });
+          return;
+        }
+
+        const oldLevel = state.battlePass.currentLevel;
+        const updatedBattlePass = addXP(state.battlePass, amount);
+        const newLevel = updatedBattlePass.currentLevel;
+
+        set({ battlePass: updatedBattlePass });
+
+        // Notify XP gain
+        get().addNotification({
+          type: 'info',
+          title: 'Battle Pass XP',
+          message: `+${amount} XP nhận được!`,
+        });
+
+        // If leveled up, show special notification
+        if (newLevel > oldLevel) {
+          get().addNotification({
+            type: 'success',
+            title: 'Battle Pass Lên Cấp!',
+            message: `Chúc mừng! Bạn đã đạt cấp ${newLevel}!`,
+          });
+        }
+      },
+
+      claimBattlePassReward: (level: number, trackType: 'free' | 'premium') => {
+        const state = get();
+        if (!state.battlePass) return;
+
+        try {
+          const result = claimReward(state.battlePass, level, trackType);
+          
+          if (!result.success) {
+            get().addNotification({
+              type: 'error',
+              title: 'Không Thể Nhận Thưởng',
+              message: result.message,
+            });
+            return;
+          }
+
+          // Update battle pass state
+          set((state) => ({
+            battlePass: {
+              ...state.battlePass!,
+              claimedRewards: {
+                ...state.battlePass!.claimedRewards,
+                [trackType]: [...state.battlePass!.claimedRewards[trackType], level],
+              },
+            },
+          }));
+
+          // Apply reward to player
+          const reward = result.reward;
+          if (reward && reward.type === 'resource' && reward.value) {
+            set((state) => ({
+              player: {
+                ...state.player,
+                totalResources: addResources(state.player.totalResources, reward.value as Resource),
+              },
+            }));
+          } else if (reward && reward.type === 'hero' && typeof reward.value === 'string') {
+            // Find hero by ID and add it
+            // Note: This requires hero data - for now just show notification
+            get().addNotification({
+              type: 'success',
+              title: 'Anh Hùng Mới!',
+              message: `Nhận được anh hùng từ Battle Pass cấp ${level}!`,
+            });
+          } else if (reward && reward.type === 'pet' && typeof reward.value === 'string') {
+            // Find pet by ID and add it
+            // Note: This requires pet data - for now just show notification
+            get().addNotification({
+              type: 'success',
+              title: 'Thú Cưng Mới!',
+              message: `Nhận được thú cưng từ Battle Pass cấp ${level}!`,
+            });
+          }
+
+          get().addNotification({
+            type: 'success',
+            title: 'Nhận Thưởng Thành Công!',
+            message: `Đã nhận phần thưởng Battle Pass cấp ${level}!`,
+          });
+        } catch (error) {
+          get().addNotification({
+            type: 'error',
+            title: 'Lỗi',
+            message: error instanceof Error ? error.message : 'Không thể nhận thưởng',
+          });
+        }
+      },
+
+      upgradeBattlePassPremium: () => {
+        const state = get();
+        if (!state.battlePass) return;
+
+        // Check if player has enough gems (1000 gems required)
+        const gemsRequired = 1000;
+        const currentGems = state.player.totalResources.gems || 0;
+
+        if (currentGems < gemsRequired) {
+          get().addNotification({
+            type: 'error',
+            title: 'Không Đủ Gems',
+            message: `Cần ${gemsRequired} gems để mở khóa Premium. Bạn có ${currentGems} gems.`,
+          });
+          return;
+        }
+
+        // Deduct gems
+        set((state) => ({
+          player: {
+            ...state.player,
+            totalResources: {
+              ...state.player.totalResources,
+              gems: (state.player.totalResources.gems || 0) - gemsRequired,
+            },
+          },
+        }));
+
+        // Upgrade to premium
+        const upgradedBattlePass = upgradeToPremium(state.battlePass);
+        set({ battlePass: upgradedBattlePass });
+
+        get().addNotification({
+          type: 'success',
+          title: 'Premium Đã Mở Khóa!',
+          message: 'Chúc mừng! Bạn đã mở khóa Premium Battle Pass!',
+        });
+      },
+
+      // Gacha System
+      initializeGacha: () => {
+        const newGacha = initializeGachaState();
+        set({ gacha: newGacha });
+        get().addNotification({
+          type: 'info',
+          title: 'Gacha Đã Sẵn Sàng!',
+          message: 'Hệ thống Gacha đã được mở khóa. Bắt đầu triệu hồi ngay!',
+        });
+      },
+
+      performGachaPull: (): PullResult | null => {
+        const state = get();
+        if (!state.gacha) {
+          get().addNotification({
+            type: 'error',
+            title: 'Lỗi',
+            message: 'Hệ thống Gacha chưa sẵn sàng',
+          });
+          return null;
+        }
+
+        const gems = state.player.totalResources.gems || 0;
+        if (gems < SINGLE_PULL_COST) {
+          get().addNotification({
+            type: 'error',
+            title: 'Không Đủ Gems',
+            message: `Cần ${SINGLE_PULL_COST} gems để thực hiện pull`,
+          });
+          return null;
+        }
+
+        // Perform pull
+        const result = performSinglePull(state.gacha);
+        const updatedGacha = updateGachaStateAfterPull(state.gacha, [result], 'single', SINGLE_PULL_COST);
+
+        // Deduct gems
+        set((state) => ({
+          player: {
+            ...state.player,
+            totalResources: {
+              ...state.player.totalResources,
+              gems: (state.player.totalResources.gems || 0) - SINGLE_PULL_COST,
+            },
+          },
+          gacha: updatedGacha,
+        }));
+
+        return result;
+      },
+
+      performGachaTenPull: (): PullResult[] | null => {
+        const state = get();
+        if (!state.gacha) {
+          get().addNotification({
+            type: 'error',
+            title: 'Lỗi',
+            message: 'Hệ thống Gacha chưa sẵn sàng',
+          });
+          return null;
+        }
+
+        const gems = state.player.totalResources.gems || 0;
+        if (gems < TEN_PULL_COST) {
+          get().addNotification({
+            type: 'error',
+            title: 'Không Đủ Gems',
+            message: `Cần ${TEN_PULL_COST} gems để thực hiện 10-pull`,
+          });
+          return null;
+        }
+
+        // Perform 10-pull
+        const results = performTenPull(state.gacha);
+        const updatedGacha = updateGachaStateAfterPull(state.gacha, results, 'ten', TEN_PULL_COST);
+
+        // Deduct gems
+        set((state) => ({
+          player: {
+            ...state.player,
+            totalResources: {
+              ...state.player.totalResources,
+              gems: (state.player.totalResources.gems || 0) - TEN_PULL_COST,
+            },
+          },
+          gacha: updatedGacha,
+        }));
+
+        // Show summary notification
+        const legendaryCount = results.filter(r => r.item.rarity === 'legendary').length;
+        const epicCount = results.filter(r => r.item.rarity === 'epic').length;
+        
+        if (legendaryCount > 0) {
+          get().addNotification({
+            type: 'success',
+            title: 'Huyền Thoại!',
+            message: `Nhận được ${legendaryCount} vật phẩm Huyền Thoại!`,
+          });
+        } else if (epicCount > 0) {
+          get().addNotification({
+            type: 'success',
+            title: 'Sử Thi!',
+            message: `Nhận được ${epicCount} vật phẩm Sử Thi!`,
+          });
+        }
+
+        return results;
+      },
+
+      performDailyFreePull: (): PullResult | null => {
+        const state = get();
+        if (!state.gacha) {
+          get().addNotification({
+            type: 'error',
+            title: 'Lỗi',
+            message: 'Hệ thống Gacha chưa sẵn sàng',
+          });
+          return null;
+        }
+
+        if (!isDailyFreePullAvailable(state.gacha)) {
+          get().addNotification({
+            type: 'error',
+            title: 'Chưa Sẵn Sàng',
+            message: 'Daily free pull chưa được reset. Quay lại sau!',
+          });
+          return null;
+        }
+
+        // Perform free pull
+        const result = performSinglePull(state.gacha);
+        const updatedGacha = updateGachaStateAfterPull(state.gacha, [result], 'free', 0);
+
+        set({ gacha: updatedGacha });
+
+        get().addNotification({
+          type: 'success',
+          title: 'Free Pull!',
+          message: `Nhận được ${result.item.displayName}!`,
+        });
+
+        return result;
+      },
     }),
     {
       name: 'katagame-store',
