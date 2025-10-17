@@ -1,0 +1,250 @@
+{
+  "metadata": {
+    "description": "Mối liên kết giữa các thời kỳ lịch sử và dữ liệu tỉnh thành",
+    "created": "2025-07-22",
+    "version": "1.0"
+  },
+  "lienket": {
+    "thoiky_source": "thoiky.json",
+    "tinhthanh_source": "thoiky_tinhthanh.json",
+    "mapping": [
+      {
+        "period_id": "tien_su",
+        "period_name": "Tiền sử và Nguyên thủy",
+        "time_range": "500,000 năm trước - thế kỷ 10 TCN",
+        "description": "Thời kỳ tiền sử với các văn hóa cổ",
+        "cultural_units": [
+          "Văn hóa Hòa Bình",
+          "Văn hóa Bắc Sơn", 
+          "Văn hóa Đa Bút",
+          "Văn hóa Quỳnh Văn",
+          "Văn hóa Sa Huỳnh",
+          "Văn hóa Óc Eo",
+          "Văn hóa Đồng Nai",
+          "Văn hóa Cái Bèo",
+          "Văn hóa Hạ Long"
+        ]
+      },
+      {
+        "period_id": "hung_vuong",
+        "period_name": "Hùng Vương - Văn Lang, Âu Lạc",
+        "time_range": "thế kỷ 7 TCN - 179 TCN",
+        "description": "Thời kỳ các vua Hùng và vương quốc Âu Lạc",
+        "administrative_units": [
+          "Văn Lang",
+          "Âu Lạc",
+          "Vũ Ninh",
+          "Cửu Chân"
+        ]
+      },
+      {
+        "period_id": "bac_thuoc",
+        "period_name": "Bắc thuộc",
+        "time_range": "179 TCN - 938",
+        "description": "Thời kỳ Bắc thuộc dưới các triều đại Trung Quốc",
+        "administrative_units": [
+          "Giao Chỉ",
+          "Cửu Chân", 
+          "Nhật Nam"
+        ]
+      },
+      {
+        "period_id": "doc_lap_tu_chu",
+        "period_name": "Độc lập Tự chủ",
+        "time_range": "938 - 1009",
+        "description": "Thời kỳ độc lập sau chiến thắng Bạch Đằng",
+        "administrative_units": [
+          "Cổ Loa",
+          "Đại La",
+          "Phong Châu",
+          "Ái Châu"
+        ]
+      },
+      {
+        "period_id": "phong_kien_thinh_tri",
+        "period_name": "Phong kiến Thịnh trị",
+        "time_range": "1009 - 1527",
+        "description": "Thời kỳ phong kiến thịnh trị với các triều đại Lý, Trần, Lê",
+        "administrative_units": [
+          "Thăng Long",
+          "Lộ Kinh Bắc",
+          "Lộ Hải Đông",
+          "Lộ Thiên Trường",
+          "Lộ Tam Đái",
+          "Lộ Hưng Hóa",
+          "Lộ Tuyên Quang",
+          "Lộ Thái Nguyên",
+          "Lộ Nghệ An",
+          "Lộ Thanh Hóa",
+          "Lộ Thuận Hóa",
+          "Lộ Phú Yên"
+        ]
+      },
+      {
+        "period_id": "noi_chien_phan_tranh",
+        "period_name": "Nội chiến và Phân tranh",
+        "time_range": "1527 - 1802",
+        "description": "Thời kỳ chia cắt Đàng Trong - Đàng Ngoài",
+        "regions": [
+          {
+            "name": "Đàng Ngoài",
+            "description": "Miền Bắc dưới quyền các chúa Trịnh",
+            "administrative_units": [
+              "Thăng Long",
+              "Hà Nội",
+              "Bắc Giang",
+              "Bắc Ninh", 
+              "Hải Dương",
+              "Sơn Tây",
+              "Hưng Hóa",
+              "Cao Bằng",
+              "Tuyên Quang",
+              "Thái Nguyên",
+              "Nghệ An",
+              "Hà Tĩnh",
+              "Thanh Hóa",
+              "Nam Định",
+              "Thái Bình"
+            ]
+          },
+          {
+            "name": "Đàng Trong",
+            "description": "Miền Nam dưới quyền các chúa Nguyễn",
+            "administrative_units": [
+              "Quảng Trị",
+              "Quảng Nam",
+              "Quảng Ngãi",
+              "Bình Định",
+              "Phú Yên",
+              "Khánh Hòa",
+              "Gia Định",
+              "Cần Thơ",
+              "Biên Hòa",
+              "Đồng Nai",
+              "Tây Ninh",
+              "Kon Tum",
+              "Đắk Lắk"
+            ]
+          }
+        ]
+      },
+      {
+        "period_id": "nha_nguyen",
+        "period_name": "Nhà Nguyễn",
+        "time_range": "1802 - 1945",
+        "description": "Triều đại Nguyễn thống nhất đất nước",
+        "regions": [
+          {
+            "name": "Bắc Kỳ",
+            "description": "Miền Bắc Việt Nam dưới thời Pháp thuộc",
+            "provinces": [
+              "Hà Nội",
+              "Bắc Giang", 
+              "Bắc Ninh",
+              "Hải Dương",
+              "Cao Bằng",
+              "Tuyên Quang",
+              "Thái Nguyên",
+              "Nghệ An",
+              "Hà Tĩnh",
+              "Thanh Hóa",
+              "Hòa Bình",
+              "Hà Giang",
+              "Lai Châu"
+            ]
+          },
+          {
+            "name": "Trung Kỳ", 
+            "description": "Miền Trung Việt Nam dưới thời Pháp thuộc",
+            "provinces": [
+              "Quảng Trị",
+              "Quảng Nam",
+              "Quảng Ngãi", 
+              "Bình Định",
+              "Phú Yên",
+              "Khánh Hòa",
+              "Kon Tum",
+              "Đắk Lắk"
+            ]
+          },
+          {
+            "name": "Nam Kỳ",
+            "description": "Miền Nam Việt Nam dưới thời Pháp thuộc", 
+            "provinces": [
+              "Gia Định",
+              "Cần Thơ",
+              "Biên Hòa",
+              "Thủ Dầu Một",
+              "Tây Ninh",
+              "Mỹ Tho",
+              "Bến Tre",
+              "Trà Vinh",
+              "Vĩnh Long",
+              "Sa Đéc",
+              "An Giang",
+              "Rạch Giá",
+              "Sóc Trăng",
+              "Bạc Liêu",
+              "Cà Mau"
+            ]
+          }
+        ]
+      },
+      {
+        "period_id": "hien_dai",
+        "period_name": "Hiện đại",
+        "time_range": "1945 - nay",
+        "description": "Thời kỳ hiện đại từ Cách mạng tháng Tám đến nay",
+        "phases": [
+          {
+            "name": "Kháng chiến chống Pháp",
+            "time_range": "1945 - 1954",
+            "description": "Thời kỳ kháng chiến chống thực dân Pháp"
+          },
+          {
+            "name": "Chia cắt đất nước",
+            "time_range": "1954 - 1975", 
+            "description": "Thời kỳ chia cắt Bắc - Nam"
+          },
+          {
+            "name": "Thống nhất và đổi mới",
+            "time_range": "1975 - nay",
+            "description": "Thời kỳ thống nhất đất nước và đổi mới"
+          }
+        ],
+        "current_provinces": [
+          "Hà Nội", "TP. Hồ Chí Minh", "Hải Phòng", "Đà Nẵng", "Cần Thơ",
+          "Hà Giang", "Cao Bằng", "Bắc Kạn", "Tuyên Quang", "Lào Cai",
+          "Điện Biên", "Lai Châu", "Sơn La", "Yên Bái", "Hòa Bình",
+          "Thái Nguyên", "Lạng Sơn", "Quảng Ninh", "Bắc Giang", "Phú Thọ",
+          "Vĩnh Phúc", "Bắc Ninh", "Hải Dương", "Hà Nam", "Hưng Yên",
+          "Thái Bình", "Nam Định", "Ninh Bình", "Thanh Hóa", "Nghệ An",
+          "Hà Tĩnh", "Quảng Bình", "Quảng Trị", "Thừa Thiên Huế",
+          "Quảng Nam", "Quảng Ngãi", "Bình Định", "Phú Yên", "Khánh Hòa",
+          "Ninh Thuận", "Bình Thuận", "Kon Tum", "Gia Lai", "Đắk Lắk",
+          "Đắk Nông", "Lâm Đồng", "Bình Phước", "Tây Ninh", "Bình Dương",
+          "Đồng Nai", "Bà Rịa - Vũng Tàu", "Long An", "Tiền Giang",
+          "Bến Tre", "Trà Vinh", "Vĩnh Long", "Đồng Tháp", "An Giang",
+          "Kiên Giang", "Hậu Giang", "Sóc Trăng", "Bạc Liêu", "Cà Mau"
+        ]
+      }
+    ]
+  },
+  "functions": {
+    "getPeriodByProvince": {
+      "description": "Lấy thông tin các thời kỳ lịch sử của một tỉnh thành",
+      "parameters": ["province_name"],
+      "example": "getPeriodByProvince('Hà Nội')"
+    },
+    "getProvincesByPeriod": {
+      "description": "Lấy danh sách tỉnh thành trong một thời kỳ lịch sử",
+      "parameters": ["period_id"],
+      "example": "getProvincesByPeriod('phong_kien_thinh_tri')"
+    },
+    "getAdministrativeEvolution": {
+      "description": "Theo dõi sự thay đổi hành chính của một vùng địa lý",
+      "parameters": ["region_name"],
+      "example": "getAdministrativeEvolution('Thăng Long')"
+    }
+  }
+}

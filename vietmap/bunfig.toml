@@ -1,0 +1,19 @@
+[install]
+# Install configuration
+auto = true
+cache = true
+# Enable exact versions for better performance
+exact = false
+# Enable global cache
+globalCache = true
+
+[install.scopes]
+# Configuration for scoped packages
+
+[run]
+# Environment variables for running scripts
+bun = true
+
+[dev]
+# Development server configuration
+hot = true

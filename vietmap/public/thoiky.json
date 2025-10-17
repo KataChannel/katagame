@@ -1,0 +1,44 @@
+{
+    "thoiky": [
+        {
+            "id": "tien_su",
+            "ten": "Tiền sử và Nguyên thủy",
+            "thoigian": "500,000 năm trước - thế kỷ 10 TCN"
+        },
+        {
+            "id": "hung_vuong",
+            "ten": "Hùng Vương - Văn Lang, Âu Lạc",
+            "thoigian": "thế kỷ 7 TCN - 179 TCN"
+        },
+        {
+            "id": "bac_thuoc",
+            "ten": "Bắc thuộc",
+            "thoigian": "179 TCN - 938"
+        },
+        {
+            "id": "doc_lap_tu_chu",
+            "ten": "Độc lập Tự chủ",
+            "thoigian": "938 - 1009"
+        },
+        {
+            "id": "phong_kien_thinh_tri",
+            "ten": "Phong kiến Thịnh trị",
+            "thoigian": "1009 - 1527"
+        },
+        {
+            "id": "noi_chien_phan_tranh",
+            "ten": "Nội chiến và Phân tranh",
+            "thoigian": "1527 - 1802"
+        },
+        {
+            "id": "nha_nguyen",
+            "ten": "Nhà Nguyễn",
+            "thoigian": "1802 - 1945"
+        },
+        {
+            "id": "hien_dai",
+            "ten": "Hiện đại",
+            "thoigian": "1945 - nay"
+        }
+    ]
+}
