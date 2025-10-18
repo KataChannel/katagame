@@ -55,6 +55,74 @@ import {
   refillStamina,
   WorldMapState,
 } from './worldMapSystem';
+import {
+  initializeDailyMissionState,
+  updateMissionProgress,
+  claimMissionRewards,
+  checkLoginReward,
+  claimLoginReward,
+  shouldResetDaily,
+  shouldResetWeekly,
+  resetDailyMissions,
+  resetWeeklyMissions,
+  updateEvents,
+  addEvent as addDailyEvent,
+  getActiveEvents,
+  DailyMissionState,
+  MissionType,
+  EventType,
+  MissionReward,
+  createEvent,
+} from './dailyMissionSystem';
+import {
+  initializeFriendSystemState,
+  sendFriendRequest,
+  acceptFriendRequest,
+  declineFriendRequest,
+  removeFriend,
+  sendChatMessage,
+  markMessagesAsRead,
+  sendGiftToFriend,
+  claimGift,
+  claimAllGifts,
+  shouldResetGifts,
+  resetDailyGifts,
+  visitFriendProvince,
+  cleanupExpiredVisits,
+  updateFriendLeaderboard,
+  FriendSystemState,
+  GiftType,
+  DailyGift,
+} from './friendSystem';
+import {
+  initializeEnhancedShopState,
+  shouldRefreshDailyShop,
+  shouldRefreshWeeklyShop,
+  refreshDailyShop,
+  refreshWeeklyShop,
+  purchaseShopItem,
+  purchaseBundle,
+  startFlashSale,
+  updateFlashSales,
+  EnhancedShopState,
+} from './enhancedShopSystem';
+import {
+  initializeCustomizationState,
+  generateHeroSkins,
+  generatePetVariants,
+  unlockHeroSkin,
+  equipHeroSkin,
+  unlockPetVariant,
+  equipPetVariant,
+  unlockProvinceTheme,
+  activateProvinceTheme,
+  switchUITheme,
+  unlockAvatarFrame,
+  equipAvatarFrame,
+  startPreview,
+  endPreview,
+  CustomizationState,
+} from './customizationSystem';
 
 // Helper functions
 const createEmptyResource = (): Resource => ({
@@ -209,6 +277,52 @@ interface GameStore extends GameState {
   startExpedition: (floor: number, heroes: Hero[], autoMode?: boolean) => { success: boolean; error?: string };
   completeExpedition: (heroes: Hero[]) => { success: boolean; result?: 'victory' | 'defeat'; rewards?: any[]; error?: string };
   refillStaminaWithGems: (amount: number) => void;
+  // Daily Mission System
+  dailyMissionState?: DailyMissionState;
+  initializeDailyMissions: () => void;
+  updateMission: (type: MissionType, amount?: number) => void;
+  claimMissionReward: (missionId: string) => { success: boolean; rewards?: MissionReward[]; error?: string };
+  claimDailyLoginReward: (dayNumber: number) => { success: boolean; rewards?: MissionReward[]; error?: string };
+  checkAndResetMissions: () => void;
+  startEvent: (type: EventType, durationHours: number) => void;
+  // Friend System
+  friendSystemState?: FriendSystemState;
+  initializeFriendSystem: () => void;
+  sendFriendRequestAction: (toPlayerId: string, message?: string) => void;
+  acceptFriendRequestAction: (requestId: string) => void;
+  declineFriendRequestAction: (requestId: string) => void;
+  removeFriendAction: (friendId: string) => void;
+  sendChatMessageAction: (toPlayerId: string, message: string) => void;
+  markChatAsRead: (friendId: string) => void;
+  sendGiftAction: (friendId: string, giftType: GiftType, message?: string) => void;
+  claimGiftAction: (giftId: string) => void;
+  claimAllGiftsAction: () => void;
+  visitFriendProvinceAction: (friendId: string, provinceId: string, helpType: 'production' | 'defense' | 'speedup') => void;
+  updateFriendLeaderboardAction: () => void;
+  checkAndResetFriendGifts: () => void;
+  // Enhanced Shop System
+  enhancedShopState?: EnhancedShopState;
+  initializeEnhancedShop: () => void;
+  purchaseShopItemAction: (itemId: string, shopType: 'daily' | 'weekly' | 'flash') => void;
+  purchaseBundleAction: (bundleId: string) => void;
+  checkAndRefreshShops: () => void;
+  startFlashSaleAction: () => void;
+  // Customization System
+  customizationState?: CustomizationState;
+  initializeCustomization: () => void;
+  generateHeroSkinsForHero: (heroId: string, heroType: 'warrior' | 'archer' | 'mage') => void;
+  generatePetVariantsForPet: (petId: string, petType: 'dragon' | 'phoenix') => void;
+  unlockHeroSkinAction: (skinId: string) => void;
+  equipHeroSkinAction: (skinId: string) => void;
+  unlockPetVariantAction: (variantId: string) => void;
+  equipPetVariantAction: (variantId: string) => void;
+  unlockProvinceThemeAction: (themeId: string) => void;
+  activateProvinceThemeAction: (themeId: string) => void;
+  switchUIThemeAction: (theme: 'light' | 'dark') => void;
+  unlockAvatarFrameAction: (frameId: string) => void;
+  equipAvatarFrameAction: (frameId: string) => void;
+  startPreviewAction: (type: 'skin' | 'variant' | 'theme' | 'frame', itemId: string) => void;
+  endPreviewAction: () => void;
 }
 
 export const useGameStore = create<GameStore>()(
@@ -231,6 +345,10 @@ export const useGameStore = create<GameStore>()(
       guildState: undefined,
       arenaState: undefined,
       worldMapState: undefined,
+      dailyMissionState: undefined,
+      friendSystemState: undefined,
+      enhancedShopState: undefined,
+      customizationState: undefined,
       notifications: [],
 
       addNotification: (notification) => {
@@ -604,6 +722,9 @@ export const useGameStore = create<GameStore>()(
               : hero
           ),
         }));
+        
+        // Update daily mission progress
+        get().updateMission('upgrade_hero', 1);
       },
 
       // MVP 2: Pet Management
@@ -657,6 +778,9 @@ export const useGameStore = create<GameStore>()(
               totalResources: addResources(state.player.totalResources, result.rewards),
             },
           }));
+          
+          // Update daily mission progress
+          get().updateMission('win_battles', 1);
         }
       },
 
@@ -862,6 +986,9 @@ export const useGameStore = create<GameStore>()(
           },
           gacha: updatedGacha,
         }));
+        
+        // Update daily mission progress
+        get().updateMission('gacha_pull', 1);
 
         return result;
       },
@@ -1148,6 +1275,9 @@ export const useGameStore = create<GameStore>()(
             title: 'Quyên Góp Thành Công',
             message: `Đã quyên góp tài nguyên cho guild!`,
           });
+          
+          // Update daily mission progress
+          get().updateMission('donate_guild', 1);
         } catch (error) {
           get().addNotification({
             type: 'error',
@@ -1424,6 +1554,11 @@ export const useGameStore = create<GameStore>()(
             title: result.battle.result === 'win' ? '🎉 Chiến Thắng!' : '😔 Thất Bại',
             message: `Rating: ${result.battle.ratingChange > 0 ? '+' : ''}${result.battle.ratingChange} • Coins: +${result.battle.rewardCoins}`,
           });
+          
+          // Update daily mission progress if won
+          if (result.battle.result === 'win') {
+            get().updateMission('win_arena', 1);
+          }
         }
 
         return result;
@@ -1579,6 +1714,9 @@ export const useGameStore = create<GameStore>()(
             title: '🎉 Chiến Thắng Boss!',
             message: `Đã đánh bại ${boss?.name}! +${result.rewards?.length || 0} phần thưởng`,
           });
+          
+          // Update daily mission progress
+          get().updateMission('challenge_boss', 1);
         } else {
           get().addNotification({
             type: 'warning',
@@ -1655,6 +1793,9 @@ export const useGameStore = create<GameStore>()(
             title: '🎉 Thám Hiểm Thành Công!',
             message: `+${result.rewards?.length || 0} phần thưởng đã nhận!`,
           });
+          
+          // Update daily mission progress
+          get().updateMission('complete_expeditions', 1);
         } else {
           get().addNotification({
             type: 'warning',
@@ -1705,6 +1846,1316 @@ export const useGameStore = create<GameStore>()(
           title: 'Nạp Stamina',
           message: `Đã nạp ${amount} stamina! -${gemCost} gems`,
         });
+      },
+
+      // ============= DAILY MISSION SYSTEM =============
+
+      initializeDailyMissions: () => {
+        const state = get();
+        
+        if (state.dailyMissionState) {
+          // Check if reset needed
+          get().checkAndResetMissions();
+          return;
+        }
+
+        const dailyMissionState = initializeDailyMissionState();
+        
+        set({
+          dailyMissionState,
+        });
+
+        get().addNotification({
+          type: 'success',
+          title: '🎯 Nhiệm Vụ Mới!',
+          message: 'Nhiệm vụ hàng ngày đã được tạo!',
+        });
+      },
+
+      updateMission: (type: MissionType, amount: number = 1) => {
+        const state = get();
+        
+        if (!state.dailyMissionState) {
+          return;
+        }
+
+        const updatedState = updateMissionProgress(state.dailyMissionState, type, amount);
+        
+        set({
+          dailyMissionState: updatedState,
+        });
+      },
+
+      claimMissionReward: (missionId: string) => {
+        const state = get();
+        
+        if (!state.dailyMissionState) {
+          return { success: false, error: 'Chưa khởi tạo hệ thống nhiệm vụ' };
+        }
+
+        const result = claimMissionRewards(state.dailyMissionState, missionId);
+        
+        if (!result.success) {
+          get().addNotification({
+            type: 'error',
+            title: 'Không Thể Nhận Thưởng',
+            message: result.error || 'Đã xảy ra lỗi!',
+          });
+          return result;
+        }
+
+        // Add rewards to player
+        const rewards = result.rewards!;
+        let updatedResources = { ...state.player.totalResources };
+
+        rewards.forEach((reward) => {
+          switch (reward.type) {
+            case 'gold':
+              updatedResources.gold += reward.quantity;
+              break;
+            case 'gems':
+              updatedResources.gems = (updatedResources.gems || 0) + reward.quantity;
+              break;
+            case 'exp':
+              // EXP handled through addExperience method
+              get().addExperience(reward.quantity);
+              break;
+            case 'hero_fragment':
+              // Add hero fragments (simplified)
+              break;
+            case 'pet_egg':
+              // Add pet egg (simplified)
+              break;
+            case 'culture':
+              updatedResources.culture += reward.quantity;
+              break;
+            case 'stamina':
+              if (state.worldMapState) {
+                const updatedStamina = refillStamina(state.worldMapState.stamina, reward.quantity);
+                set({
+                  worldMapState: {
+                    ...state.worldMapState,
+                    stamina: updatedStamina,
+                  },
+                });
+              }
+              break;
+          }
+        });
+
+        set({
+          dailyMissionState: result.state,
+          player: {
+            ...state.player,
+            totalResources: updatedResources,
+          },
+        });
+
+        get().addNotification({
+          type: 'success',
+          title: '🎉 Nhận Thưởng Thành Công!',
+          message: `Đã nhận ${rewards.length} phần thưởng!`,
+        });
+
+        return { success: true, rewards };
+      },
+
+      claimDailyLoginReward: (dayNumber: number) => {
+        const state = get();
+        
+        if (!state.dailyMissionState) {
+          return { success: false, error: 'Chưa khởi tạo hệ thống nhiệm vụ' };
+        }
+
+        // Check login first
+        const loginCheck = checkLoginReward(state.dailyMissionState);
+        
+        const result = claimLoginReward(state.dailyMissionState, dayNumber);
+        
+        if (!result.success) {
+          get().addNotification({
+            type: 'error',
+            title: 'Không Thể Nhận Thưởng',
+            message: result.error || 'Đã xảy ra lỗi!',
+          });
+          return result;
+        }
+
+        // Add rewards to player
+        const rewards = result.rewards!;
+        let updatedResources = { ...state.player.totalResources };
+
+        rewards.forEach((reward) => {
+          switch (reward.type) {
+            case 'gold':
+              updatedResources.gold += reward.quantity;
+              break;
+            case 'gems':
+              updatedResources.gems = (updatedResources.gems || 0) + reward.quantity;
+              break;
+            case 'exp':
+              // EXP handled through addExperience method
+              get().addExperience(reward.quantity);
+              break;
+            case 'hero_fragment':
+              // Add hero fragments (simplified)
+              break;
+            case 'pet_egg':
+              // Add pet egg (simplified)
+              break;
+            case 'culture':
+              updatedResources.culture += reward.quantity;
+              break;
+            case 'stamina':
+              if (state.worldMapState) {
+                const updatedStamina = refillStamina(state.worldMapState.stamina, reward.quantity);
+                set({
+                  worldMapState: {
+                    ...state.worldMapState,
+                    stamina: updatedStamina,
+                  },
+                });
+              }
+              break;
+          }
+        });
+
+        set({
+          dailyMissionState: result.state!,
+          player: {
+            ...state.player,
+            totalResources: updatedResources,
+          },
+        });
+
+        get().addNotification({
+          type: 'success',
+          title: `🔥 Điểm Danh Ngày ${dayNumber}!`,
+          message: `Streak: ${result.state!.loginRewards.currentStreak} ngày!`,
+        });
+
+        return { success: true, rewards };
+      },
+
+      checkAndResetMissions: () => {
+        const state = get();
+        
+        if (!state.dailyMissionState) {
+          return;
+        }
+
+        let updated = { ...state.dailyMissionState };
+        let resetOccurred = false;
+
+        // Check daily reset
+        if (shouldResetDaily(updated.lastDailyReset)) {
+          updated = resetDailyMissions(updated);
+          resetOccurred = true;
+          
+          get().addNotification({
+            type: 'info',
+            title: '🌅 Nhiệm Vụ Mới!',
+            message: 'Nhiệm vụ hàng ngày đã được làm mới!',
+          });
+        }
+
+        // Check weekly reset
+        if (shouldResetWeekly(updated.lastWeeklyReset)) {
+          updated = resetWeeklyMissions(updated);
+          resetOccurred = true;
+          
+          get().addNotification({
+            type: 'info',
+            title: '📅 Nhiệm Vụ Tuần Mới!',
+            message: 'Nhiệm vụ hàng tuần đã được làm mới!',
+          });
+        }
+
+        // Update events
+        updated = updateEvents(updated);
+
+        if (resetOccurred) {
+          set({
+            dailyMissionState: updated,
+          });
+        }
+      },
+
+      startEvent: (type: EventType, durationHours: number) => {
+        const state = get();
+        
+        if (!state.dailyMissionState) {
+          return;
+        }
+
+        const newEvent = createEvent(type, durationHours);
+        const updatedState = addDailyEvent(state.dailyMissionState, newEvent);
+
+        set({
+          dailyMissionState: updatedState,
+        });
+
+        get().addNotification({
+          type: 'success',
+          title: '🎉 Sự Kiện Mới!',
+          message: `${newEvent.name} đã bắt đầu!`,
+        });
+      },
+
+      // ============= FRIEND SYSTEM =============
+
+      initializeFriendSystem: () => {
+        const state = get();
+        
+        if (state.friendSystemState) {
+          // Already initialized, just cleanup expired visits
+          const cleaned = cleanupExpiredVisits(state.friendSystemState);
+          set({ friendSystemState: cleaned });
+          return;
+        }
+
+        const friendSystemState = initializeFriendSystemState();
+        
+        set({ friendSystemState });
+
+        get().addNotification({
+          type: 'success',
+          title: '👥 Hệ Thống Bạn Bè',
+          message: 'Đã khởi tạo hệ thống bạn bè!',
+        });
+      },
+
+      sendFriendRequestAction: (toPlayerId: string, message?: string) => {
+        const state = get();
+        
+        if (!state.friendSystemState) {
+          return;
+        }
+
+        const result = sendFriendRequest(
+          state.friendSystemState,
+          state.player.id,
+          state.player.name,
+          state.player.level,
+          0, // Player power (would calculate from heroes/pets)
+          toPlayerId,
+          message
+        );
+
+        if (!result.success) {
+          get().addNotification({
+            type: 'error',
+            title: 'Không Thể Gửi Lời Mời',
+            message: result.error || 'Đã xảy ra lỗi!',
+          });
+          return;
+        }
+
+        set({ friendSystemState: result.state });
+
+        get().addNotification({
+          type: 'success',
+          title: '📤 Đã Gửi Lời Mời',
+          message: 'Lời mời kết bạn đã được gửi!',
+        });
+      },
+
+      acceptFriendRequestAction: (requestId: string) => {
+        const state = get();
+        
+        if (!state.friendSystemState) {
+          return;
+        }
+
+        const result = acceptFriendRequest(state.friendSystemState, requestId, state.player.id);
+
+        if (!result.success) {
+          get().addNotification({
+            type: 'error',
+            title: 'Không Thể Chấp Nhận',
+            message: result.error || 'Đã xảy ra lỗi!',
+          });
+          return;
+        }
+
+        set({ friendSystemState: result.state });
+
+        get().addNotification({
+          type: 'success',
+          title: '🎉 Kết Bạn Thành Công!',
+          message: 'Bạn đã có thêm người bạn mới!',
+        });
+      },
+
+      declineFriendRequestAction: (requestId: string) => {
+        const state = get();
+        
+        if (!state.friendSystemState) {
+          return;
+        }
+
+        const result = declineFriendRequest(state.friendSystemState, requestId);
+
+        if (!result.success) {
+          get().addNotification({
+            type: 'error',
+            title: 'Lỗi',
+            message: result.error || 'Đã xảy ra lỗi!',
+          });
+          return;
+        }
+
+        set({ friendSystemState: result.state });
+      },
+
+      removeFriendAction: (friendId: string) => {
+        const state = get();
+        
+        if (!state.friendSystemState) {
+          return;
+        }
+
+        const result = removeFriend(state.friendSystemState, friendId);
+
+        if (!result.success) {
+          get().addNotification({
+            type: 'error',
+            title: 'Không Thể Xóa',
+            message: result.error || 'Đã xảy ra lỗi!',
+          });
+          return;
+        }
+
+        set({ friendSystemState: result.state });
+
+        get().addNotification({
+          type: 'info',
+          title: 'Đã Xóa Bạn Bè',
+          message: 'Đã xóa khỏi danh sách bạn bè!',
+        });
+      },
+
+      sendChatMessageAction: (toPlayerId: string, message: string) => {
+        const state = get();
+        
+        if (!state.friendSystemState) {
+          return;
+        }
+
+        const result = sendChatMessage(
+          state.friendSystemState,
+          state.player.id,
+          state.player.name,
+          toPlayerId,
+          message
+        );
+
+        if (!result.success) {
+          get().addNotification({
+            type: 'error',
+            title: 'Không Thể Gửi',
+            message: result.error || 'Đã xảy ra lỗi!',
+          });
+          return;
+        }
+
+        set({ friendSystemState: result.state });
+      },
+
+      markChatAsRead: (friendId: string) => {
+        const state = get();
+        
+        if (!state.friendSystemState) {
+          return;
+        }
+
+        const updatedState = markMessagesAsRead(state.friendSystemState, friendId);
+        set({ friendSystemState: updatedState });
+      },
+
+      sendGiftAction: (friendId: string, giftType: GiftType, message?: string) => {
+        const state = get();
+        
+        if (!state.friendSystemState) {
+          return;
+        }
+
+        const result = sendGiftToFriend(
+          state.friendSystemState,
+          state.player.id,
+          state.player.name,
+          friendId,
+          giftType,
+          message
+        );
+
+        if (!result.success) {
+          get().addNotification({
+            type: 'error',
+            title: 'Không Thể Tặng Quà',
+            message: result.error || 'Đã xảy ra lỗi!',
+          });
+          return;
+        }
+
+        set({ friendSystemState: result.state });
+
+        get().addNotification({
+          type: 'success',
+          title: '🎁 Đã Gửi Quà!',
+          message: 'Quà tặng đã được gửi đến bạn bè!',
+        });
+      },
+
+      claimGiftAction: (giftId: string) => {
+        const state = get();
+        
+        if (!state.friendSystemState) {
+          return;
+        }
+
+        const result = claimGift(state.friendSystemState, giftId);
+
+        if (!result.success) {
+          get().addNotification({
+            type: 'error',
+            title: 'Không Thể Nhận',
+            message: result.error || 'Đã xảy ra lỗi!',
+          });
+          return;
+        }
+
+        // Add gift rewards to player
+        const gift = result.gift!;
+        let updatedResources = { ...state.player.totalResources };
+
+        switch (gift.giftType) {
+          case 'gold':
+            updatedResources.gold += gift.quantity;
+            break;
+          case 'gems':
+            updatedResources.gems = (updatedResources.gems || 0) + gift.quantity;
+            break;
+          case 'stamina':
+            if (state.worldMapState) {
+              const updatedStamina = refillStamina(state.worldMapState.stamina, gift.quantity);
+              set({
+                worldMapState: {
+                  ...state.worldMapState,
+                  stamina: updatedStamina,
+                },
+              });
+            }
+            break;
+          case 'hero_fragment':
+            // Add hero fragments (simplified)
+            break;
+          case 'pet_egg':
+            // Add pet egg (simplified)
+            break;
+        }
+
+        set({
+          friendSystemState: result.state,
+          player: {
+            ...state.player,
+            totalResources: updatedResources,
+          },
+        });
+
+        get().addNotification({
+          type: 'success',
+          title: '🎁 Đã Nhận Quà!',
+          message: `Đã nhận quà từ ${gift.fromPlayerName}!`,
+        });
+      },
+
+      claimAllGiftsAction: () => {
+        const state = get();
+        
+        if (!state.friendSystemState) {
+          return;
+        }
+
+        const result = claimAllGifts(state.friendSystemState);
+
+        if (!result.success) {
+          get().addNotification({
+            type: 'error',
+            title: 'Không Thể Nhận',
+            message: result.error || 'Đã xảy ra lỗi!',
+          });
+          return;
+        }
+
+        // Add all gift rewards to player
+        const gifts = result.gifts!;
+        let updatedResources = { ...state.player.totalResources };
+        let totalStamina = 0;
+
+        gifts.forEach((gift) => {
+          switch (gift.giftType) {
+            case 'gold':
+              updatedResources.gold += gift.quantity;
+              break;
+            case 'gems':
+              updatedResources.gems = (updatedResources.gems || 0) + gift.quantity;
+              break;
+            case 'stamina':
+              totalStamina += gift.quantity;
+              break;
+          }
+        });
+
+        // Apply stamina if any
+        if (totalStamina > 0 && state.worldMapState) {
+          const updatedStamina = refillStamina(state.worldMapState.stamina, totalStamina);
+          set({
+            worldMapState: {
+              ...state.worldMapState,
+              stamina: updatedStamina,
+            },
+          });
+        }
+
+        set({
+          friendSystemState: result.state,
+          player: {
+            ...state.player,
+            totalResources: updatedResources,
+          },
+        });
+
+        get().addNotification({
+          type: 'success',
+          title: '🎉 Nhận Tất Cả Quà!',
+          message: `Đã nhận ${gifts.length} món quà!`,
+        });
+      },
+
+      visitFriendProvinceAction: (friendId: string, provinceId: string, helpType: 'production' | 'defense' | 'speedup') => {
+        const state = get();
+        
+        if (!state.friendSystemState) {
+          return;
+        }
+
+        const result = visitFriendProvince(
+          state.friendSystemState,
+          state.player.id,
+          state.player.name,
+          friendId,
+          provinceId,
+          helpType
+        );
+
+        if (!result.success) {
+          get().addNotification({
+            type: 'error',
+            title: 'Không Thể Viếng Thăm',
+            message: result.error || 'Đã xảy ra lỗi!',
+          });
+          return;
+        }
+
+        set({ friendSystemState: result.state });
+
+        get().addNotification({
+          type: 'success',
+          title: '👋 Viếng Thăm Thành Công!',
+          message: `Bạn đã giúp đỡ bạn bè trong 60 phút!`,
+        });
+      },
+
+      updateFriendLeaderboardAction: () => {
+        const state = get();
+        
+        if (!state.friendSystemState) {
+          return;
+        }
+
+        const updatedState = updateFriendLeaderboard(
+          state.friendSystemState,
+          state.friendSystemState.friends,
+          {
+            level: state.player.level,
+            power: 0, // Would calculate from heroes/pets
+            achievements: 0,
+            guildName: state.guildState?.currentGuild?.name,
+            arenaRank: state.arenaState?.player?.rating,
+          }
+        );
+
+        set({ friendSystemState: updatedState });
+      },
+
+      checkAndResetFriendGifts: () => {
+        const state = get();
+        
+        if (!state.friendSystemState) {
+          return;
+        }
+
+        if (shouldResetGifts(state.friendSystemState.lastGiftReset)) {
+          const updatedState = resetDailyGifts(state.friendSystemState);
+          
+          set({ friendSystemState: updatedState });
+          
+          get().addNotification({
+            type: 'info',
+            title: '🎁 Làm Mới Quà Tặng',
+            message: 'Có thể gửi quà cho bạn bè!',
+          });
+        }
+      },
+
+      // Enhanced Shop System Methods
+      initializeEnhancedShop: () => {
+        const state = get();
+        
+        if (state.enhancedShopState) {
+          return;
+        }
+
+        const newState = initializeEnhancedShopState();
+        set({ enhancedShopState: newState });
+        
+        get().addNotification({
+          type: 'success',
+          title: '🏪 Cửa Hàng Đã Mở',
+          message: 'Khám phá các ưu đãi đặc biệt!',
+        });
+      },
+
+      purchaseShopItemAction: (itemId: string, shopType: 'daily' | 'weekly' | 'flash') => {
+        const state = get();
+        
+        if (!state.enhancedShopState) {
+          get().addNotification({
+            type: 'error',
+            title: '❌ Lỗi',
+            message: 'Cửa hàng chưa được khởi tạo',
+          });
+          return;
+        }
+
+        const result = purchaseShopItem(
+          state.enhancedShopState,
+          itemId,
+          shopType,
+          { gold: state.player.totalResources.gold, gems: state.player.totalResources.gems || 0 }
+        );
+
+        if (!result.success) {
+          get().addNotification({
+            type: 'error',
+            title: '❌ Mua Thất Bại',
+            message: result.error || 'Không thể mua vật phẩm',
+          });
+          return;
+        }
+
+        // Update shop state
+        set({ enhancedShopState: result.state });
+
+        // Deduct currency from player
+        const item = shopType === 'daily' 
+          ? state.enhancedShopState.dailyShop.items.find(i => i.id === itemId)
+          : shopType === 'weekly'
+          ? state.enhancedShopState.weeklyShop.items.find(i => i.id === itemId)
+          : state.enhancedShopState.flashSales.find(s => s.active)?.items.find(i => i.id === itemId);
+
+        if (item) {
+          const vipDiscount = state.enhancedShopState.vipSystem.benefits.shopDiscountPercent;
+          const finalPrice = Math.floor(item.currentPrice * (1 - vipDiscount / 100));
+          
+          if (item.currency === 'gold') {
+            set((state) => ({
+              player: {
+                ...state.player,
+                totalResources: {
+                  ...state.player.totalResources,
+                  gold: state.player.totalResources.gold - finalPrice,
+                },
+              },
+            }));
+          } else if (item.currency === 'gems') {
+            set((state) => ({
+              player: {
+                ...state.player,
+                totalResources: {
+                  ...state.player.totalResources,
+                  gems: (state.player.totalResources.gems || 0) - finalPrice,
+                },
+              },
+            }));
+          }
+        }
+
+        // Add rewards to player
+        if (result.rewards) {
+          const rewards = result.rewards;
+          set((state) => ({
+            player: {
+              ...state.player,
+              totalResources: {
+                ...state.player.totalResources,
+                gold: state.player.totalResources.gold + (rewards.gold || 0),
+                gems: (state.player.totalResources.gems || 0) + (rewards.gems || 0),
+              },
+            },
+          }));
+
+          // Handle stamina
+          if (rewards.stamina && state.worldMapState) {
+            const updatedStamina = refillStamina(state.worldMapState.stamina, rewards.stamina);
+            set({ worldMapState: { ...state.worldMapState, stamina: updatedStamina } });
+          }
+
+          get().addNotification({
+            type: 'success',
+            title: '✅ Mua Thành Công',
+            message: `Đã mua ${item?.name}!`,
+          });
+        }
+      },
+
+      purchaseBundleAction: (bundleId: string) => {
+        const state = get();
+        
+        if (!state.enhancedShopState) {
+          get().addNotification({
+            type: 'error',
+            title: '❌ Lỗi',
+            message: 'Cửa hàng chưa được khởi tạo',
+          });
+          return;
+        }
+
+        const result = purchaseBundle(
+          state.enhancedShopState,
+          bundleId,
+          { gems: state.player.totalResources.gems || 0 }
+        );
+
+        if (!result.success) {
+          get().addNotification({
+            type: 'error',
+            title: '❌ Mua Thất Bại',
+            message: result.error || 'Không thể mua gói',
+          });
+          return;
+        }
+
+        // Update shop state
+        set({ enhancedShopState: result.state });
+
+        // Deduct gems from player
+        const bundle = state.enhancedShopState.bundles.find(b => b.id === bundleId);
+        if (bundle) {
+          const vipDiscount = state.enhancedShopState.vipSystem.benefits.shopDiscountPercent;
+          const finalPrice = Math.floor(bundle.currentPrice * (1 - vipDiscount / 100));
+          
+          set((state) => ({
+            player: {
+              ...state.player,
+              totalResources: {
+                ...state.player.totalResources,
+                gems: (state.player.totalResources.gems || 0) - finalPrice,
+              },
+            },
+          }));
+        }
+
+        // Add rewards to player
+        if (result.rewards) {
+          const rewards = result.rewards;
+          set((state) => ({
+            player: {
+              ...state.player,
+              totalResources: {
+                ...state.player.totalResources,
+                gold: state.player.totalResources.gold + (rewards.gold || 0),
+                gems: (state.player.totalResources.gems || 0) + (rewards.gems || 0),
+              },
+            },
+          }));
+
+          // Handle stamina
+          if (rewards.stamina && state.worldMapState) {
+            const updatedStamina = refillStamina(state.worldMapState.stamina, rewards.stamina);
+            set({ worldMapState: { ...state.worldMapState, stamina: updatedStamina } });
+          }
+
+          get().addNotification({
+            type: 'success',
+            title: '✅ Mua Gói Thành Công',
+            message: `Đã mua ${bundle?.name}!`,
+          });
+        }
+      },
+
+      checkAndRefreshShops: () => {
+        const state = get();
+        
+        if (!state.enhancedShopState) {
+          return;
+        }
+
+        let updated = state.enhancedShopState;
+        let didRefresh = false;
+
+        // Check daily shop
+        if (shouldRefreshDailyShop(updated)) {
+          updated = refreshDailyShop(updated);
+          didRefresh = true;
+          get().addNotification({
+            type: 'info',
+            title: '🏪 Cửa Hàng Ngày Đã Làm Mới',
+            message: 'Kiểm tra các vật phẩm mới!',
+          });
+        }
+
+        // Check weekly shop
+        if (shouldRefreshWeeklyShop(updated)) {
+          updated = refreshWeeklyShop(updated);
+          didRefresh = true;
+          get().addNotification({
+            type: 'info',
+            title: '🏪 Cửa Hàng Tuần Đã Làm Mới',
+            message: 'Khám phá ưu đãi tuần mới!',
+          });
+        }
+
+        // Update flash sales
+        updated = updateFlashSales(updated);
+
+        if (didRefresh || updated !== state.enhancedShopState) {
+          set({ enhancedShopState: updated });
+        }
+      },
+
+      startFlashSaleAction: () => {
+        const state = get();
+        
+        if (!state.enhancedShopState) {
+          get().addNotification({
+            type: 'error',
+            title: '❌ Lỗi',
+            message: 'Cửa hàng chưa được khởi tạo',
+          });
+          return;
+        }
+
+        const updatedState = startFlashSale(state.enhancedShopState);
+        set({ enhancedShopState: updatedState });
+
+        get().addNotification({
+          type: 'success',
+          title: '⚡ Flash Sale Đã Bắt Đầu',
+          message: 'Giảm giá lên đến 80% trong 2 giờ!',
+        });
+      },
+
+      // ========================================
+      // Customization System Actions
+      // ========================================
+
+      initializeCustomization: () => {
+        const state = get();
+        if (state.customizationState) {
+          return; // Already initialized
+        }
+
+        const newState = initializeCustomizationState();
+        set({ customizationState: newState });
+
+        get().addNotification({
+          type: 'success',
+          title: '🎨 Tùy Chỉnh Đã Mở',
+          message: 'Bắt đầu cá nhân hóa trải nghiệm!',
+        });
+      },
+
+      generateHeroSkinsForHero: (heroId: string, heroType: 'warrior' | 'archer' | 'mage') => {
+        const state = get();
+        if (!state.customizationState) {
+          get().initializeCustomization();
+          return;
+        }
+
+        const newSkins = generateHeroSkins(heroId, heroType);
+        set((state) => ({
+          customizationState: {
+            ...state.customizationState!,
+            heroSkins: [...state.customizationState!.heroSkins, ...newSkins],
+          },
+        }));
+      },
+
+      generatePetVariantsForPet: (petId: string, petType: 'dragon' | 'phoenix') => {
+        const state = get();
+        if (!state.customizationState) {
+          get().initializeCustomization();
+          return;
+        }
+
+        const newVariants = generatePetVariants(petId, petType);
+        set((state) => ({
+          customizationState: {
+            ...state.customizationState!,
+            petVariants: [...state.customizationState!.petVariants, ...newVariants],
+          },
+        }));
+      },
+
+      unlockHeroSkinAction: (skinId: string) => {
+        const state = get();
+        if (!state.customizationState) {
+          get().addNotification({
+            type: 'error',
+            title: '❌ Lỗi',
+            message: 'Hệ thống tùy chỉnh chưa được khởi tạo',
+          });
+          return;
+        }
+
+        const result = unlockHeroSkin(
+          state.customizationState,
+          skinId,
+          {
+            gems: state.player.totalResources.gems || 0,
+            gold: state.player.totalResources.gold,
+          }
+        );
+
+        if (!result.success) {
+          get().addNotification({
+            type: 'error',
+            title: '❌ Không Thể Mở Khóa',
+            message: result.error || 'Không đủ tài nguyên',
+          });
+          return;
+        }
+
+        if (result.state) {
+          set({ customizationState: result.state });
+        }
+
+        // Deduct cost
+        if (result.cost) {
+          set((state) => ({
+            player: {
+              ...state.player,
+              totalResources: {
+                ...state.player.totalResources,
+                gems: (state.player.totalResources.gems || 0) - (result.cost!.gems || 0),
+                gold: state.player.totalResources.gold - (result.cost!.gold || 0),
+              },
+            },
+          }));
+        }
+
+        get().addNotification({
+          type: 'success',
+          title: '✨ Mở Khóa Thành Công',
+          message: 'Trang phục đã được mở khóa!',
+        });
+      },
+
+      equipHeroSkinAction: (skinId: string) => {
+        const state = get();
+        if (!state.customizationState) {
+          return;
+        }
+
+        const result = equipHeroSkin(state.customizationState, skinId);
+        if (result.success && result.state) {
+          set({ customizationState: result.state });
+          get().addNotification({
+            type: 'success',
+            title: '✅ Đã Trang Bị',
+            message: 'Trang phục đã được trang bị!',
+          });
+        } else {
+          get().addNotification({
+            type: 'error',
+            title: '❌ Lỗi',
+            message: result.error || 'Không thể trang bị',
+          });
+        }
+      },
+
+      unlockPetVariantAction: (variantId: string) => {
+        const state = get();
+        if (!state.customizationState) {
+          get().addNotification({
+            type: 'error',
+            title: '❌ Lỗi',
+            message: 'Hệ thống tùy chỉnh chưa được khởi tạo',
+          });
+          return;
+        }
+
+        // TODO: Get petEggs from player resources
+        const result = unlockPetVariant(
+          state.customizationState,
+          variantId,
+          {
+            gems: state.player.totalResources.gems || 0,
+            petEggs: 0, // TODO: Add to player resources
+          }
+        );
+
+        if (!result.success) {
+          get().addNotification({
+            type: 'error',
+            title: '❌ Không Thể Mở Khóa',
+            message: result.error || 'Không đủ tài nguyên',
+          });
+          return;
+        }
+
+        if (result.state) {
+          set({ customizationState: result.state });
+        }
+
+        // Deduct cost
+        if (result.cost) {
+          set((state) => ({
+            player: {
+              ...state.player,
+              totalResources: {
+                ...state.player.totalResources,
+                gems: (state.player.totalResources.gems || 0) - (result.cost!.gems || 0),
+              },
+            },
+          }));
+        }
+
+        get().addNotification({
+          type: 'success',
+          title: '✨ Mở Khóa Thành Công',
+          message: 'Màu sắc mới đã được mở khóa!',
+        });
+      },
+
+      equipPetVariantAction: (variantId: string) => {
+        const state = get();
+        if (!state.customizationState) {
+          return;
+        }
+
+        const result = equipPetVariant(state.customizationState, variantId);
+        if (result.success && result.state) {
+          set({ customizationState: result.state });
+          get().addNotification({
+            type: 'success',
+            title: '✅ Đã Trang Bị',
+            message: 'Màu sắc đã được áp dụng!',
+          });
+        } else {
+          get().addNotification({
+            type: 'error',
+            title: '❌ Lỗi',
+            message: result.error || 'Không thể trang bị',
+          });
+        }
+      },
+
+      unlockProvinceThemeAction: (themeId: string) => {
+        const state = get();
+        if (!state.customizationState) {
+          get().addNotification({
+            type: 'error',
+            title: '❌ Lỗi',
+            message: 'Hệ thống tùy chỉnh chưa được khởi tạo',
+          });
+          return;
+        }
+
+        const result = unlockProvinceTheme(
+          state.customizationState,
+          themeId,
+          {
+            gems: state.player.totalResources.gems || 0,
+            gold: state.player.totalResources.gold,
+          }
+        );
+
+        if (!result.success) {
+          get().addNotification({
+            type: 'error',
+            title: '❌ Không Thể Mở Khóa',
+            message: result.error || 'Không đủ tài nguyên',
+          });
+          return;
+        }
+
+        if (result.state) {
+          set({ customizationState: result.state });
+        }
+
+        // Deduct cost
+        if (result.cost) {
+          set((state) => ({
+            player: {
+              ...state.player,
+              totalResources: {
+                ...state.player.totalResources,
+                gems: (state.player.totalResources.gems || 0) - (result.cost!.gems || 0),
+                gold: state.player.totalResources.gold - (result.cost!.gold || 0),
+              },
+            },
+          }));
+        }
+
+        get().addNotification({
+          type: 'success',
+          title: '✨ Mở Khóa Thành Công',
+          message: 'Chủ đề mới đã được mở khóa!',
+        });
+      },
+
+      activateProvinceThemeAction: (themeId: string) => {
+        const state = get();
+        if (!state.customizationState) {
+          return;
+        }
+
+        const result = activateProvinceTheme(state.customizationState, themeId);
+        if (result.success && result.state) {
+          set({ customizationState: result.state });
+          get().addNotification({
+            type: 'success',
+            title: '✅ Đã Áp Dụng',
+            message: 'Chủ đề đã được áp dụng!',
+          });
+        } else {
+          get().addNotification({
+            type: 'error',
+            title: '❌ Lỗi',
+            message: result.error || 'Không thể áp dụng',
+          });
+        }
+      },
+
+      switchUIThemeAction: (theme: 'light' | 'dark') => {
+        const state = get();
+        if (!state.customizationState) {
+          get().initializeCustomization();
+        }
+
+        const result = switchUITheme(state.customizationState!, theme);
+        if (result.success && result.state) {
+          set({ customizationState: result.state });
+          get().addNotification({
+            type: 'success',
+            title: theme === 'dark' ? '🌙 Giao Diện Tối' : '☀️ Giao Diện Sáng',
+            message: 'Đã chuyển giao diện!',
+          });
+        }
+      },
+
+      unlockAvatarFrameAction: (frameId: string) => {
+        const state = get();
+        if (!state.customizationState) {
+          get().addNotification({
+            type: 'error',
+            title: '❌ Lỗi',
+            message: 'Hệ thống tùy chỉnh chưa được khởi tạo',
+          });
+          return;
+        }
+
+        // TODO: Get achievement points from player
+        const result = unlockAvatarFrame(
+          state.customizationState,
+          frameId,
+          {
+            gems: state.player.totalResources.gems || 0,
+            achievementPoints: 0, // TODO: Add to player
+          }
+        );
+
+        if (!result.success) {
+          get().addNotification({
+            type: 'error',
+            title: '❌ Không Thể Mở Khóa',
+            message: result.error || 'Không đủ tài nguyên',
+          });
+          return;
+        }
+
+        if (result.state) {
+          set({ customizationState: result.state });
+        }
+
+        // Deduct cost
+        if (result.cost) {
+          set((state) => ({
+            player: {
+              ...state.player,
+              totalResources: {
+                ...state.player.totalResources,
+                gems: (state.player.totalResources.gems || 0) - (result.cost!.gems || 0),
+              },
+            },
+          }));
+        }
+
+        get().addNotification({
+          type: 'success',
+          title: '✨ Mở Khóa Thành Công',
+          message: 'Khung avatar đã được mở khóa!',
+        });
+      },
+
+      equipAvatarFrameAction: (frameId: string) => {
+        const state = get();
+        if (!state.customizationState) {
+          return;
+        }
+
+        const result = equipAvatarFrame(state.customizationState, frameId);
+        if (result.success && result.state) {
+          set({ customizationState: result.state });
+          get().addNotification({
+            type: 'success',
+            title: '✅ Đã Trang Bị',
+            message: 'Khung avatar đã được trang bị!',
+          });
+        } else {
+          get().addNotification({
+            type: 'error',
+            title: '❌ Lỗi',
+            message: result.error || 'Không thể trang bị',
+          });
+        }
+      },
+
+      startPreviewAction: (type: 'skin' | 'variant' | 'theme' | 'frame', itemId: string) => {
+        const state = get();
+        if (!state.customizationState) {
+          return;
+        }
+
+        const result = startPreview(state.customizationState, type, itemId);
+        if (result.success && result.state) {
+          set({ customizationState: result.state });
+        }
+      },
+
+      endPreviewAction: () => {
+        const state = get();
+        if (!state.customizationState) {
+          return;
+        }
+
+        const result = endPreview(state.customizationState);
+        if (result.success && result.state) {
+          set({ customizationState: result.state });
+        }
       },
     }),
     {

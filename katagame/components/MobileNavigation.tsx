@@ -1,12 +1,12 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Home, Crown, ShoppingCart, Book, Trophy, Settings, Swords, Users as UsersIcon, Sparkles, Gem, Shield, Map } from 'lucide-react';
+import { Home, Crown, ShoppingCart, Book, Trophy, Settings, Swords, Users as UsersIcon, Sparkles, Gem, Shield, Map, Target, UserPlus, Palette, BarChart3 } from 'lucide-react';
 import { touchTargets, colors, zIndex, animations } from '@/lib/mobileDesignSystem';
 
 interface MobileBottomNavProps {
-  activeTab: 'game' | 'premium' | 'shop' | 'culture' | 'achievements' | 'settings' | 'combat' | 'heroes' | 'pets' | 'battlepass' | 'gacha' | 'guild' | 'arena' | 'worldmap';
-  onTabChange: (tab: 'game' | 'premium' | 'shop' | 'culture' | 'achievements' | 'settings' | 'combat' | 'heroes' | 'pets' | 'battlepass' | 'gacha' | 'guild' | 'arena' | 'worldmap') => void;
+  activeTab: 'game' | 'premium' | 'shop' | 'culture' | 'achievements' | 'settings' | 'combat' | 'heroes' | 'pets' | 'battlepass' | 'gacha' | 'guild' | 'arena' | 'worldmap' | 'missions' | 'friends' | 'enhancedshop' | 'customization' | 'analytics';
+  onTabChange: (tab: 'game' | 'premium' | 'shop' | 'culture' | 'achievements' | 'settings' | 'combat' | 'heroes' | 'pets' | 'battlepass' | 'gacha' | 'guild' | 'arena' | 'worldmap' | 'missions' | 'friends' | 'enhancedshop' | 'customization' | 'analytics') => void;
   className?: string;
 }
 
@@ -15,9 +15,14 @@ const navItems = [
   { key: 'combat', label: 'Chiến Đấu', icon: Swords, color: '#dc2626' },
   { key: 'heroes', label: 'Anh Hùng', icon: UsersIcon, color: '#7c3aed' },
   { key: 'worldmap', label: 'Bản Đồ', icon: Map, color: '#10b981' },
+  { key: 'missions', label: 'Nhiệm Vụ', icon: Target, color: '#f59e0b' },
+  { key: 'friends', label: 'Bạn Bè', icon: UserPlus, color: '#3b82f6' },
+  { key: 'enhancedshop', label: 'Cửa Hàng', icon: ShoppingCart, color: '#8b5cf6' },
+  { key: 'customization', label: 'Tùy Chỉnh', icon: Palette, color: '#ec4899' },
+  { key: 'analytics', label: 'Analytics', icon: BarChart3, color: '#06b6d4' },
   { key: 'arena', label: 'Arena', icon: Trophy, color: '#ef4444' },
   { key: 'gacha', label: 'Gacha', icon: Gem, color: '#a855f7' },
-  { key: 'battlepass', label: 'Battle Pass', icon: Sparkles, color: '#ec4899' },
+  { key: 'battlepass', label: 'Battle Pass', icon: Sparkles, color: '#d946ef' },
   { key: 'guild', label: 'Guild', icon: Shield, color: '#f59e0b' },
 ] as const;
 

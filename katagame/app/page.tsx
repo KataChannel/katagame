@@ -28,12 +28,30 @@ import GachaTab from '@/components/GachaTab';
 import GuildTab from '@/components/GuildTab';
 import ArenaTab from '@/components/ArenaTab';
 import WorldMapTab from '@/components/WorldMapTab';
+import DailyMissionsTab from '@/components/DailyMissionsTab';
+import FriendsTab from '@/components/FriendsTab';
+import EnhancedShopTab from '@/components/EnhancedShopTab';
+import CustomizationTab from '@/components/CustomizationTab';
+import AnalyticsTab from '@/components/AnalyticsTab';
+import { ErrorBoundary as AppErrorBoundary } from '@/components/ErrorBoundary';
+import { initializeStorageOptimization } from '@/lib/storageOptimization';
 
 export default function Game() {
-  const [activeTab, setActiveTab] = useState<'game' | 'premium' | 'shop' | 'culture' | 'achievements' | 'settings' | 'combat' | 'heroes' | 'pets' | 'battlepass' | 'gacha' | 'guild' | 'arena' | 'worldmap'>('game');
+  const [activeTab, setActiveTab] = useState<'game' | 'premium' | 'shop' | 'culture' | 'achievements' | 'settings' | 'combat' | 'heroes' | 'pets' | 'battlepass' | 'gacha' | 'guild' | 'arena' | 'worldmap' | 'missions' | 'friends' | 'enhancedshop' | 'customization' | 'analytics'>('game');
   const [showTutorial, setShowTutorial] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const { player, provinces, gameSpeed, setGameSpeed, tutorial, completeTutorial, notifications } = useGameStore();
+  const { 
+    player, 
+    provinces, 
+    gameSpeed, 
+    setGameSpeed, 
+    tutorial, 
+    completeTutorial, 
+    notifications,
+    checkAndResetMissions,
+    checkAndResetFriendGifts,
+    checkAndRefreshShops,
+  } = useGameStore();
   const { NotificationComponent } = useNotifications();
 
   useEffect(() => {
@@ -47,10 +65,20 @@ export default function Game() {
       if (!tutorial.completed && player.level === 1 && player.experience === 0) {
         setTimeout(() => setShowTutorial(true), 500);
       }
+      
+      // Check and reset missions on app start
+      checkAndResetMissions();
+      
+      // Check and reset friend gifts
+      checkAndResetFriendGifts();
+      
+      // Check and refresh shops
+      checkAndRefreshShops();
+      initializeStorageOptimization();
     };
     
     initGame();
-  }, [tutorial.completed, player.level, player.experience]);
+  }, [tutorial.completed, player.level, player.experience, checkAndResetMissions]);
 
   const handleCompleteTutorial = () => {
     completeTutorial();
@@ -198,6 +226,11 @@ export default function Game() {
         {activeTab === 'arena' && <ArenaTab />}
         
         {activeTab === 'worldmap' && <WorldMapTab />}
+        {activeTab === 'missions' && <DailyMissionsTab />}
+        {activeTab === 'friends' && <FriendsTab />}
+        {activeTab === 'enhancedshop' && <EnhancedShopTab />}
+        {activeTab === 'customization' && <CustomizationTab />}
+        {activeTab === 'analytics' && <AnalyticsTab />}
         
         {activeTab === 'culture' && <CultureCenter />}
         
