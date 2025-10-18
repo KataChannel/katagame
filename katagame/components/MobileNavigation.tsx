@@ -1,22 +1,24 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Home, Crown, ShoppingCart, Book, Trophy, Settings, Swords, Users, Sparkles, Gem } from 'lucide-react';
+import { Home, Crown, ShoppingCart, Book, Trophy, Settings, Swords, Users as UsersIcon, Sparkles, Gem, Shield, Map } from 'lucide-react';
 import { touchTargets, colors, zIndex, animations } from '@/lib/mobileDesignSystem';
 
 interface MobileBottomNavProps {
-  activeTab: 'game' | 'premium' | 'shop' | 'culture' | 'achievements' | 'settings' | 'combat' | 'heroes' | 'pets' | 'battlepass' | 'gacha';
-  onTabChange: (tab: 'game' | 'premium' | 'shop' | 'culture' | 'achievements' | 'settings' | 'combat' | 'heroes' | 'pets' | 'battlepass' | 'gacha') => void;
+  activeTab: 'game' | 'premium' | 'shop' | 'culture' | 'achievements' | 'settings' | 'combat' | 'heroes' | 'pets' | 'battlepass' | 'gacha' | 'guild' | 'arena' | 'worldmap';
+  onTabChange: (tab: 'game' | 'premium' | 'shop' | 'culture' | 'achievements' | 'settings' | 'combat' | 'heroes' | 'pets' | 'battlepass' | 'gacha' | 'guild' | 'arena' | 'worldmap') => void;
   className?: string;
 }
 
 const navItems = [
   { key: 'game', label: 'Game', icon: Home, color: colors.primary[500] },
   { key: 'combat', label: 'Chiến Đấu', icon: Swords, color: '#dc2626' },
-  { key: 'heroes', label: 'Anh Hùng', icon: Users, color: '#7c3aed' },
+  { key: 'heroes', label: 'Anh Hùng', icon: UsersIcon, color: '#7c3aed' },
+  { key: 'worldmap', label: 'Bản Đồ', icon: Map, color: '#10b981' },
+  { key: 'arena', label: 'Arena', icon: Trophy, color: '#ef4444' },
   { key: 'gacha', label: 'Gacha', icon: Gem, color: '#a855f7' },
-  { key: 'battlepass', label: 'Battle Pass', icon: Trophy, color: '#ec4899' },
-  { key: 'achievements', label: 'Thành Tích', icon: Crown, color: colors.warning[500] },
+  { key: 'battlepass', label: 'Battle Pass', icon: Sparkles, color: '#ec4899' },
+  { key: 'guild', label: 'Guild', icon: Shield, color: '#f59e0b' },
 ] as const;
 
 export default function MobileBottomNav({ activeTab, onTabChange, className = '' }: MobileBottomNavProps) {

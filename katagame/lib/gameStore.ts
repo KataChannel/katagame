@@ -23,6 +23,38 @@ import {
   TEN_PULL_COST,
   PullResult,
 } from './gachaSystem';
+import {
+  createGuild,
+  GuildState,
+  GUILD_CREATE_COST,
+  donateToGuild as guildDonate,
+  upgradeGuildBuff as guildUpgradeBuff,
+  purchaseGuildShopItem,
+  claimGuildQuestRewards,
+  createGuildWar,
+  addGuildExp,
+} from './guildSystem';
+import {
+  initializeArenaState,
+  generateMatchmakingOpponents,
+  processArenaBattle,
+  setDefenseTeam as arenaSetDefense,
+  purchaseArenaShopItem,
+  checkDailyReset,
+  ArenaState,
+} from './arenaSystem';
+import {
+  initializeWorldMapState,
+  unlockProvince as worldUnlockProvince,
+  completeProvince as worldCompleteProvince,
+  travelToProvince as worldTravelProvince,
+  challengeBoss,
+  startExpedition,
+  completeExpedition,
+  updateStamina,
+  refillStamina,
+  WorldMapState,
+} from './worldMapSystem';
 
 // Helper functions
 const createEmptyResource = (): Resource => ({
@@ -152,6 +184,31 @@ interface GameStore extends GameState {
   performGachaPull: () => PullResult | null;
   performGachaTenPull: () => PullResult[] | null;
   performDailyFreePull: () => PullResult | null;
+  // Guild System
+  guildState?: GuildState;
+  initializeGuild: () => void;
+  createNewGuild: (name: string, tag: string, description: string, icon: string) => void;
+  leaveGuild: () => void;
+  donateToGuild: (resources: Resource) => void;
+  upgradeGuildBuff: (buffId: string) => void;
+  purchaseFromGuildShop: (itemId: string) => void;
+  claimGuildQuest: (questId: string) => void;
+  startGuildWar: (opponentGuildId: string) => void;
+  // Arena System
+  arenaState?: ArenaState;
+  initializeArena: () => void;
+  findArenaOpponents: () => void;
+  attackArenaOpponent: (opponentId: string, attackHeroes: Hero[]) => { success: boolean; battle?: any; error?: string };
+  setArenaDefense: (heroIds: string[]) => void;
+  purchaseFromArenaShop: (itemId: string) => void;
+  // World Map System
+  worldMapState?: WorldMapState;
+  initializeWorldMap: () => void;
+  travelToProvince: (provinceId: string) => void;
+  challengeBoss: (provinceId: string, heroes: Hero[]) => { success: boolean; result?: 'victory' | 'defeat'; rewards?: any[]; error?: string };
+  startExpedition: (floor: number, heroes: Hero[], autoMode?: boolean) => { success: boolean; error?: string };
+  completeExpedition: (heroes: Hero[]) => { success: boolean; result?: 'victory' | 'defeat'; rewards?: any[]; error?: string };
+  refillStaminaWithGems: (amount: number) => void;
 }
 
 export const useGameStore = create<GameStore>()(
@@ -171,6 +228,9 @@ export const useGameStore = create<GameStore>()(
       battlePass: undefined,
       combatHistory: [],
       gacha: undefined,
+      guildState: undefined,
+      arenaState: undefined,
+      worldMapState: undefined,
       notifications: [],
 
       addNotification: (notification) => {
@@ -897,6 +957,754 @@ export const useGameStore = create<GameStore>()(
         });
 
         return result;
+      },
+
+      // === Guild System Methods ===
+      initializeGuild: () => {
+        const state = get();
+        if (!state.guildState) {
+          set({
+            guildState: {
+              currentGuild: undefined,
+              guildId: undefined,
+              myRole: undefined,
+              joinRequests: [],
+              myApplications: [],
+              chatMessages: [],
+              unreadChatCount: 0,
+              lastChatCheck: Date.now(),
+            },
+          });
+        }
+      },
+
+      createNewGuild: (name: string, tag: string, description: string, icon: string) => {
+        const state = get();
+        
+        // Check if player already in a guild
+        if (state.guildState?.currentGuild) {
+          get().addNotification({
+            type: 'error',
+            title: 'Lỗi',
+            message: 'Bạn đã ở trong một guild!',
+          });
+          return;
+        }
+
+        // Check if player has enough gems
+        const gems = state.player.totalResources.gems || 0;
+        if (gems < GUILD_CREATE_COST) {
+          get().addNotification({
+            type: 'error',
+            title: 'Không Đủ Gems',
+            message: `Cần ${GUILD_CREATE_COST} gems để tạo guild!`,
+          });
+          return;
+        }
+
+        // Create new guild with correct parameters
+        const newGuild = createGuild(
+          state.player.id,
+          state.player.name,
+          state.player.level,
+          name,
+          tag,
+          description,
+          icon
+        );
+
+        // Deduct gems
+        const newResources = {
+          ...state.player.totalResources,
+          gems: gems - GUILD_CREATE_COST,
+        };
+
+        // Update state
+        set({
+          player: {
+            ...state.player,
+            totalResources: newResources,
+          },
+          guildState: {
+            currentGuild: newGuild,
+            guildId: newGuild.id,
+            myRole: 'leader',
+            joinRequests: [],
+            myApplications: [],
+            chatMessages: [],
+            unreadChatCount: 0,
+            lastChatCheck: Date.now(),
+          },
+        });
+
+        get().addNotification({
+          type: 'success',
+          title: 'Guild Đã Tạo!',
+          message: `Chào mừng đến ${newGuild.name} [${newGuild.tag}]!`,
+        });
+      },
+
+      leaveGuild: () => {
+        const state = get();
+        
+        if (!state.guildState?.currentGuild) {
+          return;
+        }
+
+        const guild = state.guildState.currentGuild;
+        
+        // Leaders cannot leave (they must disband or transfer leadership)
+        if (state.guildState.myRole === 'leader') {
+          get().addNotification({
+            type: 'error',
+            title: 'Không Thể Rời',
+            message: 'Guild Leader không thể rời guild. Hãy chuyển giao quyền lãnh đạo hoặc giải tán guild.',
+          });
+          return;
+        }
+
+        // Confirm leave
+        const confirmed = window.confirm(`Bạn có chắc muốn rời khỏi ${guild.name}?`);
+        if (!confirmed) return;
+
+        // Remove from guild
+        set({
+          guildState: {
+            currentGuild: undefined,
+            guildId: undefined,
+            myRole: undefined,
+            joinRequests: [],
+            myApplications: [],
+            chatMessages: [],
+            unreadChatCount: 0,
+            lastChatCheck: Date.now(),
+          },
+        });
+
+        get().addNotification({
+          type: 'info',
+          title: 'Đã Rời Guild',
+          message: `Bạn đã rời khỏi ${guild.name}`,
+        });
+      },
+
+      donateToGuild: (resources: Resource) => {
+        const state = get();
+        
+        if (!state.guildState?.currentGuild) {
+          get().addNotification({
+            type: 'error',
+            title: 'Lỗi',
+            message: 'Bạn chưa tham gia guild!',
+          });
+          return;
+        }
+
+        // Check if player has enough resources
+        const playerResources = state.player.totalResources;
+        if (
+          playerResources.gold < resources.gold ||
+          playerResources.rice < resources.rice ||
+          playerResources.lumber < resources.lumber ||
+          playerResources.stone < resources.stone ||
+          playerResources.culture < resources.culture
+        ) {
+          get().addNotification({
+            type: 'error',
+            title: 'Không Đủ Tài Nguyên',
+            message: 'Bạn không đủ tài nguyên để quyên góp!',
+          });
+          return;
+        }
+
+        try {
+          const member = state.guildState.currentGuild.members.find(
+            m => m.playerId === state.player.id
+          );
+          
+          if (!member) {
+            throw new Error('Không tìm thấy thành viên');
+          }
+
+          // Donate to guild
+          const donationResult = guildDonate(state.guildState.currentGuild, state.player.id, resources);
+
+          // Deduct resources from player
+          const newResources = subtractResources(playerResources, resources);
+
+          set({
+            player: {
+              ...state.player,
+              totalResources: newResources,
+            },
+            guildState: {
+              ...state.guildState,
+              currentGuild: donationResult.guild,
+            },
+          });
+
+          get().addNotification({
+            type: 'success',
+            title: 'Quyên Góp Thành Công',
+            message: `Đã quyên góp tài nguyên cho guild!`,
+          });
+        } catch (error) {
+          get().addNotification({
+            type: 'error',
+            title: 'Lỗi',
+            message: error instanceof Error ? error.message : 'Không thể quyên góp',
+          });
+        }
+      },
+
+      upgradeGuildBuff: (buffId: string) => {
+        const state = get();
+        
+        if (!state.guildState?.currentGuild) {
+          get().addNotification({
+            type: 'error',
+            title: 'Lỗi',
+            message: 'Bạn chưa tham gia guild!',
+          });
+          return;
+        }
+
+        try {
+          const updatedGuild = guildUpgradeBuff(state.guildState.currentGuild, buffId);
+
+          set({
+            guildState: {
+              ...state.guildState,
+              currentGuild: updatedGuild,
+            },
+          });
+
+          get().addNotification({
+            type: 'success',
+            title: 'Nâng Cấp Thành Công',
+            message: 'Đã nâng cấp buff guild!',
+          });
+        } catch (error) {
+          get().addNotification({
+            type: 'error',
+            title: 'Lỗi',
+            message: error instanceof Error ? error.message : 'Không thể nâng cấp buff',
+          });
+        }
+      },
+
+      purchaseFromGuildShop: (itemId: string) => {
+        const state = get();
+        
+        if (!state.guildState?.currentGuild) {
+          get().addNotification({
+            type: 'error',
+            title: 'Lỗi',
+            message: 'Bạn chưa tham gia guild!',
+          });
+          return;
+        }
+
+        const member = state.guildState.currentGuild.members.find(
+          m => m.playerId === state.player.id
+        );
+        
+        if (!member) {
+          get().addNotification({
+            type: 'error',
+            title: 'Lỗi',
+            message: 'Không tìm thấy thành viên!',
+          });
+          return;
+        }
+
+        const result = purchaseGuildShopItem(state.guildState.currentGuild, member, itemId);
+
+        if (!result.success) {
+          get().addNotification({
+            type: 'error',
+            title: 'Lỗi',
+            message: result.error || 'Không thể mua vật phẩm',
+          });
+          return;
+        }
+
+        if (result.updatedGuild) {
+          set({
+            guildState: {
+              ...state.guildState,
+              currentGuild: result.updatedGuild,
+            },
+          });
+
+          get().addNotification({
+            type: 'success',
+            title: 'Mua Thành Công',
+            message: 'Đã mua vật phẩm từ Guild Shop!',
+          });
+        }
+      },
+
+      claimGuildQuest: (questId: string) => {
+        const state = get();
+        
+        if (!state.guildState?.currentGuild) {
+          get().addNotification({
+            type: 'error',
+            title: 'Lỗi',
+            message: 'Bạn chưa tham gia guild!',
+          });
+          return;
+        }
+
+        const result = claimGuildQuestRewards(state.guildState.currentGuild, questId);
+
+        if (!result.success) {
+          get().addNotification({
+            type: 'error',
+            title: 'Lỗi',
+            message: result.error || 'Không thể nhận thưởng',
+          });
+          return;
+        }
+
+        if (result.updatedGuild) {
+          set({
+            guildState: {
+              ...state.guildState,
+              currentGuild: result.updatedGuild,
+            },
+          });
+
+          get().addNotification({
+            type: 'success',
+            title: 'Nhận Thưởng Thành Công',
+            message: 'Đã nhận phần thưởng nhiệm vụ guild!',
+          });
+        }
+      },
+
+      startGuildWar: (opponentGuildId: string) => {
+        const state = get();
+        
+        if (!state.guildState?.currentGuild) {
+          get().addNotification({
+            type: 'error',
+            title: 'Lỗi',
+            message: 'Bạn chưa tham gia guild!',
+          });
+          return;
+        }
+
+        if (state.guildState.myRole !== 'leader') {
+          get().addNotification({
+            type: 'error',
+            title: 'Không Có Quyền',
+            message: 'Chỉ Guild Master mới có thể bắt đầu Guild War!',
+          });
+          return;
+        }
+
+        if (state.guildState.currentGuild.activeWar) {
+          get().addNotification({
+            type: 'error',
+            title: 'Lỗi',
+            message: 'Guild đang trong một trận chiến tranh!',
+          });
+          return;
+        }
+
+        const newWar = createGuildWar(
+          state.guildState.currentGuild.id,
+          opponentGuildId,
+          72 // 72 hours
+        );
+
+        set({
+          guildState: {
+            ...state.guildState,
+            currentGuild: {
+              ...state.guildState.currentGuild,
+              activeWar: newWar,
+            },
+          },
+        });
+
+        get().addNotification({
+          type: 'success',
+          title: 'Chiến Tranh Bắt Đầu!',
+          message: 'Guild War đã bắt đầu! Thời gian: 72 giờ',
+        });
+      },
+
+      // ============================================================================
+      // ARENA SYSTEM METHODS
+      // ============================================================================
+
+      initializeArena: () => {
+        const state = get();
+        if (state.arenaState) return; // Already initialized
+
+        const newArenaState = initializeArenaState(
+          state.player.id,
+          state.player.name,
+          state.player.level
+        );
+
+        set({ arenaState: newArenaState });
+
+        get().addNotification({
+          type: 'info',
+          title: 'Đấu Trường Mở!',
+          message: 'Chào mừng đến với Arena PvP! Bắt đầu chiến đấu để leo rank.',
+        });
+      },
+
+      findArenaOpponents: () => {
+        const state = get();
+        
+        if (!state.arenaState) {
+          get().initializeArena();
+          return;
+        }
+
+        // Check daily reset
+        const resetState = checkDailyReset(state.arenaState);
+
+        // Generate new opponents
+        const newOpponents = generateMatchmakingOpponents(
+          resetState.player.rating,
+          resetState.player.playerLevel
+        );
+
+        set({
+          arenaState: {
+            ...resetState,
+            matchedOpponents: newOpponents,
+          },
+        });
+
+        get().addNotification({
+          type: 'success',
+          title: 'Tìm Đối Thủ',
+          message: `Đã tìm thấy ${newOpponents.length} đối thủ phù hợp!`,
+        });
+      },
+
+      attackArenaOpponent: (opponentId: string, attackHeroes: Hero[]) => {
+        const state = get();
+        
+        if (!state.arenaState) {
+          get().addNotification({
+            type: 'error',
+            title: 'Lỗi',
+            message: 'Chưa khởi tạo Arena!',
+          });
+          return { success: false, error: 'Chưa khởi tạo Arena!' };
+        }
+
+        const result = processArenaBattle(state.arenaState, opponentId, attackHeroes);
+
+        if (!result.success) {
+          get().addNotification({
+            type: 'error',
+            title: 'Không Thể Chiến Đấu',
+            message: result.error || 'Đã xảy ra lỗi!',
+          });
+          return result;
+        }
+
+        // Update state
+        set({ arenaState: result.updatedState });
+
+        // Add notification
+        if (result.battle) {
+          get().addNotification({
+            type: result.battle.result === 'win' ? 'success' : 'info',
+            title: result.battle.result === 'win' ? '🎉 Chiến Thắng!' : '😔 Thất Bại',
+            message: `Rating: ${result.battle.ratingChange > 0 ? '+' : ''}${result.battle.ratingChange} • Coins: +${result.battle.rewardCoins}`,
+          });
+        }
+
+        return result;
+      },
+
+      setArenaDefense: (heroIds: string[]) => {
+        const state = get();
+        
+        if (!state.arenaState) {
+          get().addNotification({
+            type: 'error',
+            title: 'Lỗi',
+            message: 'Chưa khởi tạo Arena!',
+          });
+          return;
+        }
+
+        const result = arenaSetDefense(
+          state.arenaState,
+          heroIds,
+          state.heroes || []
+        );
+
+        if (!result.success) {
+          get().addNotification({
+            type: 'error',
+            title: 'Không Thể Lưu',
+            message: result.error || 'Đã xảy ra lỗi!',
+          });
+          return;
+        }
+
+        set({ arenaState: result.updatedState });
+
+        get().addNotification({
+          type: 'success',
+          title: 'Đội Phòng Thủ Đã Lưu',
+          message: `Đã cài đặt ${heroIds.length} heroes cho đội phòng thủ!`,
+        });
+      },
+
+      purchaseFromArenaShop: (itemId: string) => {
+        const state = get();
+        
+        if (!state.arenaState) {
+          get().addNotification({
+            type: 'error',
+            title: 'Lỗi',
+            message: 'Chưa khởi tạo Arena!',
+          });
+          return;
+        }
+
+        const result = purchaseArenaShopItem(state.arenaState, itemId);
+
+        if (!result.success) {
+          get().addNotification({
+            type: 'error',
+            title: 'Không Thể Mua',
+            message: result.error || 'Đã xảy ra lỗi!',
+          });
+          return;
+        }
+
+        set({ arenaState: result.updatedState });
+
+        get().addNotification({
+          type: 'success',
+          title: 'Mua Thành Công!',
+          message: `Đã mua ${result.item?.displayName}!`,
+        });
+      },
+
+      // World Map System Methods
+      initializeWorldMap: () => {
+        const state = get();
+        
+        if (state.worldMapState) {
+          return; // Already initialized
+        }
+
+        const worldMapState = initializeWorldMapState(state.player.level);
+
+        set({ worldMapState });
+
+        get().addNotification({
+          type: 'success',
+          title: 'Bản Đồ Mở!',
+          message: 'Khám phá 63 tỉnh thành Việt Nam!',
+        });
+      },
+
+      travelToProvince: (provinceId: string) => {
+        const state = get();
+        
+        if (!state.worldMapState) {
+          get().initializeWorldMap();
+          return;
+        }
+
+        const result = worldTravelProvince(state.worldMapState, provinceId);
+
+        if (!result.success) {
+          get().addNotification({
+            type: 'error',
+            title: 'Không Thể Di Chuyển',
+            message: result.error || 'Đã xảy ra lỗi!',
+          });
+          return;
+        }
+
+        set({ worldMapState: result.state });
+
+        const province = result.state!.provinces.find((p: any) => p.id === provinceId);
+        get().addNotification({
+          type: 'info',
+          title: 'Di Chuyển',
+          message: `Đã đến ${province?.name}!`,
+        });
+      },
+
+      challengeBoss: (provinceId: string, heroes: Hero[]) => {
+        const state = get();
+        
+        if (!state.worldMapState) {
+          get().addNotification({
+            type: 'error',
+            title: 'Lỗi',
+            message: 'Chưa khởi tạo Bản Đồ!',
+          });
+          return { success: false, error: 'World map not initialized' };
+        }
+
+        const result = challengeBoss(state.worldMapState, provinceId, heroes);
+
+        if (!result.success) {
+          get().addNotification({
+            type: 'error',
+            title: 'Thách Đấu Thất Bại',
+            message: result.error || 'Đã xảy ra lỗi!',
+          });
+          return result;
+        }
+
+        set({ worldMapState: result.state });
+
+        const province = state.worldMapState.provinces.find((p: any) => p.id === provinceId);
+        const boss = province?.boss;
+
+        if (result.result === 'victory') {
+          get().addNotification({
+            type: 'success',
+            title: '🎉 Chiến Thắng Boss!',
+            message: `Đã đánh bại ${boss?.name}! +${result.rewards?.length || 0} phần thưởng`,
+          });
+        } else {
+          get().addNotification({
+            type: 'warning',
+            title: '😔 Thất Bại',
+            message: `Thua ${boss?.name}. Hãy nâng cấp tướng và thử lại!`,
+          });
+        }
+
+        return result;
+      },
+
+      startExpedition: (floor: number, heroes: Hero[], autoMode: boolean = false) => {
+        const state = get();
+        
+        if (!state.worldMapState) {
+          get().addNotification({
+            type: 'error',
+            title: 'Lỗi',
+            message: 'Chưa khởi tạo Bản Đồ!',
+          });
+          return { success: false, error: 'World map not initialized' };
+        }
+
+        const result = startExpedition(state.worldMapState, floor, heroes, autoMode);
+
+        if (!result.success) {
+          get().addNotification({
+            type: 'error',
+            title: 'Không Thể Thám Hiểm',
+            message: result.error || 'Đã xảy ra lỗi!',
+          });
+          return result;
+        }
+
+        set({ worldMapState: result.state });
+
+        get().addNotification({
+          type: 'info',
+          title: '⚔️ Bắt Đầu Thám Hiểm',
+          message: `Tầng ${floor} - ${autoMode ? 'Chế độ tự động' : 'Thủ công'}`,
+        });
+
+        return result;
+      },
+
+      completeExpedition: (heroes: Hero[]) => {
+        const state = get();
+        
+        if (!state.worldMapState) {
+          get().addNotification({
+            type: 'error',
+            title: 'Lỗi',
+            message: 'Chưa khởi tạo Bản Đồ!',
+          });
+          return { success: false, error: 'World map not initialized' };
+        }
+
+        const result = completeExpedition(state.worldMapState, heroes);
+
+        if (!result.success) {
+          get().addNotification({
+            type: 'error',
+            title: 'Lỗi Thám Hiểm',
+            message: result.error || 'Đã xảy ra lỗi!',
+          });
+          return result;
+        }
+
+        set({ worldMapState: result.state });
+
+        if (result.result === 'victory') {
+          get().addNotification({
+            type: 'success',
+            title: '🎉 Thám Hiểm Thành Công!',
+            message: `+${result.rewards?.length || 0} phần thưởng đã nhận!`,
+          });
+        } else {
+          get().addNotification({
+            type: 'warning',
+            title: '😔 Thám Hiểm Thất Bại',
+            message: 'Sức mạnh không đủ. Hãy nâng cấp tướng!',
+          });
+        }
+
+        return result;
+      },
+
+      refillStaminaWithGems: (amount: number) => {
+        const state = get();
+        
+        if (!state.worldMapState) {
+          return;
+        }
+
+        const gemCost = amount * 10; // 10 gems per stamina
+        
+        if (state.player.totalResources.gems! < gemCost) {
+          get().addNotification({
+            type: 'error',
+            title: 'Không Đủ Gems',
+            message: `Cần ${gemCost} gems để nạp ${amount} stamina!`,
+          });
+          return;
+        }
+
+        const updatedStamina = refillStamina(state.worldMapState.stamina, amount);
+
+        set({
+          worldMapState: {
+            ...state.worldMapState,
+            stamina: updatedStamina,
+          },
+          player: {
+            ...state.player,
+            totalResources: {
+              ...state.player.totalResources,
+              gems: state.player.totalResources.gems! - gemCost,
+            },
+          },
+        });
+
+        get().addNotification({
+          type: 'success',
+          title: 'Nạp Stamina',
+          message: `Đã nạp ${amount} stamina! -${gemCost} gems`,
+        });
       },
     }),
     {

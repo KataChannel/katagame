@@ -25,9 +25,12 @@ import HeroesTab from '@/components/HeroesTab';
 import PetsTab from '@/components/PetsTab';
 import BattlePassTab from '@/components/BattlePassTab';
 import GachaTab from '@/components/GachaTab';
+import GuildTab from '@/components/GuildTab';
+import ArenaTab from '@/components/ArenaTab';
+import WorldMapTab from '@/components/WorldMapTab';
 
 export default function Game() {
-  const [activeTab, setActiveTab] = useState<'game' | 'premium' | 'shop' | 'culture' | 'achievements' | 'settings' | 'combat' | 'heroes' | 'pets' | 'battlepass' | 'gacha'>('game');
+  const [activeTab, setActiveTab] = useState<'game' | 'premium' | 'shop' | 'culture' | 'achievements' | 'settings' | 'combat' | 'heroes' | 'pets' | 'battlepass' | 'gacha' | 'guild' | 'arena' | 'worldmap'>('game');
   const [showTutorial, setShowTutorial] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { player, provinces, gameSpeed, setGameSpeed, tutorial, completeTutorial, notifications } = useGameStore();
@@ -189,6 +192,12 @@ export default function Game() {
         {activeTab === 'battlepass' && <BattlePassTab />}
         
         {activeTab === 'gacha' && <GachaTab />}
+        
+        {activeTab === 'guild' && <GuildTab />}
+        
+        {activeTab === 'arena' && <ArenaTab />}
+        
+        {activeTab === 'worldmap' && <WorldMapTab />}
         
         {activeTab === 'culture' && <CultureCenter />}
         
