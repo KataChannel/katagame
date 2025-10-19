@@ -33,11 +33,13 @@ import FriendsTab from '@/components/FriendsTab';
 import EnhancedShopTab from '@/components/EnhancedShopTab';
 import CustomizationTab from '@/components/CustomizationTab';
 import AnalyticsTab from '@/components/AnalyticsTab';
+import MultiplayerTab from '@/components/MultiplayerTab';
+import MarketplaceTab from '@/components/MarketplaceTab';
 import { ErrorBoundary as AppErrorBoundary } from '@/components/ErrorBoundary';
 import { initializeStorageOptimization } from '@/lib/storageOptimization';
 
 export default function Game() {
-  const [activeTab, setActiveTab] = useState<'game' | 'premium' | 'shop' | 'culture' | 'achievements' | 'settings' | 'combat' | 'heroes' | 'pets' | 'battlepass' | 'gacha' | 'guild' | 'arena' | 'worldmap' | 'missions' | 'friends' | 'enhancedshop' | 'customization' | 'analytics'>('game');
+  const [activeTab, setActiveTab] = useState<'game' | 'premium' | 'shop' | 'culture' | 'achievements' | 'settings' | 'combat' | 'heroes' | 'pets' | 'battlepass' | 'gacha' | 'guild' | 'arena' | 'worldmap' | 'missions' | 'friends' | 'enhancedshop' | 'customization' | 'analytics' | 'multiplayer' | 'marketplace'>('game');
   const [showTutorial, setShowTutorial] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { 
@@ -231,6 +233,8 @@ export default function Game() {
         {activeTab === 'enhancedshop' && <EnhancedShopTab />}
         {activeTab === 'customization' && <CustomizationTab />}
         {activeTab === 'analytics' && <AnalyticsTab />}
+        {activeTab === 'multiplayer' && <MultiplayerTab />}
+        {activeTab === 'marketplace' && <MarketplaceTab />}
         
         {activeTab === 'culture' && <CultureCenter />}
         

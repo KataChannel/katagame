@@ -1,12 +1,12 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Home, Crown, ShoppingCart, Book, Trophy, Settings, Swords, Users as UsersIcon, Sparkles, Gem, Shield, Map, Target, UserPlus, Palette, BarChart3 } from 'lucide-react';
+import { Home, Crown, ShoppingCart, Book, Trophy, Settings, Swords, Users as UsersIcon, Sparkles, Gem, Shield, Map, Target, UserPlus, Palette, BarChart3, Radio, Store } from 'lucide-react';
 import { touchTargets, colors, zIndex, animations } from '@/lib/mobileDesignSystem';
 
 interface MobileBottomNavProps {
-  activeTab: 'game' | 'premium' | 'shop' | 'culture' | 'achievements' | 'settings' | 'combat' | 'heroes' | 'pets' | 'battlepass' | 'gacha' | 'guild' | 'arena' | 'worldmap' | 'missions' | 'friends' | 'enhancedshop' | 'customization' | 'analytics';
-  onTabChange: (tab: 'game' | 'premium' | 'shop' | 'culture' | 'achievements' | 'settings' | 'combat' | 'heroes' | 'pets' | 'battlepass' | 'gacha' | 'guild' | 'arena' | 'worldmap' | 'missions' | 'friends' | 'enhancedshop' | 'customization' | 'analytics') => void;
+  activeTab: 'game' | 'premium' | 'shop' | 'culture' | 'achievements' | 'settings' | 'combat' | 'heroes' | 'pets' | 'battlepass' | 'gacha' | 'guild' | 'arena' | 'worldmap' | 'missions' | 'friends' | 'enhancedshop' | 'customization' | 'analytics' | 'multiplayer' | 'marketplace';
+  onTabChange: (tab: 'game' | 'premium' | 'shop' | 'culture' | 'achievements' | 'settings' | 'combat' | 'heroes' | 'pets' | 'battlepass' | 'gacha' | 'guild' | 'arena' | 'worldmap' | 'missions' | 'friends' | 'enhancedshop' | 'customization' | 'analytics' | 'multiplayer' | 'marketplace') => void;
   className?: string;
 }
 
@@ -20,6 +20,8 @@ const navItems = [
   { key: 'enhancedshop', label: 'Cửa Hàng', icon: ShoppingCart, color: '#8b5cf6' },
   { key: 'customization', label: 'Tùy Chỉnh', icon: Palette, color: '#ec4899' },
   { key: 'analytics', label: 'Analytics', icon: BarChart3, color: '#06b6d4' },
+  { key: 'multiplayer', label: 'Multiplayer', icon: Radio, color: '#a855f7' },
+  { key: 'marketplace', label: 'Marketplace', icon: Store, color: '#ec4899' },
   { key: 'arena', label: 'Arena', icon: Trophy, color: '#ef4444' },
   { key: 'gacha', label: 'Gacha', icon: Gem, color: '#a855f7' },
   { key: 'battlepass', label: 'Battle Pass', icon: Sparkles, color: '#d946ef' },
