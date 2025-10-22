@@ -29,30 +29,20 @@ export const handler: Handlers['AnalyticsAggregationCron'] = async ({
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 86400000)
 
     // Get all players
-    const playerKeys = await state.list('player:*')
-    const allPlayers: any[] = []
-
-    for (const playerKey of playerKeys) {
-      const player = await state.get(playerKey)
-      if (player) {
-        allPlayers.push(player)
-      }
-    }
+    const allPlayers = await state.getGroup('player')
 
     // Calculate login events for yesterday
     const yesterdayString = yesterday.toISOString().split('T')[0]
-    const loginEventKeys = await state.list(
-      `analytics:login:${yesterdayString}:*`
-    )
+    const loginEvents = await state.getGroup(`analytics:login:${yesterdayString}`)
 
     // DAU = players who logged in today
     const dau = new Set(
       allPlayers
         .filter(
-          (p) =>
+          (p: any) =>
             p.last_login && new Date(p.last_login).toDateString() === now.toDateString()
         )
-        .map((p) => p.id)
+        .map((p: any) => p.id)
     ).size
 
     // Estimate MAU as DAU * 1.5 (simplified)
@@ -71,9 +61,8 @@ export const handler: Handlers['AnalyticsAggregationCron'] = async ({
     let totalRevenue = 0
     const payingUsers = new Set<string>()
 
-    const transactionKeys = await state.list('transaction:completed:*')
-    for (const transactionKey of transactionKeys) {
-      const transaction = await state.get(transactionKey)
+    const transactions = await state.getGroup('transaction:completed')
+    for (const transaction of transactions) {
       if (
         transaction &&
         new Date(transaction.timestamp).toDateString() === yesterday.toDateString()
@@ -104,12 +93,12 @@ export const handler: Handlers['AnalyticsAggregationCron'] = async ({
       },
       totalPlayers: allPlayers.length,
       avgLevel: Math.floor(
-        allPlayers.reduce((sum, p) => sum + (p.level || 1), 0) / allPlayers.length
+        allPlayers.reduce((sum: number, p: any) => sum + (p.level || 1), 0) / allPlayers.length
       ),
     }
 
     // Store metrics
-    await state.set(`analytics:daily:${yesterdayString}`, metrics)
+    await state.set('analytics:daily', yesterdayString, metrics)
 
     // Emit daily report
     await emit({

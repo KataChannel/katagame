@@ -25,19 +25,17 @@ export const handler: Handlers['MarketplaceTransactionProcessor'] = async ({
 }: any) => {
   try {
     // Get all pending marketplace transactions
-    const transactionKeys = await state.list('transaction:pending:*')
+    const transactions = await state.getGroup('transaction:pending')
 
-    for (const transactionKey of transactionKeys) {
-      const transaction = await state.get(transactionKey)
-
+    for (const transaction of transactions) {
       if (!transaction) continue
 
       const { buyerId, sellerId, listingId, price, timestamp } = transaction
 
       // Get players
-      const buyer = await state.get(`player:${buyerId}`)
-      const seller = await state.get(`player:${sellerId}`)
-      const listing = await state.get(`listing:${listingId}`)
+      const buyer = await state.get('player', buyerId)
+      const seller = await state.get('player', sellerId)
+      const listing = await state.get('listing', listingId)
 
       if (!buyer || !seller || !listing) {
         logger.warn('Transaction parties not found', {
@@ -52,7 +50,7 @@ export const handler: Handlers['MarketplaceTransactionProcessor'] = async ({
       if (!buyer.resources || (buyer.resources.gold || 0) < price) {
         logger.warn('Buyer insufficient funds', { buyerId, price })
         transaction.status = 'failed'
-        await state.set(transactionKey, transaction)
+        await state.set('transaction:pending', transaction.id, transaction)
         continue
       }
 
@@ -74,14 +72,14 @@ export const handler: Handlers['MarketplaceTransactionProcessor'] = async ({
       })
 
       // Update states
-      await state.set(`player:${buyerId}`, buyer)
-      await state.set(`player:${sellerId}`, seller)
+      await state.set('player', buyerId, buyer)
+      await state.set('player', sellerId, seller)
 
       // Mark listing as sold
       listing.status = 'sold'
       listing.soldAt = timestamp
       listing.buyerId = buyerId
-      await state.set(`listing:${listingId}`, listing)
+      await state.set('listing', listingId, listing)
 
       // Emit events
       await emit({
@@ -117,7 +115,7 @@ export const handler: Handlers['MarketplaceTransactionProcessor'] = async ({
 
       // Mark transaction as completed
       transaction.status = 'completed'
-      await state.set(transactionKey, transaction)
+      await state.set('transaction:pending', transaction.id, transaction)
 
       logger.info('Marketplace transaction completed', {
         buyerId,

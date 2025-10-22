@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useGameStore } from '@/lib/gameStore';
 import { SaveGameManager } from '@/lib/saveGameManager';
 import { useSound } from '@/lib/soundManager';
+import AuthPage from '@/components/AuthPage';
 import ResourceBar from '@/components/ResourceBar';
 import ProvinceCard from '@/components/ProvinceCard';
 import PlayerInfo from '@/components/PlayerInfo';
@@ -39,6 +40,9 @@ import { ErrorBoundary as AppErrorBoundary } from '@/components/ErrorBoundary';
 import { initializeStorageOptimization } from '@/lib/storageOptimization';
 
 export default function Game() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authToken, setAuthToken] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'game' | 'premium' | 'shop' | 'culture' | 'achievements' | 'settings' | 'combat' | 'heroes' | 'pets' | 'battlepass' | 'gacha' | 'guild' | 'arena' | 'worldmap' | 'missions' | 'friends' | 'enhancedshop' | 'customization' | 'analytics' | 'multiplayer' | 'marketplace'>('game');
   const [showTutorial, setShowTutorial] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -57,6 +61,16 @@ export default function Game() {
   const { NotificationComponent } = useNotifications();
 
   useEffect(() => {
+    // Check if user is already authenticated
+    const token = localStorage.getItem('authToken');
+    const user = localStorage.getItem('user');
+    
+    if (token && user) {
+      setAuthToken(token);
+      setCurrentUser(JSON.parse(user));
+      setIsAuthenticated(true);
+    }
+    
     // Simulate loading time and initialize game
     const initGame = async () => {
       // Simulate loading time for better UX
@@ -79,8 +93,29 @@ export default function Game() {
       initializeStorageOptimization();
     };
     
-    initGame();
-  }, [tutorial.completed, player.level, player.experience, checkAndResetMissions]);
+    if (isAuthenticated) {
+      initGame();
+    }
+  }, [tutorial.completed, player.level, player.experience, checkAndResetMissions, isAuthenticated]);
+
+  const handleAuthSuccess = (token: string, user: any) => {
+    setAuthToken(token);
+    setCurrentUser(user);
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    setAuthToken(null);
+    setCurrentUser(null);
+    setIsAuthenticated(false);
+  };
+
+  // Show auth page if not authenticated
+  if (!isAuthenticated) {
+    return <AuthPage onAuthSuccess={handleAuthSuccess} />;
+  }
 
   const handleCompleteTutorial = () => {
     completeTutorial();
@@ -111,6 +146,12 @@ export default function Game() {
             </div>
             
             <div className="flex items-center gap-4">
+              {/* User Info */}
+              <div className="text-sm text-red-100 hidden sm:block">
+                <p className="font-semibold">{currentUser?.username || 'Player'}</p>
+                <p className="text-xs">{currentUser?.email}</p>
+              </div>
+
               {/* Game Speed Control */}
               <div className="flex items-center gap-2 bg-black/20 rounded-lg px-3 py-2">
                 <span className="text-sm">Tốc độ:</span>
@@ -125,6 +166,14 @@ export default function Game() {
                   <option value={5} className="text-black">5x</option>
                 </select>
               </div>
+
+              {/* Logout Button */}
+              <button
+                onClick={handleLogout}
+                className="bg-red-800 hover:bg-red-900 text-white px-4 py-2 rounded-lg font-semibold transition-all"
+              >
+                Đăng Xuất
+              </button>
             </div>
           </div>
         </div>

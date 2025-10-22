@@ -36,18 +36,16 @@ export const handler: Handlers['BattleResolutionProcessor'] = async ({
 }: any) => {
   try {
     // Get all pending battles from state
-    const battleKeys = await state.list('battle:pending:*')
+    const battles = await state.getGroup('battle:pending')
 
-    for (const battleKey of battleKeys) {
-      const battle = await state.get(battleKey)
-
+    for (const battle of battles) {
       if (!battle) continue
 
       const { attackerId, defenderId, result, timestamp } = battle
 
       // Get both players
-      const attacker = await state.get(`player:${attackerId}`)
-      const defender = await state.get(`player:${defenderId}`)
+      const attacker = await state.get('player', attackerId)
+      const defender = await state.get('player', defenderId)
 
       if (!attacker || !defender) {
         logger.warn('Player not found in battle resolution', {
@@ -138,7 +136,7 @@ export const handler: Handlers['BattleResolutionProcessor'] = async ({
 
       // Mark battle as processed
       battle.status = 'completed'
-      await state.set(battleKey, battle)
+      await state.set('battle:pending', battle.id, battle)
 
       logger.info('Battle resolved', {
         attacker: attackerId,

@@ -32,12 +32,10 @@ export const handler: Handlers['PlayerLoginProcessor'] = async ({
 }: any) => {
   try {
     // Get all players from state
-    const playerKeys = await state.list('player:*')
+    const players = await state.getGroup('player')
 
-    for (const playerKey of playerKeys) {
-      const player = await state.get(playerKey)
-
-      if (!player) {
+    for (const player of players) {
+      if (!player || !player.id) {
         continue
       }
 
@@ -79,7 +77,7 @@ export const handler: Handlers['PlayerLoginProcessor'] = async ({
           last_login: timestamp,
         }
 
-        await state.set(playerKey, updatedPlayer)
+        await state.set('player', player.id, updatedPlayer)
 
         // Emit leaderboard update event
         await emit({

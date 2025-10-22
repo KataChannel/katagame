@@ -24,5 +24,47 @@
         "y": 264
       }
     }
+  },
+  {
+    "id": "game-flow",
+    "config": {
+      "steps/game/quest-submission.step.ts": {
+        "x": 0,
+        "y": 0,
+        "sourceHandlePosition": "bottom"
+      },
+      "steps/game/player-login.step.ts": {
+        "x": 11,
+        "y": 219
+      },
+      "steps/game/marketplace-transaction.step.ts": {
+        "x": 0,
+        "y": 418
+      },
+      "steps/game/leaderboard-cron.step.ts": {
+        "x": 0,
+        "y": 637
+      },
+      "steps/game/guild-war.step.ts": {
+        "x": 0,
+        "y": 856
+      },
+      "steps/game/battle-resolution.step.ts": {
+        "x": 0,
+        "y": 1075
+      },
+      "steps/game/auth-register.step.ts": {
+        "x": 55,
+        "y": 1294
+      },
+      "steps/game/analytics-aggregation.step.ts": {
+        "x": 0,
+        "y": 1294
+      },
+      "steps/game/achievement-unlock.step.ts": {
+        "x": 0,
+        "y": 1513
+      }
+    }
   }
 ]

@@ -1,0 +1,66 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: katagame-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: katagame
+    ports:
+      - "11003:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./katagame_database_schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - katagame-network
+
+  # Redis Cache (Optional)
+  redis:
+    image: redis:7-alpine
+    container_name: katagame-redis
+    ports:
+      - "11004:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - katagame-network
+    profiles:
+      - optional
+
+  # PgAdmin for Database Management (Optional)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: katagame-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@katagame.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "11002:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - katagame-network
+    profiles:
+      - optional
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  katagame-network:
+    driver: bridge

@@ -48,6 +48,14 @@ export class PlayerService {
   }
 
   /**
+   * Get player by email
+   */
+  async getPlayerByEmail(email: string): Promise<Player | null> {
+    const players = await this.db.getMany<Player>('players', { email })
+    return players[0] || null
+  }
+
+  /**
    * Create new player
    */
   async createPlayer(

@@ -96,7 +96,7 @@ class ConfigLoader {
       },
       server: {
         nodeEnv: process.env.NODE_ENV || 'development',
-        port: parseInt(process.env.PORT || '3001'),
+        port: parseInt(process.env.PORT || '11001'),
         host: process.env.HOST || '0.0.0.0',
       },
       logging: {
@@ -115,7 +115,7 @@ class ConfigLoader {
         maxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'),
       },
       cors: {
-        origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+        origin: process.env.CORS_ORIGIN || 'http://localhost:11000',
         credentials: process.env.CORS_CREDENTIALS !== 'false',
       },
       analytics: {

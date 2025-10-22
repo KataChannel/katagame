@@ -3,7 +3,7 @@
   "description": "",
   "scripts": {
     "postinstall": "motia install",
-    "dev": "motia dev",
+    "dev": "motia dev -p 11001",
     "generate-types": "motia generate-types",
     "build": "motia build",
     "clean": "rm -rf dist node_modules python_modules .motia .mermaid"

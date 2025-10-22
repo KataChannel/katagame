@@ -27,18 +27,10 @@ export const handler: Handlers['LeaderboardUpdateCron'] = async ({
     const timestamp = Date.now()
 
     // Get all players
-    const playerKeys = await state.list('player:*')
-    const players: any[] = []
-
-    for (const playerKey of playerKeys) {
-      const player = await state.get(playerKey)
-      if (player) {
-        players.push(player)
-      }
-    }
+    const players = await state.getGroup('player')
 
     // Sort by experience (power)
-    const sorted = players.sort((a, b) => (b.experience || 0) - (a.experience || 0))
+    const sorted = players.sort((a: any, b: any) => (b.experience || 0) - (a.experience || 0))
 
     // Update leaderboard positions
     for (let i = 0; i < sorted.length; i++) {
@@ -51,11 +43,11 @@ export const handler: Handlers['LeaderboardUpdateCron'] = async ({
         updated: timestamp,
       }
 
-      await state.set(`leaderboard:rank:${sorted[i].id}`, entry)
+      await state.set('leaderboard:rank', sorted[i].id, entry)
     }
 
     // Create top 10 summary
-    const topPlayers = sorted.slice(0, 10).map((p, idx) => ({
+    const topPlayers = sorted.slice(0, 10).map((p: any, idx: number) => ({
       rank: idx + 1,
       name: p.username,
       experience: p.experience || 0,

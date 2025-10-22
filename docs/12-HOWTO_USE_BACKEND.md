@@ -64,27 +64,40 @@ PORT=3001
 
 ## 🗄️ Step 3: Setup Database
 
-Create the PostgreSQL database:
+See [DATABASE_SETUP.md](./DATABASE_SETUP.md) for detailed database setup instructions.
 
+### Quick Docker Setup (Recommended)
 ```bash
-# Connect to PostgreSQL
-psql -U postgres
+# Start PostgreSQL in Docker
+docker run -d \
+  --name katagame-postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -p 5432:5432 \
+  postgres:15
 
+# Create database and run schema
+docker exec katagame-postgres psql -U postgres -c "CREATE DATABASE katagame;"
+docker exec -i katagame-postgres psql -U postgres -d katagame < katagame_database_schema.sql
+```
+
+### Or Use Local PostgreSQL
+```bash
 # Create database
-CREATE DATABASE katagame;
-\q
+psql -U postgres -c "CREATE DATABASE katagame;"
 
 # Run schema
-psql katagame < ../katagame_database_schema.sql
+psql -U postgres -d katagame < katagame_database_schema.sql
 ```
 
 Verify the database:
 
 ```bash
-psql -d katagame -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public';"
+psql -d katagame -c "\dt"
 ```
 
 You should see tables like: `players`, `battles`, `guilds`, etc.
+
+📌 **Note**: See [DATABASE_SETUP.md](./DATABASE_SETUP.md) for more options (Local, Docker, AWS RDS, Heroku, etc.)
 
 ---
 

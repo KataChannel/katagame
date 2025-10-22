@@ -25,12 +25,10 @@ export const handler: Handlers['AchievementUnlockProcessor'] = async ({
 }: any) => {
   try {
     // Get all players
-    const playerKeys = await state.list('player:*')
+    const players = await state.getGroup('player')
 
-    for (const playerKey of playerKeys) {
-      const player = await state.get(playerKey)
-
-      if (!player) continue
+    for (const player of players) {
+      if (!player || !player.id) continue
 
       // Check various achievement conditions
       const achievements = [
@@ -123,7 +121,7 @@ export const handler: Handlers['AchievementUnlockProcessor'] = async ({
       }
 
       // Update player with new achievement points
-      await state.set(playerKey, player)
+      await state.set('player', player.id, player)
     }
   } catch (error) {
     logger.error('Error in AchievementUnlockProcessor', {

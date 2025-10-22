@@ -24,18 +24,16 @@ export const handler: Handlers['QuestSubmissionProcessor'] = async ({
 }: any) => {
   try {
     // Get all pending quest submissions
-    const submissionKeys = await state.list('quest_submission:pending:*')
+    const submissions = await state.getGroup('quest_submission:pending')
 
-    for (const submissionKey of submissionKeys) {
-      const submission = await state.get(submissionKey)
-
+    for (const submission of submissions) {
       if (!submission) continue
 
       const { playerId, questId, answers, timestamp } = submission
 
       // Get quest definition
-      const quest = await state.get(`quest:${questId}`)
-      const player = await state.get(`player:${playerId}`)
+      const quest = await state.get('quest', questId)
+      const player = await state.get('player', playerId)
 
       if (!quest || !player) {
         logger.warn('Quest or player not found', { questId, playerId })
@@ -71,7 +69,7 @@ export const handler: Handlers['QuestSubmissionProcessor'] = async ({
 
       // Track completion
       const progressKey = `progress:${playerId}:${questId}`
-      await state.set(progressKey, {
+      await state.set('progress', progressKey, {
         questId,
         playerId,
         score: percentage,
@@ -80,7 +78,7 @@ export const handler: Handlers['QuestSubmissionProcessor'] = async ({
       })
 
       // Update player state
-      await state.set(`player:${playerId}`, player)
+      await state.set('player', playerId, player)
 
       // Emit culture earned event
       await emit({
@@ -110,7 +108,7 @@ export const handler: Handlers['QuestSubmissionProcessor'] = async ({
 
       // Mark submission as processed
       submission.status = 'completed'
-      await state.set(submissionKey, submission)
+      await state.set('quest_submission:pending', submission.id, submission)
 
       logger.info('Quest submitted', {
         playerId,

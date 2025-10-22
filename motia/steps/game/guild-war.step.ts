@@ -24,19 +24,17 @@ export const handler: Handlers['GuildWarProcessor'] = async ({
 }: any) => {
   try {
     // Get all active guild wars
-    const warKeys = await state.list('war:active:*')
+    const wars = await state.getGroup('war:active')
 
-    for (const warKey of warKeys) {
-      const war = await state.get(warKey)
-
+    for (const war of wars) {
       if (!war) continue
 
       const { attackerGuildId, defenderGuildId, provinceId, timestamp } = war
 
       // Get guilds and province
-      const attacker = await state.get(`guild:${attackerGuildId}`)
-      const defender = await state.get(`guild:${defenderGuildId}`)
-      const province = await state.get(`province:${provinceId}`)
+      const attacker = await state.get('guild', attackerGuildId)
+      const defender = await state.get('guild', defenderGuildId)
+      const province = await state.get('province', provinceId)
 
       if (!attacker || !defender || !province) {
         logger.warn('War participants not found', {
@@ -99,15 +97,15 @@ export const handler: Handlers['GuildWarProcessor'] = async ({
       }
 
       // Update states
-      await state.set(`province:${provinceId}`, province)
-      await state.set(`guild:${attackerGuildId}`, attacker)
-      await state.set(`guild:${defenderGuildId}`, defender)
+      await state.set('province', provinceId, province)
+      await state.set('guild', attackerGuildId, attacker)
+      await state.set('guild', defenderGuildId, defender)
 
       // Emit war ended event
       await emit({
         topic: 'guild.war_ended',
         data: {
-          warId: warKey,
+          warId: war.id,
           attacker: attackerGuildId,
           defender: defenderGuildId,
           winner: attackerWins ? attackerGuildId : defenderGuildId,
@@ -118,7 +116,7 @@ export const handler: Handlers['GuildWarProcessor'] = async ({
 
       // Mark war as completed
       war.status = 'completed'
-      await state.set(warKey, war)
+      await state.set('war:active', war.id, war)
     }
   } catch (error) {
     logger.error('Error in GuildWarProcessor', {

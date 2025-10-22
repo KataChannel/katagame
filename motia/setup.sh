@@ -55,8 +55,11 @@ fi
 if command -v psql &> /dev/null; then
     PSQL_VERSION=$(psql --version)
     print_status "PostgreSQL detected: $PSQL_VERSION"
+    PSQL_AVAILABLE=true
 else
-    print_warning "PostgreSQL not found. Install it for database support"
+    print_warning "PostgreSQL CLI (psql) not found. Database setup will be skipped."
+    print_warning "Install PostgreSQL client tools or use Docker for database"
+    PSQL_AVAILABLE=false
 fi
 
 # Check Redis
@@ -104,41 +107,52 @@ echo "  Database Setup"
 echo "=========================================="
 echo ""
 
-# Ask user if they want to setup database
-read -p "Do you want to setup the database now? (y/n) " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    
-    # Source environment
-    set -a
-    [ -f .env.local ] && source .env.local
-    set +a
+# Check if psql is available
+if [ "$PSQL_AVAILABLE" != "true" ]; then
+    print_warning "PostgreSQL CLI not available. Skipping database setup."
+    print_warning "You can:"
+    print_warning "  1. Install PostgreSQL client: sudo apt install postgresql-client"
+    print_warning "  2. Use Docker: docker run -d --name postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres"
+    print_warning "  3. Use managed database (AWS RDS, Heroku, etc.)"
+    print_warning ""
+    print_status "Update DATABASE_URL in .env.local after setting up database"
+else
+    # Ask user if they want to setup database
+    read -p "Do you want to setup the database now? (y/n) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        
+        # Source environment
+        set -a
+        [ -f .env.local ] && source .env.local
+        set +a
 
-    # Extract database info from DATABASE_URL
-    # postgresql://user:password@host:port/dbname
-    DBUSER="${DB_USER:-postgres}"
-    DBHOST="${DB_HOST:-postgres}"
-    DBPORT="${DB_PORT:-15432}"
-    DBNAME="${DB_NAME:-katagame}"
+        # Extract database info from DATABASE_URL
+        # postgresql://user:password@host:port/dbname
+        DBUSER="${DB_USER:-postgres}"
+        DBHOST="${DB_HOST:-localhost}"
+        DBPORT="${DB_PORT:-5432}"
+        DBNAME="${DB_NAME:-katagame}"
 
-    echo ""
-    print_status "Database Configuration:"
-    echo "  Host: $DBHOST:$DBPORT"
-    echo "  Database: $DBNAME"
-    echo "  User: $DBUSER"
-    echo ""
+        echo ""
+        print_status "Database Configuration:"
+        echo "  Host: $DBHOST:$DBPORT"
+        echo "  Database: $DBNAME"
+        echo "  User: $DBUSER"
+        echo ""
 
-    # Create database
-    print_status "Creating database..."
-    PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$DBHOST" -U "$DBUSER" -c "CREATE DATABASE $DBNAME;" 2>/dev/null || print_warning "Database may already exist"
+        # Create database
+        print_status "Creating database..."
+        PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$DBHOST" -U "$DBUSER" -c "CREATE DATABASE $DBNAME;" 2>/dev/null || print_warning "Database may already exist"
 
-    # Run schema
-    if [ -f ../katagame_database_schema.sql ]; then
-        print_status "Running database schema..."
-        PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$DBHOST" -U "$DBUSER" -d "$DBNAME" -f ../katagame_database_schema.sql
-        print_status "Database schema created"
-    else
-        print_warning "Schema file not found: ../katagame_database_schema.sql"
+        # Run schema
+        if [ -f ../katagame_database_schema.sql ]; then
+            print_status "Running database schema..."
+            PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$DBHOST" -U "$DBUSER" -d "$DBNAME" -f ../katagame_database_schema.sql
+            print_status "Database schema created"
+        else
+            print_warning "Schema file not found: ../katagame_database_schema.sql"
+        fi
     fi
 fi
 
@@ -167,9 +181,14 @@ echo "=========================================="
 echo ""
 
 print_status "Next steps:"
-echo "  1. Update .env.local with your database credentials"
-echo "  2. Run: npm run dev"
-echo "  3. Backend will start at http://localhost:3001"
+echo "  1. Setup PostgreSQL:"
+echo "     - Option A: Install PostgreSQL locally (sudo apt install postgresql)"
+echo "     - Option B: Use Docker (docker run -d -e POSTGRES_PASSWORD=postgres postgres)"
+echo "     - Option C: Use managed database (AWS RDS, Heroku, etc.)"
+echo ""
+echo "  2. Update .env.local with your database credentials"
+echo "  3. Run: npm run dev"
+echo "  4. Backend will start at http://localhost:3001"
 echo ""
 
 print_status "Useful commands:"
@@ -179,9 +198,26 @@ echo "  npm run generate-types - Generate Motia types"
 echo "  npm test             - Run tests"
 echo ""
 
+print_warning "Database Setup Instructions:"
+echo ""
+echo "Option 1: PostgreSQL Local Install"
+echo "  # Ubuntu/Debian"
+echo "  sudo apt update && sudo apt install postgresql postgresql-contrib"
+echo "  sudo systemctl start postgresql"
+echo ""
+echo "Option 2: Docker"
+echo "  docker run -d --name katagame-postgres \\"
+echo "    -e POSTGRES_PASSWORD=postgres \\"
+echo "    -p 5432:5432 \\"
+echo "    postgres:15"
+echo ""
+echo "Option 3: Update .env.local"
+echo "  DATABASE_URL=postgresql://user:pass@host:5432/katagame"
+echo ""
+
 print_warning "Important:"
 echo "  - Change JWT_SECRET in .env.local before production"
-echo "  - Setup PostgreSQL and Redis for full functionality"
+echo "  - Ensure PostgreSQL is running before starting backend"
 echo "  - Frontend expects API at http://localhost:3001"
 echo ""
 

@@ -22,6 +22,7 @@ declare module 'motia' {
     'LeaderboardUpdateCron': CronHandler<never>
     'GuildWarProcessor': CronHandler<never>
     'BattleResolutionProcessor': CronHandler<never>
+    'AuthRegisterHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'AnalyticsAggregationCron': CronHandler<never>
     'AchievementUnlockProcessor': CronHandler<never>
   }

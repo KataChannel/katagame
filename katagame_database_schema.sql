@@ -23,7 +23,7 @@ CREATE TABLE players (
   -- Game stats
   level INTEGER DEFAULT 1 CHECK (level >= 1 AND level <= 100),
   experience INTEGER DEFAULT 0 CHECK (experience >= 0),
-  total_power INTEGER DEFAULT 0 GENERATED ALWAYS AS (
+  total_power INTEGER GENERATED ALWAYS AS (
     level * 100 + (experience / 1000)
   ) STORED,
   
