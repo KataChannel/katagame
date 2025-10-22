@@ -16,14 +16,28 @@ declare module 'motia' {
     'ProcessFoodOrder': EventHandler<{ email: string; quantity: number; petId: number }, { topic: 'notification'; data: { templateId: string; email: string; templateData: Record<string, unknown> } }>
     'Notification': EventHandler<{ templateId: string; email: string; templateData: Record<string, unknown> }, never>
     'ApiTrigger': ApiRouteHandler<{ pet: { name: string; photoUrl: string }; foodOrder?: { id: string; quantity: number } }, ApiResponse<200, { id: number; name: string; photoUrl: string }>, { topic: 'process-food-order'; data: { email: string; quantity: number; petId: number } }>
+    'SyncSaveGameHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'TradeResourcesHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'HarvestResourcesHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'QuestSubmissionProcessor': CronHandler<never>
+    'UpdatePlayerHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'GetCurrentPlayerHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'GetPlayerProfileHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'PlayerLoginProcessor': CronHandler<never>
     'MarketplaceTransactionProcessor': CronHandler<never>
     'LeaderboardUpdateCron': CronHandler<never>
+    'RecruitHeroHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'GetHeroesListHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'GuildWarProcessor': CronHandler<never>
+    'StartBattleHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'ResolveBattleHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'BattleResolutionProcessor': CronHandler<never>
     'AuthRegisterHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'AuthRefreshTokenHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'AuthLogoutHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'AuthLoginHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'AnalyticsAggregationCron': CronHandler<never>
     'AchievementUnlockProcessor': CronHandler<never>
+    'GetAchievementsHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
   }
 }

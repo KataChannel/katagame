@@ -19,7 +19,7 @@ export interface Battle {
     gold: number
     rating: number
   }
-  duration: number
+  duration_seconds: number
   created_at: Date
 }
 
@@ -45,7 +45,7 @@ export class BattleService {
       result: 'draw', // Will be updated
       attacker_reward: { exp: 0, gold: 0, rating: 0 },
       defender_reward: { exp: 0, gold: 0, rating: 0 },
-      duration: 0,
+      duration_seconds: 0,
       created_at: new Date(),
     })
   }

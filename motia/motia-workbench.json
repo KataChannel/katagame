@@ -28,26 +28,66 @@
   {
     "id": "game-flow",
     "config": {
+      "steps/game/save-game-sync.step.ts": {
+        "x": 33,
+        "y": 0
+      },
+      "steps/game/resource-trade.step.ts": {
+        "x": -230,
+        "y": 140
+      },
+      "steps/game/resource-harvest.step.ts": {
+        "x": 25,
+        "y": 302
+      },
       "steps/game/quest-submission.step.ts": {
         "x": 0,
-        "y": 0,
+        "y": 453,
         "sourceHandlePosition": "bottom"
       },
+      "steps/game/player-update.step.ts": {
+        "x": 37,
+        "y": 672
+      },
+      "steps/game/player-profile.step.ts": {
+        "x": 40,
+        "y": 823
+      },
+      "steps/game/player-profile-public.step.ts": {
+        "x": 16,
+        "y": 974
+      },
       "steps/game/player-login.step.ts": {
-        "x": 11,
-        "y": 219
+        "x": -454,
+        "y": 303
       },
       "steps/game/marketplace-transaction.step.ts": {
-        "x": 0,
-        "y": 418
+        "x": 602,
+        "y": 356
       },
       "steps/game/leaderboard-cron.step.ts": {
         "x": 0,
         "y": 637
       },
+      "steps/game/hero-recruit.step.ts": {
+        "x": 33,
+        "y": 1762
+      },
+      "steps/game/hero-list.step.ts": {
+        "x": 50,
+        "y": 1913
+      },
       "steps/game/guild-war.step.ts": {
         "x": 0,
         "y": 856
+      },
+      "steps/game/battle-start.step.ts": {
+        "x": 37,
+        "y": 2283
+      },
+      "steps/game/battle-resolve.step.ts": {
+        "x": 29,
+        "y": 2434
       },
       "steps/game/battle-resolution.step.ts": {
         "x": 0,
@@ -57,6 +97,18 @@
         "x": 55,
         "y": 1294
       },
+      "steps/game/auth-refresh-token.step.ts": {
+        "x": 16,
+        "y": 3007
+      },
+      "steps/game/auth-logout.step.ts": {
+        "x": 46,
+        "y": 3158
+      },
+      "steps/game/auth-login.step.ts": {
+        "x": 50,
+        "y": 3309
+      },
       "steps/game/analytics-aggregation.step.ts": {
         "x": 0,
         "y": 1294
@@ -64,6 +116,10 @@
       "steps/game/achievement-unlock.step.ts": {
         "x": 0,
         "y": 1513
+      },
+      "steps/game/achievement-list.step.ts": {
+        "x": -498,
+        "y": 3789
       }
     }
   }
