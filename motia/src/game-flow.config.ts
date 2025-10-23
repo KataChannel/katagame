@@ -63,7 +63,7 @@ export const gameFlowConfig = {
     },
     'player.points_earned': {
       description: 'Player earned achievement points',
-      handlers: [],
+      handlers: ['PlayerPointsEarnedSubscriber'],
     },
 
     // Battle events

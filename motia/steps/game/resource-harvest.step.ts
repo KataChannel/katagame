@@ -1,5 +1,6 @@
 import { getAuthService } from '../../src/services/auth.service'
 import { getPlayerService } from '../../src/services/player.service'
+import { successResponse, errorResponse } from '../../src/utils/response.wrapper'
 
 /**
  * API Endpoint: GET /api/v1/resources/harvest
@@ -22,13 +23,13 @@ export const handler = async (request: any) => {
     try {
       getDatabase()
     } catch {
-      initDatabase(databaseUrl)
+      await initDatabase(databaseUrl)
     }
 
     const authHeader = request.headers?.authorization
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return { status: 401, body: { success: false, message: 'No token provided' } }
+      return errorResponse(401, 'No token provided')
     }
 
     const token = authHeader.substring(7)
@@ -39,13 +40,13 @@ export const handler = async (request: any) => {
     // Verify token
     const decoded = authService.verifyToken(token)
     if (!decoded) {
-      return { status: 401, body: { success: false, message: 'Invalid token' } }
+      return errorResponse(401, 'Invalid token')
     }
 
     // Get player
     const player = await playerService.getPlayer(decoded.playerId)
     if (!player) {
-      return { status: 404, body: { success: false, message: 'Player not found' } }
+      return errorResponse(404, 'Player not found')
     }
 
     // Base harvest amounts (per 10 minutes)
@@ -62,28 +63,15 @@ export const handler = async (request: any) => {
     const updated = await playerService.updateResources(decoded.playerId, harvestAmount)
 
     if (!updated) {
-      return { status: 400, body: { success: false, message: 'Failed to harvest resources' } }
+      return errorResponse(400, 'Failed to harvest resources')
     }
 
-    return {
-      status: 200,
-      body: {
-        success: true,
-        message: 'Resources harvested',
-        data: {
-          harvested: harvestAmount,
-          totalResources: updated.resources,
-        },
-      },
-    }
+    return successResponse({
+      harvested: harvestAmount,
+      totalResources: updated.resources,
+    }, 'Resources harvested')
   } catch (error: any) {
     console.error('Harvest resources error:', error)
-    return {
-      status: 500,
-      body: {
-        success: false,
-        message: error.message || 'Failed to harvest resources',
-      },
-    }
+    return errorResponse(500, error.message || 'Failed to harvest resources')
   }
 }

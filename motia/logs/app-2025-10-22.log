@@ -26,3 +26,6 @@
 {"timestamp":"2025-10-22T09:47:36.920Z","level":"warn","message":"SECURITY: Failed login attempt - player not found","data":{"email":"chikiet88@gmail.comchikiet88","ip":"unknown"}}
 {"timestamp":"2025-10-22T09:47:38.851Z","level":"warn","message":"SECURITY: Failed login attempt - player not found","data":{"email":"chikiet88@gmail.comchikiet88","ip":"unknown"}}
 {"timestamp":"2025-10-22T09:47:53.413Z","level":"warn","message":"SECURITY: Failed login attempt - player not found","data":{"email":"chikiet88@gmail.comchikiet88","ip":"unknown"}}
+{"timestamp":"2025-10-22T17:52:49.806Z","level":"warn","message":"SECURITY: Failed login attempt - player not found","data":{"email":"test@test.com","ip":"unknown"}}
+{"timestamp":"2025-10-22T18:39:57.585Z","level":"warn","message":"SECURITY: Failed login attempt - player not found","data":{"email":"test@example.com","ip":"unknown"}}
+{"timestamp":"2025-10-22T18:40:08.446Z","level":"warn","message":"SECURITY: Failed login attempt - player not found","data":{"email":"test@example.com","ip":"unknown"}}

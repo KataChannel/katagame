@@ -39,7 +39,7 @@ const nextConfig: NextConfig = {
     return config;
   },
   
-  // Headers for caching
+  // Headers for caching and security
   async headers() {
     return [
       {
@@ -57,6 +57,19 @@ const nextConfig: NextConfig = {
           {
             key: 'Cache-Control',
             value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/:path(.*)',
+        headers: [
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin-allow-popups',
+          },
+          {
+            key: 'Cross-Origin-Embedder-Policy',
+            value: 'require-corp',
           },
         ],
       },

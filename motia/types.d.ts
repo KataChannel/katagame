@@ -36,6 +36,7 @@ declare module 'motia' {
     'AuthRefreshTokenHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'AuthLogoutHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'AuthLoginHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'GoogleAuthHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'AnalyticsAggregationCron': CronHandler<never>
     'AchievementUnlockProcessor': CronHandler<never>
     'GetAchievementsHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>

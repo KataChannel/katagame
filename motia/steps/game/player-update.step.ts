@@ -1,5 +1,6 @@
 import { getAuthService } from '../../src/services/auth.service'
 import { getPlayerService } from '../../src/services/player.service'
+import { successResponse, errorResponse } from '../../src/utils/response.wrapper'
 
 /**
  * API Endpoint: PUT /api/v1/players/update
@@ -19,14 +20,14 @@ export const handler = async (request: any) => {
     const authHeader = request.headers?.authorization
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return { status: 401, body: { success: false, message: 'No token provided' } }
+      return errorResponse(401, 'No token provided')
     }
 
     const token = authHeader.substring(7)
     const { username } = request.body
 
     if (!username || username.length < 3) {
-      return { status: 400, body: { success: false, message: 'Username must be at least 3 characters' } }
+      return errorResponse(400, 'Username must be at least 3 characters')
     }
 
     const authService = getAuthService()
@@ -35,7 +36,7 @@ export const handler = async (request: any) => {
     // Verify token
     const decoded = authService.verifyToken(token)
     if (!decoded) {
-      return { status: 401, body: { success: false, message: 'Invalid token' } }
+      return errorResponse(401, 'Invalid token')
     }
 
     // Update player
@@ -44,31 +45,18 @@ export const handler = async (request: any) => {
     })
 
     if (!updated) {
-      return { status: 400, body: { success: false, message: 'Failed to update player' } }
+      return errorResponse(400, 'Failed to update player')
     }
 
-    return {
-      status: 200,
-      body: {
-        success: true,
-        message: 'Player updated successfully',
-        data: {
-          id: updated.id,
-          username: updated.username,
-          email: updated.email,
-          level: updated.level,
-          experience: updated.experience,
-        },
-      },
-    }
+    return successResponse({
+      id: updated.id,
+      username: updated.username,
+      email: updated.email,
+      level: updated.level,
+      experience: updated.experience,
+    }, 'Player updated successfully')
   } catch (error: any) {
     console.error('Update player error:', error)
-    return {
-      status: 500,
-      body: {
-        success: false,
-        message: error.message || 'Failed to update player',
-      },
-    }
+    return errorResponse(500, error.message || 'Failed to update player')
   }
 }

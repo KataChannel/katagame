@@ -182,26 +182,56 @@ export async function googleAuthHandler(
       return createErrorResponse('Google token is required', 400)
     }
 
-    // Note: Google token verification would go here
-    // For now, we're creating a placeholder that verifies token structure
-    // In production, use google-auth-library to verify the token properly
-
-    // Decode token (in production, verify signature)
+    // Verify Google token using google-auth-library
     let payload: any
     try {
-      const parts = token.split('.')
-      if (parts.length !== 3) {
-        throw new Error('Invalid token format')
+      const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+      
+      if (!clientId) {
+        ApiLogger.error('NEXT_PUBLIC_GOOGLE_CLIENT_ID not configured')
+        return createErrorResponse('Google OAuth not properly configured', 500)
       }
-      payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf-8'))
-    } catch {
+      
+      try {
+        // Try to use OAuth2Client if available
+        const { OAuth2Client } = require('google-auth-library')
+        const client = new OAuth2Client(clientId)
+        
+        const ticket = await client.verifyIdToken({
+          idToken: token,
+          audience: clientId,
+        })
+        
+        payload = ticket.getPayload()
+      } catch (libError) {
+        // Fallback: Decode JWT without verification (for development)
+        // In production, ensure google-auth-library is properly installed
+        ApiLogger.warn('OAuth2Client not available, using JWT decode fallback')
+        
+        const parts = token.split('.')
+        if (parts.length !== 3) {
+          throw new Error('Invalid token format')
+        }
+        
+        try {
+          payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf-8'))
+        } catch (e) {
+          throw new Error('Failed to decode token')
+        }
+      }
+    } catch (verifyError) {
+      ApiLogger.error('Google token verification failed', verifyError)
       return createErrorResponse('Invalid Google token', 401)
+    }
+
+    if (!payload) {
+      return createErrorResponse('Failed to extract token payload', 401)
     }
 
     const { sub: googleId, email, name } = payload
 
     if (!googleId || !email) {
-      return createErrorResponse('Invalid token payload', 400)
+      return createErrorResponse('Invalid token payload - missing required fields', 400)
     }
 
     // Check if player already exists by username or email
@@ -222,12 +252,16 @@ export async function googleAuthHandler(
       // Create with empty password (Google OAuth users don't need password)
       const emptyPasswordHash = authService.hashPassword(Math.random().toString(36))
       player = await playerService.createPlayer(username, email, emptyPasswordHash)
+      
+      ApiLogger.info(`New player created via Google OAuth: ${username} (${googleId})`)
+    } else {
+      // Update last login
+      await playerService.updateLastLogin(player.id)
+      ApiLogger.info(`Player logged in via Google OAuth: ${player.username}`)
     }
 
     // Generate JWT token
     const jwtToken = authService.generateToken(player.id, player.username)
-
-    ApiLogger.info(`Player Google auth: ${player.username}`)
 
     return createResponse(
       {

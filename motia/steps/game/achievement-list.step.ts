@@ -1,5 +1,6 @@
 import { getAuthService } from '../../src/services/auth.service'
 import { getDatabase } from '../../src/services/database.service'
+import { successResponse, errorResponse } from '../../src/utils/response.wrapper'
 
 /**
  * API Endpoint: GET /api/v1/achievements/list
@@ -22,13 +23,13 @@ export const handler = async (request: any) => {
     try {
       getDatabase()
     } catch {
-      initDatabase(databaseUrl)
+      await initDatabase(databaseUrl)
     }
 
     const authHeader = request.headers?.authorization
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return { status: 401, body: { success: false, message: 'No token provided' } }
+      return errorResponse(401, 'No token provided')
     }
 
     const token = authHeader.substring(7)
@@ -39,7 +40,7 @@ export const handler = async (request: any) => {
     // Verify token
     const decoded = authService.verifyToken(token)
     if (!decoded) {
-      return { status: 401, body: { success: false, message: 'Invalid token' } }
+      return errorResponse(401, 'Invalid token')
     }
 
     // Get player achievements
@@ -57,40 +58,27 @@ export const handler = async (request: any) => {
     const totalUnlocked = unlockedAchievements.length
     const totalAchievements = achievements.length
 
-    return {
-      status: 200,
-      body: {
-        success: true,
-        message: 'Achievements retrieved',
-        data: {
-          summary: {
-            total: totalAchievements,
-            unlocked: totalUnlocked,
-            locked: totalAchievements - totalUnlocked,
-            progress: totalAchievements > 0 ? Math.round((totalUnlocked / totalAchievements) * 100) : 0,
-          },
-          achievements: achievements.map((a: any) => ({
-            id: a.id,
-            name: a.name,
-            description: a.description,
-            icon: a.icon,
-            rewards: a.rewards,
-            progress: a.progress,
-            maxProgress: a.max_progress,
-            unlocked: !!a.unlocked_at,
-            unlockedAt: a.unlocked_at,
-          })),
-        },
+    return successResponse({
+      summary: {
+        total: totalAchievements,
+        unlocked: totalUnlocked,
+        locked: totalAchievements - totalUnlocked,
+        progress: totalAchievements > 0 ? Math.round((totalUnlocked / totalAchievements) * 100) : 0,
       },
-    }
+      achievements: achievements.map((a: any) => ({
+        id: a.id,
+        name: a.name,
+        description: a.description,
+        icon: a.icon,
+        rewards: a.rewards,
+        progress: a.progress,
+        maxProgress: a.max_progress,
+        unlocked: !!a.unlocked_at,
+        unlockedAt: a.unlocked_at,
+      })),
+    }, 'Achievements retrieved')
   } catch (error: any) {
     console.error('Get achievements error:', error)
-    return {
-      status: 500,
-      body: {
-        success: false,
-        message: error.message || 'Failed to get achievements',
-      },
-    }
+    return errorResponse(500, error.message || 'Failed to get achievements')
   }
 }

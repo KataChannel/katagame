@@ -1,6 +1,7 @@
 import { getAuthService } from '../../src/services/auth.service'
 import { getBattleService } from '../../src/services/battle.service'
 import { getPlayerService } from '../../src/services/player.service'
+import { successResponse, errorResponse } from '../../src/utils/response.wrapper'
 
 /**
  * API Endpoint: POST /api/v1/battles/resolve
@@ -20,14 +21,14 @@ export const handler = async (request: any) => {
     const authHeader = request.headers?.authorization
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return { status: 401, body: { success: false, message: 'No token provided' } }
+      return errorResponse(401, 'No token provided')
     }
 
     const token = authHeader.substring(7)
     const { battleId, result = 'attacker_win' } = request.body
 
     if (!battleId) {
-      return { status: 400, body: { success: false, message: 'Battle ID is required' } }
+      return errorResponse(400, 'Battle ID is required')
     }
 
     const authService = getAuthService()
@@ -37,18 +38,18 @@ export const handler = async (request: any) => {
     // Verify token
     const decoded = authService.verifyToken(token)
     if (!decoded) {
-      return { status: 401, body: { success: false, message: 'Invalid token' } }
+      return errorResponse(401, 'Invalid token')
     }
 
     // Get battle
     const battle = await battleService.getBattle(battleId)
     if (!battle) {
-      return { status: 404, body: { success: false, message: 'Battle not found' } }
+      return errorResponse(404, 'Battle not found')
     }
 
     // Verify it's the player's battle
     if (battle.attacker_id !== decoded.playerId) {
-      return { status: 403, body: { success: false, message: 'Unauthorized' } }
+      return errorResponse(403, 'Unauthorized')
     }
 
     // Calculate rewards based on result
@@ -72,7 +73,7 @@ export const handler = async (request: any) => {
     )
 
     if (!updated) {
-      return { status: 400, body: { success: false, message: 'Failed to resolve battle' } }
+      return errorResponse(400, 'Failed to resolve battle')
     }
 
     // Award rewards to attacker (player)
@@ -82,30 +83,17 @@ export const handler = async (request: any) => {
       gold: (await playerService.getPlayer(decoded.playerId))?.resources.gold! + playerRewards.gold,
     })
 
-    return {
-      status: 200,
-      body: {
-        success: true,
-        message: 'Battle resolved',
-        data: {
-          battleId: updated.id,
-          result: updated.result,
-          rewards: {
-            exp: playerRewards.exp,
-            gold: playerRewards.gold,
-            rating: playerRewards.rating,
-          },
-        },
+    return successResponse({
+      battleId: updated.id,
+      result: updated.result,
+      rewards: {
+        exp: playerRewards.exp,
+        gold: playerRewards.gold,
+        rating: playerRewards.rating,
       },
-    }
+    }, 'Battle resolved')
   } catch (error: any) {
     console.error('Resolve battle error:', error)
-    return {
-      status: 500,
-      body: {
-        success: false,
-        message: error.message || 'Failed to resolve battle',
-      },
-    }
+    return errorResponse(500, error.message || 'Failed to resolve battle')
   }
 }

@@ -1,4 +1,5 @@
 import { getPlayerService } from '../../src/services/player.service'
+import { successResponse, errorResponse } from '../../src/utils/response.wrapper'
 
 /**
  * API Endpoint: GET /api/v1/players/:id/profile
@@ -18,38 +19,25 @@ export const handler = async (request: any) => {
     const { id } = request.params
 
     if (!id) {
-      return { status: 400, body: { success: false, message: 'Player ID is required' } }
+      return errorResponse(400, 'Player ID is required')
     }
 
     const playerService = getPlayerService()
     const player = await playerService.getPlayer(id)
 
     if (!player) {
-      return { status: 404, body: { success: false, message: 'Player not found' } }
+      return errorResponse(404, 'Player not found')
     }
 
-    return {
-      status: 200,
-      body: {
-        success: true,
-        message: 'Player profile retrieved',
-        data: {
-          id: player.id,
-          username: player.username,
-          level: player.level,
-          experience: player.experience,
-          joinedDate: player.created_at,
-        },
-      },
-    }
+    return successResponse({
+      id: player.id,
+      username: player.username,
+      level: player.level,
+      experience: player.experience,
+      joinedDate: player.created_at,
+    }, 'Player profile retrieved')
   } catch (error: any) {
     console.error('Get player profile error:', error)
-    return {
-      status: 500,
-      body: {
-        success: false,
-        message: error.message || 'Failed to get player profile',
-      },
-    }
+    return errorResponse(500, error.message || 'Failed to get player profile')
   }
 }

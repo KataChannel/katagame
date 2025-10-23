@@ -3,6 +3,7 @@ import { getPlayerService } from '../../src/services/player.service'
 import { getBattleService } from '../../src/services/battle.service'
 import { getLogger } from '../../src/services/logger.service'
 import { battleLimiter } from '../../src/middleware/rate-limit.middleware'
+import { successResponse, errorResponse } from '../../src/utils/response.wrapper'
 
 /**
  * API Endpoint: POST /api/v1/battles/start
@@ -29,13 +30,13 @@ export const handler = async (request: any) => {
     try {
       getDatabase()
     } catch {
-      initDatabase(databaseUrl)
+      await initDatabase(databaseUrl)
     }
 
     const authHeader = request.headers?.authorization
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return { status: 401, body: { success: false, message: 'No token provided' } }
+      return errorResponse(401, 'No token provided')
     }
 
     const token = authHeader.substring(7)
@@ -44,13 +45,7 @@ export const handler = async (request: any) => {
     const rateLimitResult = battleLimiter.isLimited(request)
     if (rateLimitResult.limited) {
       logger.logSecurityEvent('Battle rate limit exceeded', { ip: clientIp })
-      return {
-        status: 429,
-        body: {
-          success: false,
-          message: 'Too many battles. Please try again later.',
-        },
-      }
+      return errorResponse(429, 'Too many battles. Please try again later.')
     }
 
     const authService = getAuthService()
@@ -60,13 +55,13 @@ export const handler = async (request: any) => {
     // Verify token
     const decoded = authService.verifyToken(token)
     if (!decoded) {
-      return { status: 401, body: { success: false, message: 'Invalid token' } }
+      return errorResponse(401, 'Invalid token')
     }
 
     // Get player
     const player = await playerService.getPlayer(decoded.playerId)
     if (!player) {
-      return { status: 404, body: { success: false, message: 'Player not found' } }
+      return errorResponse(404, 'Player not found')
     }
 
     // Create battle (player vs NPC/environment)
@@ -80,36 +75,23 @@ export const handler = async (request: any) => {
     )
 
     if (!battle) {
-      return { status: 400, body: { success: false, message: 'Failed to create battle' } }
+      return errorResponse(400, 'Failed to create battle')
     }
 
     const duration = Date.now() - startTime
     logger.logRequest('POST', '/api/v1/battles/start', 200, duration, clientIp)
 
-    return {
-      status: 200,
-      body: {
-        success: true,
-        message: 'Battle started',
-        data: {
-          battleId: battle.id,
-          battleType: battle.battle_type,
-          status: 'ongoing',
-          createdAt: battle.created_at,
-        },
-      },
-    }
+    return successResponse({
+      battleId: battle.id,
+      battleType: battle.battle_type,
+      status: 'ongoing',
+      createdAt: battle.created_at,
+    }, 'Battle started')
   } catch (error: any) {
     const duration = Date.now() - startTime
     logger.error('Start battle error', error)
     logger.logRequest('POST', '/api/v1/battles/start', 500, duration, clientIp)
 
-    return {
-      status: 500,
-      body: {
-        success: false,
-        message: 'Failed to start battle',
-      },
-    }
+    return errorResponse(500, 'Failed to start battle')
   }
 }

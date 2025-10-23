@@ -1,5 +1,6 @@
 import { getAuthService } from '../../src/services/auth.service'
 import { getDatabase } from '../../src/services/database.service'
+import { successResponse, errorResponse } from '../../src/utils/response.wrapper'
 
 /**
  * API Endpoint: GET /api/v1/heroes/list
@@ -22,13 +23,13 @@ export const handler = async (request: any) => {
     try {
       getDatabase()
     } catch {
-      initDatabase(databaseUrl)
+      await initDatabase(databaseUrl)
     }
 
     const authHeader = request.headers?.authorization
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return { status: 401, body: { success: false, message: 'No token provided' } }
+      return errorResponse(401, 'No token provided')
     }
 
     const token = authHeader.substring(7)
@@ -41,7 +42,7 @@ export const handler = async (request: any) => {
     // Verify token
     const decoded = authService.verifyToken(token)
     if (!decoded) {
-      return { status: 401, body: { success: false, message: 'Invalid token' } }
+      return errorResponse(401, 'Invalid token')
     }
 
     // Get heroes - build query based on filters
@@ -63,33 +64,20 @@ export const handler = async (request: any) => {
     const result = await db.query(query, params)
     const heroes = result?.rows || []
 
-    return {
-      status: 200,
-      body: {
-        success: true,
-        message: 'Heroes retrieved',
-        data: {
-          count: heroes.length,
-          heroes: heroes.map((h: any) => ({
-            id: h.id,
-            name: h.name,
-            element: h.element,
-            rarity: h.rarity,
-            basePower: h.base_power,
-            recruitCost: h.recruit_cost,
-            description: h.description,
-          })),
-        },
-      },
-    }
+    return successResponse({
+      count: heroes.length,
+      heroes: heroes.map((h: any) => ({
+        id: h.id,
+        name: h.name,
+        element: h.element,
+        rarity: h.rarity,
+        basePower: h.base_power,
+        recruitCost: h.recruit_cost,
+        description: h.description,
+      })),
+    }, 'Heroes retrieved')
   } catch (error: any) {
     console.error('Get heroes list error:', error)
-    return {
-      status: 500,
-      body: {
-        success: false,
-        message: error.message || 'Failed to get heroes list',
-      },
-    }
+    return errorResponse(500, error.message || 'Failed to get heroes list')
   }
 }

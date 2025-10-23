@@ -1,6 +1,7 @@
 import { getAuthService } from '../../src/services/auth.service'
 import { getPlayerService } from '../../src/services/player.service'
 import { getDatabase } from '../../src/services/database.service'
+import { successResponse, errorResponse } from '../../src/utils/response.wrapper'
 
 /**
  * API Endpoint: POST /api/v1/heroes/recruit
@@ -20,14 +21,14 @@ export const handler = async (request: any) => {
     const authHeader = request.headers?.authorization
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return { status: 401, body: { success: false, message: 'No token provided' } }
+      return errorResponse(401, 'No token provided')
     }
 
     const token = authHeader.substring(7)
     const { heroId } = request.body
 
     if (!heroId) {
-      return { status: 400, body: { success: false, message: 'Hero ID is required' } }
+      return errorResponse(400, 'Hero ID is required')
     }
 
     const authService = getAuthService()
@@ -37,13 +38,13 @@ export const handler = async (request: any) => {
     // Verify token
     const decoded = authService.verifyToken(token)
     if (!decoded) {
-      return { status: 401, body: { success: false, message: 'Invalid token' } }
+      return errorResponse(401, 'Invalid token')
     }
 
     // Get player
     const player = await playerService.getPlayer(decoded.playerId)
     if (!player) {
-      return { status: 404, body: { success: false, message: 'Player not found' } }
+      return errorResponse(404, 'Player not found')
     }
 
     // Get hero to recruit
@@ -51,12 +52,12 @@ export const handler = async (request: any) => {
     const hero = heroResult?.rows?.[0]
 
     if (!hero) {
-      return { status: 404, body: { success: false, message: 'Hero not found' } }
+      return errorResponse(404, 'Hero not found')
     }
 
     // Check if player has enough gold
     if (player.resources.gold < hero.recruit_cost) {
-      return { status: 400, body: { success: false, message: 'Insufficient gold' } }
+      return errorResponse(400, 'Insufficient gold')
     }
 
     // Add hero to player inventory
@@ -69,7 +70,7 @@ export const handler = async (request: any) => {
     })
 
     if (!playerHeroResult) {
-      return { status: 400, body: { success: false, message: 'Failed to recruit hero' } }
+      return errorResponse(400, 'Failed to recruit hero')
     }
 
     // Deduct cost from player
@@ -78,27 +79,14 @@ export const handler = async (request: any) => {
       gold: newGold,
     })
 
-    return {
-      status: 200,
-      body: {
-        success: true,
-        message: 'Hero recruited successfully',
-        data: {
-          heroId: hero.id,
-          heroName: hero.name,
-          costDeducted: hero.recruit_cost,
-          remainingGold: newGold,
-        },
-      },
-    }
+    return successResponse({
+      heroId: hero.id,
+      heroName: hero.name,
+      costDeducted: hero.recruit_cost,
+      remainingGold: newGold,
+    }, 'Hero recruited successfully')
   } catch (error: any) {
     console.error('Recruit hero error:', error)
-    return {
-      status: 500,
-      body: {
-        success: false,
-        message: error.message || 'Failed to recruit hero',
-      },
-    }
+    return errorResponse(500, error.message || 'Failed to recruit hero')
   }
 }
