@@ -190,3 +190,6 @@ export function getConfig(): AppConfig {
   }
   return configLoader.getConfig()
 }
+
+// Export MVP1 game configuration
+export { MVP1_CONFIG, default as MVP1_GAME_CONFIG } from './config/mvp1.config'
