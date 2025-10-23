@@ -40,5 +40,11 @@ declare module 'motia' {
     'AnalyticsAggregationCron': CronHandler<never>
     'AchievementUnlockProcessor': CronHandler<never>
     'GetAchievementsHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'GetStoriesListHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'GetStoryByDayHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'GetStoryWithQuizHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'MarkStoryReadHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'SubmitQuizHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'MVP1 Get Resources List': ApiRouteHandler<Record<string, unknown>, unknown, never>
   }
 }
