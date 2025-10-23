@@ -1,18 +1,24 @@
-# 🎮 MVP 1 - KATAGAME FEATURES SUMMARY
-**Tài liệu**: Danh Sách Chi Tiết Tính Năng Game MVP 1  
+# 🎮 MVP 1 - KATAGAME FEATURES SUMMARY (REVISED)
+**Tài liệu**: Danh Sách Chi Tiết Tính Năng Game MVP 1 - Educational Version  
 **Ngày**: October 23, 2025  
 **Giai đoạn**: Foundation (Nov-Dec 2025)  
 **Doanh thu mục tiêu**: 50-100K VND/ngày
 
 ---
 
-## 📋 MVP 1 OVERVIEW
+## 📋 MVP 1 OVERVIEW - NEW VISION
 
 **Tên gọi**: "Khởi Nguồn Đất Việt" (Foundations of Vietnam)  
-**Mô tả**: Single-player game loop với backend integration  
+**Mô tả**: Educational strategy game + Historical stories + Sustainable farming  
 **Timeline**: 8 tuần (Nov 1 - Dec 31, 2025)  
 **Số người chơi mục tiêu**: 50,000 - 100,000 DAU (Daily Active Users)  
-**Loại game**: Educational + Click & Auto-farming + Strategy
+**Loại game**: Educational History Game + Click & Auto-farming + Strategy
+
+### Project Goals
+1. **📚 Educational**: Teach Vietnamese history, geography, culture
+2. **💰 Social Impact**: Support national programs, generate fundraising opportunities
+3. **🎮 Gameplay**: Engage players through sustainable earning mechanics
+4. **🌍 Cultural**: Build national pride and appreciation for Vietnamese heritage
 
 ---
 
