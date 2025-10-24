@@ -1,0 +1,367 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useGameStore } from '@/lib/gameStore';
+import { SaveGameManager } from '@/lib/saveGameManager';
+import { useSound } from '@/lib/soundManager';
+import MVP1ApiClient from '@/lib/mvp1ApiClient';
+import { useGameData, loadGameData, loadPlayerData } from '@/lib/useGameData';
+
+import AuthPage from '@/components/AuthPage';
+import ResourceBar from '@/components/ResourceBar';
+import ProvinceCard from '@/components/ProvinceCard';
+import PlayerInfo from '@/components/PlayerInfo';
+import PremiumPass from '@/components/PremiumPass';
+import Shop from '@/components/Shop';
+import CultureCenter from '@/components/CultureCenter';
+import Achievements from '@/components/Achievements';
+import SettingsPanel from '@/components/SettingsPanel';
+import Tutorial from '@/components/Tutorial';
+import GameLoop from '@/components/GameLoop';
+import { useNotifications } from '@/components/NotificationSystem';
+import { ErrorBoundary, LoadingScreen } from '@/components/UIComponents';
+import { Settings, Crown, Home, ShoppingCart, Book, Trophy } from 'lucide-react';
+import MobileBottomNav, { DesktopNav } from '@/components/MobileNavigation';
+import MobileResourceBar from '@/components/MobileResourceBar';
+import MobileProvinceCard from '@/components/MobileProvinceCard';
+import CombatTab from '@/components/CombatTab';
+import HeroesTab from '@/components/HeroesTab';
+import PetsTab from '@/components/PetsTab';
+import BattlePassTab from '@/components/BattlePassTab';
+import GachaTab from '@/components/GachaTab';
+import GuildTab from '@/components/GuildTab';
+import ArenaTab from '@/components/ArenaTab';
+import WorldMapTab from '@/components/WorldMapTab';
+import DailyMissionsTab from '@/components/DailyMissionsTab';
+import FriendsTab from '@/components/FriendsTab';
+import EnhancedShopTab from '@/components/EnhancedShopTab';
+import CustomizationTab from '@/components/CustomizationTab';
+import AnalyticsTab from '@/components/AnalyticsTab';
+import MultiplayerTab from '@/components/MultiplayerTab';
+import MarketplaceTab from '@/components/MarketplaceTab';
+import { ErrorBoundary as AppErrorBoundary } from '@/components/ErrorBoundary';
+import { initializeStorageOptimization } from '@/lib/storageOptimization';
+
+/**
+ * INTEGRATION STEPS FOR REAL DATA:
+ * 
+ * 1. Import MVP1ApiClient and useGameData hook
+ * 2. In Game component, load real data on mount
+ * 3. Replace hardcoded mock data with real API responses
+ * 4. Update state when real data arrives
+ * 5. Pass real data to child components
+ * 6. Handle loading/error states
+ * 
+ * Expected changes:
+ * - NO more initialProvinces hardcoded array
+ * - NO more mock stories in CultureCenter
+ * - NO more mock heroes in store
+ * - ALL data comes from MVP1 backend endpoints
+ */
+
+export default function Game() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authToken, setAuthToken] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<'game' | 'premium' | 'shop' | 'culture' | 'achievements' | 'settings' | 'combat' | 'heroes' | 'pets' | 'battlepass' | 'gacha' | 'guild' | 'arena' | 'worldmap' | 'missions' | 'friends' | 'enhancedshop' | 'customization' | 'analytics' | 'multiplayer' | 'marketplace'>('game');
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // ✅ NEW: Load real data from MVP1 backend
+  const { 
+    stories: realStories,
+    resources: realResources,
+    heroes: realHeroes,
+    provinces: realProvinces,
+    playerResources: realPlayerResources,
+    playerHeroes: realPlayerHeroes,
+    playerProvinces: realPlayerProvinces,
+    gameConfig,
+    isLoading: isLoadingGameData,
+    error: gameDataError
+  } = useGameData();
+  
+  const { 
+    player, 
+    provinces, 
+    gameSpeed, 
+    setGameSpeed, 
+    tutorial, 
+    completeTutorial, 
+    notifications,
+    checkAndResetMissions,
+    checkAndResetFriendGifts,
+    checkAndRefreshShops,
+  } = useGameStore();
+  const { NotificationComponent } = useNotifications();
+
+  // ✅ NEW: Initialize API client and load real data on mount
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    const user = localStorage.getItem('user');
+    
+    if (token && user) {
+      setAuthToken(token);
+      setCurrentUser(JSON.parse(user));
+      setIsAuthenticated(true);
+      
+      // ✅ Set API token for all MVP1 API calls
+      MVP1ApiClient.setAuthToken(token);
+    }
+  }, []);
+
+  // ✅ NEW: Update game state with real data when it arrives
+  useEffect(() => {
+    if (isAuthenticated && !isLoadingGameData && realProvinces && realPlayerProvinces) {
+      const initGame = async () => {
+        try {
+          // ✅ Merge real data with game state
+          // You can create a function to update Zustand store with real data
+          // For now, we'll keep using the hook data directly in components
+          
+          await new Promise(resolve => setTimeout(resolve, 500));
+          setIsLoading(false);
+          
+          // Show tutorial for new players if applicable
+          if (!tutorial.completed && player.level === 1 && player.experience === 0) {
+            setTimeout(() => setShowTutorial(true), 500);
+          }
+          
+          // Check and reset missions on app start
+          checkAndResetMissions();
+          checkAndResetFriendGifts();
+          checkAndRefreshShops();
+          initializeStorageOptimization();
+        } catch (error) {
+          console.error('Error initializing game:', error);
+          setIsLoading(false);
+        }
+      };
+      
+      initGame();
+    } else if (!isAuthenticated) {
+      setIsLoading(false);
+    }
+  }, [isAuthenticated, isLoadingGameData, realProvinces, realPlayerProvinces, tutorial.completed, player.level, player.experience, checkAndResetMissions, checkAndResetFriendGifts, checkAndRefreshShops]);
+
+  // ✅ NEW: Show error if data loading failed
+  if (gameDataError && isAuthenticated) {
+    return (
+      <div className="error-container">
+        <h1>Error Loading Game Data</h1>
+        <p>{gameDataError}</p>
+        <button onClick={() => window.location.reload()}>Retry</button>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <AuthPage onAuthenticate={(token, user) => {
+      setAuthToken(token);
+      setCurrentUser(user);
+      setIsAuthenticated(true);
+      MVP1ApiClient.setAuthToken(token);
+    }} />;
+  }
+
+  if (isLoading || isLoadingGameData) {
+    return <LoadingScreen />;
+  }
+
+  return (
+    <AppErrorBoundary>
+      <div className="game-container">
+        {/* Desktop Navigation */}
+        <DesktopNav 
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
+
+        <div className="main-content">
+          {/* ✅ PASS REAL DATA TO COMPONENTS */}
+          
+          {activeTab === 'game' && (
+            <div className="game-tab">
+              {/* ✅ Use real resources from MVP1 API */}
+              <MobileResourceBar 
+                resources={realPlayerResources}
+              />
+
+              {/* ✅ Use real provinces from MVP1 API */}
+              <div className="provinces-grid">
+                {realPlayerProvinces?.map(province => (
+                  <MobileProvinceCard 
+                    key={province.id}
+                    province={province}
+                    // Province data is now real from backend
+                  />
+                ))}
+              </div>
+
+              {/* Game Loop */}
+              <GameLoop gameSpeed={gameSpeed} />
+
+              {/* Player Info */}
+              <PlayerInfo player={player} />
+            </div>
+          )}
+
+          {activeTab === 'culture' && (
+            <CultureCenter 
+              stories={realStories}  {/* ✅ Real stories from MVP1 API */}
+              // CultureCenter will load quiz data on demand using MVP1ApiClient
+            />
+          )}
+
+          {activeTab === 'heroes' && (
+            <HeroesTab 
+              allHeroes={realHeroes}  {/* ✅ Real heroes from MVP1 API */}
+              myHeroes={realPlayerHeroes}  {/* ✅ Real player heroes */}
+              resources={realPlayerResources}  {/* ✅ Real resources */}
+              // HeroesTab will use MVP1ApiClient.recruitHero() and deployHero()
+            />
+          )}
+
+          {activeTab === 'combat' && (
+            <CombatTab 
+              heroes={realPlayerHeroes}
+              resources={realPlayerResources}
+            />
+          )}
+
+          {activeTab === 'premium' && (
+            <PremiumPass />
+          )}
+
+          {activeTab === 'shop' && (
+            <Shop />
+          )}
+
+          {activeTab === 'achievements' && (
+            <Achievements />
+          )}
+
+          {activeTab === 'settings' && (
+            <SettingsPanel 
+              onGameSpeedChange={setGameSpeed}
+              gameSpeed={gameSpeed}
+            />
+          )}
+
+          {activeTab === 'pets' && (
+            <PetsTab />
+          )}
+
+          {activeTab === 'battlepass' && (
+            <BattlePassTab />
+          )}
+
+          {activeTab === 'gacha' && (
+            <GachaTab />
+          )}
+
+          {activeTab === 'guild' && (
+            <GuildTab />
+          )}
+
+          {activeTab === 'arena' && (
+            <ArenaTab />
+          )}
+
+          {activeTab === 'worldmap' && (
+            <WorldMapTab />
+          )}
+
+          {activeTab === 'missions' && (
+            <DailyMissionsTab />
+          )}
+
+          {activeTab === 'friends' && (
+            <FriendsTab />
+          )}
+
+          {activeTab === 'enhancedshop' && (
+            <EnhancedShopTab />
+          )}
+
+          {activeTab === 'customization' && (
+            <CustomizationTab />
+          )}
+
+          {activeTab === 'analytics' && (
+            <AnalyticsTab />
+          )}
+
+          {activeTab === 'multiplayer' && (
+            <MultiplayerTab />
+          )}
+
+          {activeTab === 'marketplace' && (
+            <MarketplaceTab />
+          )}
+        </div>
+
+        {/* Mobile Bottom Navigation */}
+        <MobileBottomNav 
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
+
+        {/* Tutorial Overlay */}
+        {showTutorial && (
+          <Tutorial 
+            onComplete={() => {
+              setShowTutorial(false);
+              completeTutorial();
+            }}
+          />
+        )}
+
+        {/* Notifications */}
+        <NotificationComponent />
+      </div>
+    </AppErrorBoundary>
+  );
+}
+
+/**
+ * NEXT STEPS TO COMPLETE INTEGRATION:
+ * 
+ * 1. Update CultureCenter component:
+ *    - Accept stories prop from real data
+ *    - Use MVP1ApiClient.getStoryQuiz(storyId)
+ *    - Use MVP1ApiClient.submitQuiz(storyId, answers)
+ *    - Use MVP1ApiClient.getQuizStats()
+ * 
+ * 2. Update HeroesTab component:
+ *    - Accept heroes, myHeroes props from real data
+ *    - Use MVP1ApiClient.recruitHero(heroType)
+ *    - Use MVP1ApiClient.deployHero(heroId, provinceId)
+ *    - Refresh player heroes after recruitment
+ * 
+ * 3. Update ResourceBar component:
+ *    - Accept resources prop from real data
+ *    - Use MVP1ApiClient.harvestResources(type)
+ *    - Handle harvest cooldown errors
+ *    - Refresh resources after harvest
+ * 
+ * 4. Update ProvinceCard component:
+ *    - Accept province prop from real data
+ *    - Use MVP1ApiClient.upgradeFarmer(provinceId)
+ *    - Use MVP1ApiClient.upgradeResource(provinceId)
+ *    - Use MVP1ApiClient.upgradeDevelopment(provinceId)
+ *    - Validate resource costs before showing upgrade button
+ * 
+ * 5. Create LeaderboardTab component:
+ *    - Use MVP1ApiClient.getQuizLeaderboard()
+ *    - Use MVP1ApiClient.getResourceLeaderboard()
+ *    - Use MVP1ApiClient.getHeroLeaderboard()
+ *    - Update leaderboards every 1 minute
+ * 
+ * 6. Testing:
+ *    - Verify all components load real data
+ *    - Verify API calls work correctly
+ *    - Verify error handling works
+ *    - Verify loading states display
+ *    - Test in browser DevTools Network tab
+ */

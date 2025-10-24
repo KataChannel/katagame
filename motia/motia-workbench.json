@@ -61,6 +61,102 @@
         "x": -454,
         "y": 303
       },
+      "steps/game/mvp1-stories-with-quiz.step.ts": {
+        "x": 29,
+        "y": 1324
+      },
+      "steps/game/mvp1-stories-mark-read.step.ts": {
+        "x": 25,
+        "y": 1475
+      },
+      "steps/game/mvp1-stories-list.step.ts": {
+        "x": 50,
+        "y": 1626
+      },
+      "steps/game/mvp1-stories-by-day.step.ts": {
+        "x": 46,
+        "y": 1777
+      },
+      "steps/game/mvp1-resources-player.step.ts": {
+        "x": 4,
+        "y": 1928
+      },
+      "steps/game/mvp1-resources-list.step.ts": {
+        "x": 43,
+        "y": 2079
+      },
+      "steps/game/mvp1-resources-leaderboard.step.ts": {
+        "x": 8,
+        "y": 2230
+      },
+      "steps/game/mvp1-resources-harvest.step.ts": {
+        "x": 20,
+        "y": 2381
+      },
+      "steps/game/mvp1-quizzes-submit.step.ts": {
+        "x": -939,
+        "y": 2469
+      },
+      "steps/game/mvp1-quizzes-stats.step.ts": {
+        "x": 41,
+        "y": 2703
+      },
+      "steps/game/mvp1-quizzes-leaderboard.step.ts": {
+        "x": 16,
+        "y": 2854
+      },
+      "steps/game/mvp1-provinces-upgrade-resource.step.ts": {
+        "x": 0,
+        "y": 3005
+      },
+      "steps/game/mvp1-provinces-upgrade-farmer.step.ts": {
+        "x": -364,
+        "y": 3124
+      },
+      "steps/game/mvp1-provinces-upgrade-dev.step.ts": {
+        "x": 0,
+        "y": 3347
+      },
+      "steps/game/mvp1-provinces-player.step.ts": {
+        "x": 4,
+        "y": 3518
+      },
+      "steps/game/mvp1-provinces-list.step.ts": {
+        "x": 45,
+        "y": 3669
+      },
+      "steps/game/mvp1-provinces-detail.step.ts": {
+        "x": 41,
+        "y": 3820
+      },
+      "steps/game/mvp1-heroes-recruit.step.ts": {
+        "x": 33,
+        "y": 3971
+      },
+      "steps/game/mvp1-heroes-player.step.ts": {
+        "x": 29,
+        "y": 4122
+      },
+      "steps/game/mvp1-heroes-list.step.ts": {
+        "x": 54,
+        "y": 4273
+      },
+      "steps/game/mvp1-heroes-leaderboard.step.ts": {
+        "x": 20,
+        "y": 4424
+      },
+      "steps/game/mvp1-heroes-deploy.step.ts": {
+        "x": 37,
+        "y": 4575
+      },
+      "steps/game/mvp1-game-data.step.ts": {
+        "x": 54,
+        "y": 4726
+      },
+      "steps/game/mvp1-config.step.ts": {
+        "x": 69,
+        "y": 4877
+      },
       "steps/game/marketplace-transaction.step.ts": {
         "x": 602,
         "y": 356
@@ -86,8 +182,8 @@
         "y": 2283
       },
       "steps/game/battle-resolve.step.ts": {
-        "x": 29,
-        "y": 2434
+        "x": -948,
+        "y": 2657
       },
       "steps/game/battle-resolution.step.ts": {
         "x": 0,
@@ -102,12 +198,12 @@
         "y": 3007
       },
       "steps/game/auth-logout.step.ts": {
-        "x": 46,
-        "y": 3158
+        "x": -677,
+        "y": 2990
       },
       "steps/game/auth-login.step.ts": {
-        "x": 50,
-        "y": 3309
+        "x": -676,
+        "y": 3132
       },
       "steps/game/auth-google.step.ts": {
         "x": 6,

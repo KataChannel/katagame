@@ -24,6 +24,30 @@ declare module 'motia' {
     'GetCurrentPlayerHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'GetPlayerProfileHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'PlayerLoginProcessor': CronHandler<never>
+    'GetStoryWithQuizHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'MarkStoryReadHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'GetStoriesListHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'GetStoryByDayHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'MVP1 Get Player Resources': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'MVP1 Get Resources List': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'MVP1 Get Resource Leaderboard': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'MVP1 Harvest Resources': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'SubmitQuizHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'MVP1 Get Quiz Stats': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'MVP1 Get Quiz Leaderboard': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'MVP1 Upgrade Resource': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'MVP1 Upgrade Farmer': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'MVP1 Upgrade Development': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'MVP1 Get Player Provinces': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'MVP1 Get Provinces List': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'MVP1 Get Province Detail': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'MVP1 Recruit Hero': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'MVP1 Get Player Heroes': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'MVP1 Get Heroes List': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'MVP1 Get Hero Leaderboard': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'MVP1 Deploy Hero': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'MVP1 Get Game Data': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'MVP1 Get Config': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'MarketplaceTransactionProcessor': CronHandler<never>
     'LeaderboardUpdateCron': CronHandler<never>
     'RecruitHeroHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
@@ -40,11 +64,5 @@ declare module 'motia' {
     'AnalyticsAggregationCron': CronHandler<never>
     'AchievementUnlockProcessor': CronHandler<never>
     'GetAchievementsHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
-    'GetStoriesListHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
-    'GetStoryByDayHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
-    'GetStoryWithQuizHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
-    'MarkStoryReadHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
-    'SubmitQuizHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
-    'MVP1 Get Resources List': ApiRouteHandler<Record<string, unknown>, unknown, never>
   }
 }

@@ -1,322 +1,193 @@
-# 📚 MVP1 Documentation Index
+# 📚 Frontend Real Data Integration - Complete Documentation Index
 
-## 🎯 START HERE
+**Updated**: 24 tháng 10, 2025  
+**Status**: ✅ All Documentation Complete  
+**Purpose**: Replace mock data with real MVP1 backend data
 
-### Quick Overview (2 minutes)
-**File**: `MVP1_README.md` ← **START HERE**
-- Project summary
-- Quick start commands
-- Final statistics
-- Deployment ready confirmation
+---
 
-### Interactive Guide (5 minutes)
-**File**: `MVP1_QUICK_START.sh`
+## 🎯 START HERE (Pick Your Path)
+
+### ⚡ I Have 30 Minutes
+1. Read: `EXECUTIVE_SUMMARY.md` (5 min)
+2. Run: `bash setup-real-data.sh` (2 min)
+3. Start: ResourceBar migration (20 min)
+→ **Result**: First component with real data
+
+### 🚀 I Have 2 Hours
+1. Read: `EXECUTIVE_SUMMARY.md` + `READY_FOR_REAL_DATA.md` (15 min)
+2. Run: `bash setup-real-data.sh` (2 min)
+3. Migrate: ResourceBar + ProvinceCard (45 min)
+4. Test: Verify both working (20 min)
+→ **Result**: 2 major components done
+
+### 🎯 I Have Full Day (4-6 hours)
+1. Setup & verification (20 min)
+2. All 6 component migrations (3 hours)
+3. Full testing & polish (1-1.5 hours)
+→ **Result**: 100% migration complete
+
+---
+
+## 📖 DOCUMENTATION FILES (By Purpose)
+
+### 🎯 Executive Level
+| File | Purpose | Read Time | Best For |
+|------|---------|-----------|----------|
+| **EXECUTIVE_SUMMARY.md** | High-level overview | 5 min | Getting oriented |
+| **READY_FOR_REAL_DATA.md** | Complete status report | 10 min | Full picture |
+| **FRONTEND_INTEGRATION_READY.md** | What's been done | 10 min | Understanding setup |
+
+### 📚 Implementation Level
+| File | Purpose | Read Time | Best For |
+|------|---------|-----------|----------|
+| **FRONTEND_REAL_DATA_INTEGRATION_GUIDE.md** | Step-by-step migration | 30-60 min | Following while coding |
+| **INTEGRATION_EXAMPLES.md** | Real code examples | 20 min | Copy-paste patterns |
+| **page.tsx.template** | Main page migration template | 10 min | Reference |
+
+### ✅ Tracking & Verification
+| File | Purpose | Time | Best For |
+|------|---------|------|----------|
+| **REAL_DATA_MIGRATION_CHECKLIST.md** | 28-item task list | Reference | Tracking progress |
+| **FRONTEND_INTEGRATION_READY.md** | API reference | Reference | Looking up endpoints |
+
+### 🔧 Technical Reference
+| File | Purpose | For |
+|------|---------|-----|
+| **frontend/lib/mvp1ApiClient.ts** | 24 API methods | Implementation |
+| **frontend/lib/useGameData.ts** | React hooks | Data loading |
+| **setup-real-data.sh** | Setup automation | Initial setup |
+
+---
+
+## 🗺️ Navigation by Task
+
+### "I need to replace mock resources with real API"
+1. Start: `EXECUTIVE_SUMMARY.md` → Component #1
+2. Follow: `FRONTEND_REAL_DATA_INTEGRATION_GUIDE.md` → Section 1
+3. Use: `INTEGRATION_EXAMPLES.md` → "Harvesting resources"
+4. Track: `REAL_DATA_MIGRATION_CHECKLIST.md` → ResourceBar tasks
+5. Code: `mvp1ApiClient.ts` → `getPlayerResources()`, `harvestResources()`
+
+### "I need to understand the full picture"
+1. Read: `READY_FOR_REAL_DATA.md` (10 min)
+2. Read: `FRONTEND_INTEGRATION_READY.md` (10 min)
+3. Read: `FRONTEND_REAL_DATA_INTEGRATION_GUIDE.md` (30 min)
+4. Reference: `INTEGRATION_EXAMPLES.md` while coding
+
+### "I'm stuck on a component"
+1. Check: `INTEGRATION_EXAMPLES.md` for that feature
+2. Look: `FRONTEND_REAL_DATA_INTEGRATION_GUIDE.md` section
+3. Reference: `mvp1ApiClient.ts` for available methods
+4. Debug: Browser DevTools Network tab
+
+---
+
+## 📚 Complete File List
+
+### Executive & Overview
+- **EXECUTIVE_SUMMARY.md** - Start here (5 min)
+- **READY_FOR_REAL_DATA.md** - Complete status (10 min)
+- **FRONTEND_INTEGRATION_READY.md** - What was done (10 min)
+
+### Implementation Guides
+- **FRONTEND_REAL_DATA_INTEGRATION_GUIDE.md** - Main reference (main guide)
+- **INTEGRATION_EXAMPLES.md** - 10 code examples
+- **page.tsx.template** - Template reference
+
+### Checklists & Tracking
+- **REAL_DATA_MIGRATION_CHECKLIST.md** - 28-item task list
+- **DOCUMENTATION_INDEX.md** - This file
+
+### Automation & Setup
+- **setup-real-data.sh** - Automated setup script
+
+### Code Files
+- **frontend/lib/mvp1ApiClient.ts** - 24 API methods (implementation)
+- **frontend/lib/useGameData.ts** - React hooks (implementation)
+- **frontend/lib/MVP1_FRONTEND_INTEGRATION.md** - API docs (code)
+- **frontend/lib/INTEGRATION_EXAMPLES.md** - Code examples (code)
+
+---
+
+## 🎯 Component Migration Path
+
+| Step | Component | Time | Difficulty | File |
+|------|-----------|------|-----------|------|
+| 1 | ResourceBar | 20m | ⭐ Easy | frontend/components/ResourceBar.tsx |
+| 2 | ProvinceCard | 30m | ⭐ Easy | frontend/components/ProvinceCard.tsx |
+| 3 | CultureCenter | 30m | ⭐⭐ Med | frontend/components/CultureCenter.tsx |
+| 4 | HeroesTab | 40m | ⭐⭐ Med | frontend/components/HeroesTab.tsx |
+| 5 | LeaderboardTab | 20m | ⭐ Easy | frontend/components/LeaderboardTab.tsx (NEW) |
+| 6 | Main Page | 30m | ⭐⭐ Med | frontend/app/page.tsx |
+
+---
+
+## 🚀 Quick Start
+
 ```bash
-bash MVP1_QUICK_START.sh
-```
-- Formatted project overview
-- Feature highlights
-- Game mechanics samples
-- File locations
+# Step 1: Run setup
+bash setup-real-data.sh
 
----
+# Step 2: Start backend (terminal 1)
+cd motia && bun dev
 
-## 📖 MAIN DOCUMENTATION (Read in Order)
+# Step 3: Start frontend (terminal 2)
+cd frontend && npm run dev
 
-### 1. Project Update (Executive Summary)
-**File**: `MVP1_PROJECT_UPDATE.md` (600+ lines)
-- Executive summary
-- Implementation overview
-- New files created (10 files)
-- Game mechanics implemented (10 systems)
-- Statistics and metrics
-- Success criteria (8/8 met ✅)
-- Next steps for production
-- **Audience**: Project managers, stakeholders
-
-### 2. Implementation Summary (Technical Details)
-**File**: `motia/MVP1_IMPLEMENTATION_SUMMARY.md` (500 lines)
-- Implementation checklist (all ✅)
-- File structure overview
-- Game mechanics detailed (10 systems)
-- Service API reference
-- Integration instructions (4 steps)
-- Database requirements
-- Test scenarios (3 player journeys)
-- Known limitations (7 items)
-- **Audience**: Development team
-
-### 3. API Documentation (Reference)
-**File**: `motia/MVP1_API_DOCUMENTATION.md` (450 lines)
-- All 30+ endpoints documented
-- Request examples
-- Response examples
-- Query parameters
-- Authentication details
-- HTTP status codes
-- Test commands for verification
-- Game mechanics explained
-- **Audience**: Frontend developers, QA testers
-
----
-
-## 📁 REFERENCE MATERIALS
-
-### File Index (Complete Reference)
-**File**: `MVP1_FILES_INDEX.md`
-- All files listed with locations
-- File purposes and descriptions
-- Code statistics
-- Endpoint overview
-- Game systems reference
-- Support documentation references
-
-### Project Structure (Architecture Overview)
-**File**: `MVP1_PROJECT_STRUCTURE.md`
-- Directory tree
-- Architecture layers diagram
-- API endpoint breakdown
-- Game systems implemented
-- Code relationships
-- File locations
-
-### Visual Summary (Metrics Dashboard)
-**File**: `MVP1_VISUAL_SUMMARY.md`
-- Project overview dashboard
-- Implementation statistics
-- Feature matrix
-- Architecture layers
-- File structure visualization
-- API endpoints distribution
-- Database seeding status
-- Quality metrics
-- Deployment readiness
-
-### Completion Checklist (Verification)
-**File**: `MVP1_COMPLETION_CHECKLIST.md`
-- Phase 1-8 implementation checklist
-- All tasks verified ✅
-- Code completion status
-- Quality metrics
-- Deployment readiness
-- Final verification results
-
-### Complete File Listing (Executable)
-**File**: `MVP1_COMPLETE_FILE_LISTING.sh`
-```bash
-bash MVP1_COMPLETE_FILE_LISTING.sh
-```
-- Complete file listing with descriptions
-- Statistics breakdown
-- Endpoints overview
-- Reading order recommendations
-- Quick start commands
-- Final status summary
-
----
-
-## 🎮 CODE FILES REFERENCE
-
-### Configuration
-**File**: `/motia/src/config/mvp1.config.ts` (650 lines)
-- MVP1_CONFIG object with 200+ parameters
-- All game systems defined
-- Game balance settings
-- Used by all services
-
-### Services (Business Logic)
-**Files**: `/motia/src/services/`
-```
-story.service.ts       (190 lines) - Story management
-quiz.service.ts        (200 lines) - Quiz & rewards
-resource.service.ts    (220 lines) - Resource system
-hero.service.ts        (210 lines) - Hero system
-province.service.ts    (360 lines) - Province management
-```
-
-### Routes (API Layer)
-**Files**: `/motia/src/routes/`
-```
-mvp1.routes.ts         (685 lines) - 30+ API endpoints
-index.ts               (20 lines)  - Routes registration
-```
-
-### Configuration Updates
-**File**: `/motia/src/config.ts` (UPDATED +2 lines)
-- Added MVP1_CONFIG export
-
----
-
-## 🚀 QUICK REFERENCE
-
-### Start Backend
-```bash
-cd /chikiet/kataoffical/katagame/motia
-npm run dev
-# Running on http://localhost:11001
-```
-
-### Test API
-```bash
-curl http://localhost:11001/api/v1/game-data
-```
-
-### View Documentation
-```bash
-cat MVP1_README.md                              # Main summary
-cat MVP1_API_DOCUMENTATION.md                   # API reference
-cat MVP1_IMPLEMENTATION_SUMMARY.md              # Implementation
-bash MVP1_QUICK_START.sh                        # Interactive
-```
-
-### Check Files
-```bash
-bash MVP1_COMPLETE_FILE_LISTING.sh              # All files
-cat MVP1_FILES_INDEX.md                         # File index
+# Step 4: Follow guide
+cat FRONTEND_REAL_DATA_INTEGRATION_GUIDE.md
+# Start with ResourceBar section
 ```
 
 ---
 
-## 📊 STATISTICS AT A GLANCE
+## � Progress Tracking
 
-| Metric | Value | Status |
-|--------|-------|--------|
-| Code Generated | 2,700+ lines | ✅ |
-| Documentation | 2,500+ lines | ✅ |
-| API Endpoints | 30+ | ✅ |
-| Services | 5 | ✅ |
-| Game Systems | 10 | ✅ |
-| Config Parameters | 200+ | ✅ |
-| Files Created | 16 | ✅ |
-| Compilation Errors | 0 | ✅ |
-| Type Coverage | 100% | ✅ |
-| Quality Rating | ⭐⭐⭐⭐⭐ | ✅ |
+- **Phase 1**: Verification & Setup (5-10 min)
+  - ✅ All files exist
+  - ✅ Environment ready
+  - ✅ Backend accessible
 
----
+- **Phase 2**: Component Migration (2-3 hours)
+  - ⏳ ResourceBar
+  - ⏳ ProvinceCard  
+  - ⏳ CultureCenter
+  - ⏳ HeroesTab
+  - ⏳ LeaderboardTab
+  - ⏳ Main Page
 
-## 🎯 WHAT TO READ BASED ON YOUR ROLE
-
-### Project Manager
-1. `MVP1_README.md` - Quick overview
-2. `MVP1_PROJECT_UPDATE.md` - Executive summary
-3. `MVP1_COMPLETION_CHECKLIST.md` - Status verification
-
-### Frontend Developer
-1. `MVP1_QUICK_START.sh` - Interactive start
-2. `motia/MVP1_API_DOCUMENTATION.md` - API reference
-3. `MVP1_FILES_INDEX.md` - File reference
-
-### Backend Developer
-1. `MVP1_README.md` - Overview
-2. `motia/MVP1_IMPLEMENTATION_SUMMARY.md` - Implementation
-3. Code files in `/motia/src/`
-
-### QA/Tester
-1. `MVP1_API_DOCUMENTATION.md` - Test commands
-2. `MVP1_IMPLEMENTATION_SUMMARY.md` - Test scenarios
-3. `MVP1_COMPLETION_CHECKLIST.md` - Verification
-
-### Technical Lead
-1. `MVP1_PROJECT_STRUCTURE.md` - Architecture
-2. `MVP1_VISUAL_SUMMARY.md` - Metrics
-3. `motia/MVP1_IMPLEMENTATION_SUMMARY.md` - Details
+- **Phase 3**: Testing & Polish (1-2 hours)
+  - ⏳ End-to-end tests
+  - ⏳ Error handling
+  - ⏳ Performance
 
 ---
 
-## 📋 FILE LOCATIONS
+## 📞 Support Resources
 
-### Root Directory
-```
-/chikiet/kataoffical/katagame/
-├── MVP1_README.md                    ⭐ START HERE
-├── MVP1_QUICK_START.sh               (Interactive)
-├── MVP1_PROJECT_UPDATE.md            (Executive summary)
-├── MVP1_FILES_INDEX.md               (File reference)
-├── MVP1_PROJECT_STRUCTURE.md         (Architecture)
-├── MVP1_VISUAL_SUMMARY.md            (Metrics)
-├── MVP1_COMPLETION_CHECKLIST.md      (Verification)
-├── MVP1_COMPLETE_FILE_LISTING.sh     (File listing)
-└── SHOW_SUMMARY.sh                   (Display summary)
-```
-
-### Motia Backend
-```
-/motia/
-├── MVP1_API_DOCUMENTATION.md         (API reference)
-├── MVP1_IMPLEMENTATION_SUMMARY.md    (Implementation)
-├── src/config/
-│   └── mvp1.config.ts                (Game config)
-├── src/services/
-│   ├── story.service.ts
-│   ├── quiz.service.ts
-│   ├── resource.service.ts
-│   ├── hero.service.ts
-│   └── province.service.ts
-└── src/routes/
-    ├── mvp1.routes.ts
-    └── index.ts
-```
+| Need | Check | Location |
+|------|-------|----------|
+| Quick overview | EXECUTIVE_SUMMARY.md | Line 1 |
+| Setup help | setup-real-data.sh | Run it |
+| How-to steps | FRONTEND_REAL_DATA_INTEGRATION_GUIDE.md | Main guide |
+| Code example | INTEGRATION_EXAMPLES.md | Copy from here |
+| API method | mvp1ApiClient.ts | Search file |
+| Progress | REAL_DATA_MIGRATION_CHECKLIST.md | Track progress |
 
 ---
 
-## ✅ NEXT STEPS
+## 🎊 You're Ready!
 
-1. **Read MVP1_README.md** (2 min)
-   - Get quick overview
-   - Understand what's implemented
+**Everything is prepared:**
+- ✅ 24 backend endpoints created
+- ✅ API client ready to use (24 methods)
+- ✅ React hooks ready (useGameData)
+- ✅ Full documentation provided
+- ✅ Code examples included
+- ✅ Setup script ready
 
-2. **Run MVP1_QUICK_START.sh** (5 min)
-   ```bash
-   bash MVP1_QUICK_START.sh
-   ```
-   - View formatted project overview
-   - See all features implemented
-
-3. **Start Backend** (1 min)
-   ```bash
-   cd motia
-   npm run dev
-   ```
-   - Server runs on :11001
-
-4. **Test API** (1 min)
-   ```bash
-   curl http://localhost:11001/api/v1/game-data
-   ```
-   - Verify endpoints working
-
-5. **Read API Documentation** (10 min)
-   ```bash
-   cat MVP1_API_DOCUMENTATION.md
-   ```
-   - Review all 30+ endpoints
-   - See request/response examples
-
-6. **Begin Frontend Development** (Start coding!)
-   - All backend APIs documented
-   - Ready for integration
-
----
-
-## 📞 SUPPORT
-
-**Everything is documented!**
-
-If you can't find something, check:
-1. MVP1_README.md - Quick answers
-2. MVP1_FILES_INDEX.md - Where is file X?
-3. MVP1_API_DOCUMENTATION.md - How to call API Y?
-4. MVP1_IMPLEMENTATION_SUMMARY.md - How does feature Z work?
-
----
-
-## 🎊 YOU'RE ALL SET!
-
-Your MVP1 backend is **100% COMPLETE** and **PRODUCTION-READY**! 🚀
-
-**Status**: ✅ All Systems Operational  
-**Quality**: ⭐⭐⭐⭐⭐ (5/5 stars)  
-**Ready For**: Testing, Integration, Deployment
+**Next Step**: Read `EXECUTIVE_SUMMARY.md` (5 minutes)
 
 ---
 
