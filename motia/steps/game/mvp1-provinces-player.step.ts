@@ -13,6 +13,14 @@ const config = {
 
 const handler = async (request: any) => {
   try {
+    // Initialize database FIRST
+    const databaseUrl = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:11003/katagame'
+    try {
+      getDatabase()
+    } catch {
+      await initDatabase(databaseUrl)
+    }
+
     const token = request.headers.authorization?.replace('Bearer ', '')
     if (!token) {
       return {
@@ -30,14 +38,6 @@ const handler = async (request: any) => {
       }
     }
 
-    // Initialize database
-    const databaseUrl = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:11003/katagame'
-    try {
-      getDatabase()
-    } catch {
-      await initDatabase(databaseUrl)
-    }
-
     const db = getDatabase()
 
     // Get player provinces
@@ -46,15 +46,16 @@ const handler = async (request: any) => {
         pp.id,
         pp.province_id,
         p.name,
-        p.region,
-        pp.farmer_level,
-        pp.resource_level,
-        pp.development_level,
-        pp.created_at
+        pp.level,
+        pp.max_level,
+        pp.resources,
+        p.base_gold_rate,
+        p.base_culture_rate,
+        pp.discovered_at
       FROM player_provinces pp
       JOIN provinces p ON pp.province_id = p.id
       WHERE pp.player_id = $1
-      ORDER BY pp.created_at ASC`,
+      ORDER BY pp.discovered_at ASC`,
       [decoded.playerId]
     )
 
@@ -62,11 +63,12 @@ const handler = async (request: any) => {
       playerProvinceId: row.id,
       provinceId: row.province_id,
       name: row.name,
-      region: row.region,
-      farmerLevel: row.farmer_level,
-      resourceLevel: row.resource_level,
-      developmentLevel: row.development_level,
-      createdAt: row.created_at,
+      level: row.level,
+      maxLevel: row.max_level,
+      resources: row.resources,
+      baseGoldRate: row.base_gold_rate,
+      baseCultureRate: row.base_culture_rate,
+      discoveredAt: row.discovered_at,
     }))
 
     return {
@@ -80,10 +82,11 @@ const handler = async (request: any) => {
         },
       }),
     }
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Error getting player provinces:', error?.message || error, error?.stack || '')
     return {
       status: 500,
-      body: wrapResponse(500, { success: false, message: 'Internal server error' }),
+      body: wrapResponse(500, { success: false, message: `Internal server error: ${error?.message || 'Unknown'}` }),
     }
   }
 }

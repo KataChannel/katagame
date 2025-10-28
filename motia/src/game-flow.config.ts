@@ -3,6 +3,9 @@
  * Orchestrates all game events in a cohesive workflow
  */
 
+// Initialize database on flow load
+import './init-database'
+
 export const gameFlowConfig = {
   id: 'game-flow',
   name: 'KataGame Main Flow',

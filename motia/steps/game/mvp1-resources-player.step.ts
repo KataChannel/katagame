@@ -15,6 +15,14 @@ const config = {
 
 const handler = async (request: any) => {
   try {
+    // Initialize database FIRST
+    const databaseUrl = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:11003/katagame'
+    try {
+      getDatabase()
+    } catch {
+      await initDatabase(databaseUrl)
+    }
+
     const token = request.headers.authorization?.replace('Bearer ', '')
     if (!token) {
       return {
@@ -32,28 +40,31 @@ const handler = async (request: any) => {
       }
     }
 
-    // Initialize database
-    const databaseUrl = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:11003/katagame'
-    try {
-      getDatabase()
-    } catch {
-      await initDatabase(databaseUrl)
-    }
-
     const db = getDatabase()
 
-    // Get player resources
+    // Get player resources from players table
     const result = await db.query(
-      `SELECT resource_type, amount
-      FROM player_resources
-      WHERE player_id = $1`,
+      `SELECT resources
+      FROM players
+      WHERE id = $1`,
       [decoded.playerId]
     )
 
-    const resources = result.rows.reduce((acc: any, row: any) => {
-      acc[row.resource_type] = parseInt(row.amount) || 0
-      return acc
-    }, {})
+    if (result.rows.length === 0) {
+      return {
+        status: 404,
+        body: wrapResponse(404, { success: false, message: 'Player not found' }),
+      }
+    }
+
+    const playerResources = result.rows[0].resources || {
+      gold: 0,
+      rice: 0,
+      lumber: 0,
+      stone: 0,
+      culture: 0,
+      gems: 0,
+    }
 
     return {
       status: 200,
@@ -61,18 +72,15 @@ const handler = async (request: any) => {
         success: true,
         data: {
           playerId: decoded.playerId,
-          resources: {
-            gold: resources.gold || 0,
-            rice: resources.rice || 0,
-            wood: resources.wood || 0,
-          },
+          resources: playerResources,
         },
       }),
     }
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Error getting player resources:', error?.message || error, error?.stack || '')
     return {
       status: 500,
-      body: wrapResponse(500, { success: false, message: 'Internal server error' }),
+      body: wrapResponse(500, { success: false, message: `Internal server error: ${error?.message || 'Unknown'}` }),
     }
   }
 }

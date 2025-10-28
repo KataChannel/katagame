@@ -50,8 +50,6 @@ declare module 'motia' {
     'MVP1 Get Config': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'MarketplaceTransactionProcessor': CronHandler<never>
     'LeaderboardUpdateCron': CronHandler<never>
-    'RecruitHeroHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
-    'GetHeroesListHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'GuildWarProcessor': CronHandler<never>
     'StartBattleHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'ResolveBattleHandler': ApiRouteHandler<Record<string, unknown>, unknown, never>

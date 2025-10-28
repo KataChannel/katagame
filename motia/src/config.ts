@@ -3,6 +3,9 @@
  * Loads and validates all environment variables
  */
 
+// Initialize database on config load
+import './init-database'
+
 interface AppConfig {
   database: {
     url: string

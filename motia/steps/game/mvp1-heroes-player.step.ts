@@ -13,6 +13,14 @@ const config = {
 
 const handler = async (request: any) => {
   try {
+    // Initialize database FIRST
+    const databaseUrl = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:11003/katagame'
+    try {
+      getDatabase()
+    } catch {
+      await initDatabase(databaseUrl)
+    }
+
     const token = request.headers.authorization?.replace('Bearer ', '')
     if (!token) {
       return {
@@ -30,20 +38,12 @@ const handler = async (request: any) => {
       }
     }
 
-    // Initialize database
-    const databaseUrl = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:11003/katagame'
-    try {
-      getDatabase()
-    } catch {
-      await initDatabase(databaseUrl)
-    }
-
     const db = getDatabase()
 
     // Get player heroes
     const result = await db.query(
-      `SELECT id, hero_type, level, experience, is_deployed, deployed_at
-      FROM player_heroes
+      `SELECT id, name, rarity, element, level, experience, hp, attack, defense, speed
+      FROM heroes
       WHERE player_id = $1
       ORDER BY level DESC, experience DESC`,
       [decoded.playerId]
@@ -51,11 +51,15 @@ const handler = async (request: any) => {
 
     const heroes = result.rows.map((row: any) => ({
       heroId: row.id,
-      heroType: row.hero_type,
+      name: row.name,
+      rarity: row.rarity,
+      element: row.element,
       level: row.level,
       experience: row.experience,
-      isDeployed: row.is_deployed,
-      deployedAt: row.deployed_at,
+      hp: row.hp,
+      attack: row.attack,
+      defense: row.defense,
+      speed: row.speed,
     }))
 
     return {
@@ -69,10 +73,11 @@ const handler = async (request: any) => {
         },
       }),
     }
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Error getting player heroes:', error?.message || error, error?.stack || '')
     return {
       status: 500,
-      body: wrapResponse(500, { success: false, message: 'Internal server error' }),
+      body: wrapResponse(500, { success: false, message: `Internal server error: ${error?.message || 'Unknown'}` }),
     }
   }
 }

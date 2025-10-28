@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '@/lib/gameStore';
-import { heroes, calculateHeroPower } from '@/lib/heroesData';
+import { useHeroes } from '@/lib/hooks/useApi';
+import { calculateHeroPower } from '@/lib/heroesData';
 import { Hero, ElementType } from '@/lib/types';
 import { getElementData, getElementColor, getElementEmoji } from '@/lib/elementSystem';
 import { ElementBadge } from './ElementBadge';
@@ -27,13 +28,39 @@ export default function HeroesTab() {
   const [filterElement, setFilterElement] = useState<ElementType | 'all'>('all');
   const [showOnlyOwned, setShowOnlyOwned] = useState(false);
   const { heroes: gameHeroes, addHero, upgradeHero } = useGameStore();
+  const { heroes, loading, error } = useHeroes();
 
   // Filter heroes
-  const filteredHeroes = heroes.filter((hero) => {
+  const filteredHeroes = (heroes || []).filter((hero: any) => {
     const elementMatch = filterElement === 'all' || hero.element === filterElement;
     const ownedMatch = !showOnlyOwned || hero.owned;
     return elementMatch && ownedMatch;
   });
+
+  // Handle loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Đang tải dữ liệu anh hùng...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle error state
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center text-red-600">
+          <Lock className="w-16 h-16 mx-auto mb-4 opacity-50" />
+          <p className="text-lg font-medium">Lỗi tải dữ liệu</p>
+          <p className="text-sm">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-24 md:pb-6">
@@ -49,11 +76,11 @@ export default function HeroesTab() {
         <div className="mt-4 flex gap-4 text-sm">
           <div className="flex items-center gap-2">
             <Star className="w-5 h-5 text-yellow-300" />
-            <span>{heroes.filter(h => h.owned).length}/{heroes.length} Sở hữu</span>
+            <span>{(heroes || []).filter((h: any) => h.owned).length}/{(heroes || []).length} Sở hữu</span>
           </div>
           <div className="flex items-center gap-2">
             <Swords className="w-5 h-5 text-red-300" />
-            <span>{heroes.filter(h => h.rarity === 'legendary').length} Huyền Thoại</span>
+            <span>{(heroes || []).filter((h: any) => h.rarity === 'legendary').length} Huyền Thoại</span>
           </div>
         </div>
       </div>
