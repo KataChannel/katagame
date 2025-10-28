@@ -63,7 +63,16 @@ export class MVP1ApiClient {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || `API Error: ${response.status}`);
+        throw new Error(data?.body?.message || data.message || `API Error: ${response.status}`);
+      }
+
+      // Handle Motia response wrapper format: { status, body: { success, data, message } }
+      if (data?.body) {
+        return {
+          success: data.body.success,
+          data: data.body.data,
+          message: data.body.message,
+        };
       }
 
       return data;

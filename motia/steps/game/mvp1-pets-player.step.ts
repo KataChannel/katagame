@@ -5,8 +5,8 @@ import { getDatabase, initDatabase } from '../../src/services/database.service'
 const config = {
   type: 'api' as const,
   method: 'GET',
-  path: '/api/v1/provinces/my-provinces',
-  name: 'MVP1 Get Player Provinces',
+  path: '/api/v1/pets/my-pets',
+  name: 'MVP1 Get Player Pets',
   flows: ['game-flow'],
   emits: [],
 }
@@ -40,35 +40,23 @@ const handler = async (request: any) => {
 
     const db = getDatabase()
 
-    // Get player provinces
+    // Get player pets
     const result = await db.query(
-      `SELECT 
-        pp.id,
-        pp.province_id,
-        p.name,
-        pp.farmer_level,
-        pp.resource_level,
-        pp.development_level,
-        p.base_gold_rate,
-        p.base_rice_rate,
-        pp.created_at
-      FROM player_provinces pp
-      JOIN provinces p ON pp.province_id = p.id
-      WHERE pp.player_id = $1
-      ORDER BY pp.created_at ASC`,
+      `SELECT id, name, pet_type, rarity, level, experience, acquired_at
+      FROM pets
+      WHERE player_id = $1
+      ORDER BY acquired_at DESC`,
       [decoded.playerId]
     )
 
-    const provinces = result.rows.map((row: any) => ({
-      playerProvinceId: row.id,
-      provinceId: row.province_id,
+    const pets = result.rows.map((row: any) => ({
+      petId: row.id,
       name: row.name,
-      farmerLevel: row.farmer_level,
-      resourceLevel: row.resource_level,
-      developmentLevel: row.development_level,
-      baseGoldRate: row.base_gold_rate,
-      baseRiceRate: row.base_rice_rate,
-      createdAt: row.created_at,
+      type: row.pet_type,
+      rarity: row.rarity,
+      level: row.level,
+      experience: row.experience,
+      acquiredAt: row.acquired_at,
     }))
 
     return {
@@ -77,13 +65,13 @@ const handler = async (request: any) => {
         success: true,
         data: {
           playerId: decoded.playerId,
-          provinces,
-          totalProvinces: provinces.length,
+          pets,
+          totalPets: pets.length,
         },
       }),
     }
   } catch (error: any) {
-    console.error('Error getting player provinces:', error?.message || error, error?.stack || '')
+    console.error('Error getting player pets:', error?.message || error, error?.stack || '')
     return {
       status: 500,
       body: wrapResponse(500, { success: false, message: `Internal server error: ${error?.message || 'Unknown'}` }),

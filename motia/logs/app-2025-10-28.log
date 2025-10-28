@@ -1,0 +1,2 @@
+{"timestamp":"2025-10-28T16:03:08.621Z","level":"info","message":"POST /api/v1/auth/login - 200 (340ms)","data":{"ip":"unknown"}}
+{"timestamp":"2025-10-28T16:06:19.482Z","level":"info","message":"POST /api/v1/auth/login - 200 (2239ms)","data":{"ip":"unknown"}}

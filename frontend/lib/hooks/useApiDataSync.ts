@@ -61,9 +61,10 @@ export const useApiDataSync = () => {
       // Load heroes từ API
       try {
         const heroesResponse = await MVP1ApiClient.getPlayerHeroes();
-        if (heroesResponse?.data) {
-          console.log('✅ Heroes from API:', heroesResponse.data);
-          // TODO: Update store với heroes từ API
+        if (heroesResponse?.success && heroesResponse?.data) {
+          const heroes = (heroesResponse.data as any)?.heroes || [];
+          console.log('✅ Heroes from API:', heroes);
+          useGameStore.setState({ heroes });
         }
       } catch (e) {
         console.warn('Failed to load heroes:', e);
@@ -72,9 +73,10 @@ export const useApiDataSync = () => {
       // Load provinces từ API
       try {
         const provincesResponse = await MVP1ApiClient.getPlayerProvinces();
-        if (provincesResponse?.data) {
-          console.log('✅ Provinces from API:', provincesResponse.data);
-          // TODO: Update store với provinces từ API
+        if (provincesResponse?.success && provincesResponse?.data) {
+          const provinces = (provincesResponse.data as any)?.provinces || [];
+          console.log('✅ Provinces from API:', provinces);
+          useGameStore.setState({ provinces });
         }
       } catch (e) {
         console.warn('Failed to load provinces:', e);
@@ -83,9 +85,16 @@ export const useApiDataSync = () => {
       // Load resources từ API
       try {
         const resourcesResponse = await MVP1ApiClient.getPlayerResources();
-        if (resourcesResponse?.data) {
-          console.log('✅ Resources from API:', resourcesResponse.data);
-          // TODO: Update store với resources từ API
+        if (resourcesResponse?.success && resourcesResponse?.data) {
+          const resources = (resourcesResponse.data as any)?.resources || {};
+          console.log('✅ Resources from API:', resources);
+          // Update player resources trong store
+          useGameStore.setState((state) => ({
+            player: {
+              ...state.player,
+              totalResources: resources,
+            },
+          }));
         }
       } catch (e) {
         console.warn('Failed to load resources:', e);

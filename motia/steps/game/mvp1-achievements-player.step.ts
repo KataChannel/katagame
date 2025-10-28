@@ -5,8 +5,8 @@ import { getDatabase, initDatabase } from '../../src/services/database.service'
 const config = {
   type: 'api' as const,
   method: 'GET',
-  path: '/api/v1/provinces/my-provinces',
-  name: 'MVP1 Get Player Provinces',
+  path: '/api/v1/achievements/my-achievements',
+  name: 'MVP1 Get Player Achievements',
   flows: ['game-flow'],
   emits: [],
 }
@@ -40,36 +40,44 @@ const handler = async (request: any) => {
 
     const db = getDatabase()
 
-    // Get player provinces
+    // Get player achievements
     const result = await db.query(
       `SELECT 
-        pp.id,
-        pp.province_id,
-        p.name,
-        pp.farmer_level,
-        pp.resource_level,
-        pp.development_level,
-        p.base_gold_rate,
-        p.base_rice_rate,
-        pp.created_at
-      FROM player_provinces pp
-      JOIN provinces p ON pp.province_id = p.id
-      WHERE pp.player_id = $1
-      ORDER BY pp.created_at ASC`,
+        ua.id,
+        ua.achievement_id,
+        a.name,
+        a.description,
+        a.category,
+        a.rarity,
+        a.points,
+        a.icon_url,
+        ua.progress,
+        ua.unlocked_at
+      FROM user_achievements ua
+      JOIN achievements a ON ua.achievement_id = a.id
+      WHERE ua.player_id = $1
+      ORDER BY ua.unlocked_at DESC`,
       [decoded.playerId]
     )
 
-    const provinces = result.rows.map((row: any) => ({
-      playerProvinceId: row.id,
-      provinceId: row.province_id,
+    const achievements = result.rows.map((row: any) => ({
+      id: row.id,
+      achievementId: row.achievement_id,
       name: row.name,
-      farmerLevel: row.farmer_level,
-      resourceLevel: row.resource_level,
-      developmentLevel: row.development_level,
-      baseGoldRate: row.base_gold_rate,
-      baseRiceRate: row.base_rice_rate,
-      createdAt: row.created_at,
+      description: row.description,
+      category: row.category,
+      rarity: row.rarity,
+      points: row.points,
+      iconUrl: row.icon_url,
+      progress: row.progress,
+      unlockedAt: row.unlocked_at,
+      isUnlocked: row.unlocked_at !== null,
     }))
+
+    // Calculate total points
+    const totalPoints = achievements
+      .filter((a: any) => a.isUnlocked)
+      .reduce((sum: number, a: any) => sum + a.points, 0)
 
     return {
       status: 200,
@@ -77,13 +85,15 @@ const handler = async (request: any) => {
         success: true,
         data: {
           playerId: decoded.playerId,
-          provinces,
-          totalProvinces: provinces.length,
+          achievements,
+          totalAchievements: achievements.length,
+          totalPoints,
+          unlockedCount: achievements.filter((a: any) => a.isUnlocked).length,
         },
       }),
     }
   } catch (error: any) {
-    console.error('Error getting player provinces:', error?.message || error, error?.stack || '')
+    console.error('Error getting player achievements:', error?.message || error, error?.stack || '')
     return {
       status: 500,
       body: wrapResponse(500, { success: false, message: `Internal server error: ${error?.message || 'Unknown'}` }),

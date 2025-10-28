@@ -40,12 +40,20 @@ const handler = async (request: any) => {
 
     const db = getDatabase()
 
-    // Get player heroes
+    // Get player heroes - heroes deployed to player's provinces
     const result = await db.query(
-      `SELECT id, name, rarity, element, level, experience, hp, attack, defense, speed
-      FROM heroes
-      WHERE player_id = $1
-      ORDER BY level DESC, experience DESC`,
+      `SELECT DISTINCT
+        h.id,
+        h.name_english as name,
+        h.rarity,
+        h.base_hp as hp,
+        h.base_attack as attack,
+        h.base_defense as defense,
+        h.base_speed as speed
+      FROM heroes h
+      INNER JOIN player_provinces pp ON h.id = pp.hero_id
+      WHERE pp.player_id = $1
+      ORDER BY h.rarity DESC, h.name_english ASC`,
       [decoded.playerId]
     )
 
@@ -53,9 +61,6 @@ const handler = async (request: any) => {
       heroId: row.id,
       name: row.name,
       rarity: row.rarity,
-      element: row.element,
-      level: row.level,
-      experience: row.experience,
       hp: row.hp,
       attack: row.attack,
       defense: row.defense,
