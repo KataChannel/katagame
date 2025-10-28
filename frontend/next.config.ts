@@ -3,9 +3,6 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* Performance optimizations */
   
-  // Enable SWC minification for faster builds
-  swcMinify: true,
-  
   // Optimize images
   images: {
     formats: ['image/avif', 'image/webp'],

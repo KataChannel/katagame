@@ -96,7 +96,7 @@ const ProvinceCard = ({ province }: ProvinceCardProps) => {
           >
             <div className="font-semibold text-red-800 capitalize text-xs sm:text-sm">{key}</div>
             <div className="text-sm sm:text-lg font-bold text-red-900">{Math.floor(value)}</div>
-            <div className="text-xs text-red-600">+{province.resourcesPerSecond[key as keyof Resource].toFixed(1)}/s</div>
+            <div className="text-xs text-red-600">+{province.resourcesPerSecond?.[key as keyof Resource]?.toFixed(1) || 0}/s</div>
           </motion.button>
         ))}
       </div>

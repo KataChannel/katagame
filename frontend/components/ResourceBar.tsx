@@ -42,7 +42,7 @@ const ResourceBar = ({ resources }: ResourceBarProps) => {
                 animate={{ scale: 1 }}
                 className="font-bold"
               >
-                {formatNumber(resources[key])}
+                {formatNumber(resources[key] || 0)}
               </motion.div>
             </div>
           </motion.div>

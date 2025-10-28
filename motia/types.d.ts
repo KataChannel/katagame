@@ -42,6 +42,7 @@ declare module 'motia' {
     'MVP1 Get Provinces List': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'MVP1 Get Province Detail': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'MVP1 Get Player Pets': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'MVP1 Get Player Navigation': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'MVP1 Recruit Hero': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'MVP1 Get Player Heroes': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'MVP1 Get Heroes List': ApiRouteHandler<Record<string, unknown>, unknown, never>

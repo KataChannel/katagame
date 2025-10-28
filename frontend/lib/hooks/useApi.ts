@@ -18,7 +18,7 @@ export function useHeroes() {
         setError(null);
         const response = await MVP1ApiClient.getHeroes();
         if (response.success) {
-          setHeroes(response.data?.heroes || []);
+          setHeroes((response.data as any)?.heroes || []);
         } else {
           setError(response.message || 'Failed to load heroes');
         }
@@ -52,7 +52,7 @@ export function usePlayerHeroes() {
         setError(null);
         const response = await MVP1ApiClient.getPlayerHeroes();
         if (response.success) {
-          setHeroes(response.data?.heroes || []);
+          setHeroes((response.data as any)?.heroes || []);
         } else {
           setError(response.message || 'Failed to load player heroes');
         }
@@ -86,7 +86,7 @@ export function useProvinces() {
         setError(null);
         const response = await MVP1ApiClient.getProvinces();
         if (response.success) {
-          setProvinces(response.data?.provinces || []);
+          setProvinces((response.data as any)?.provinces || []);
         } else {
           setError(response.message || 'Failed to load provinces');
         }
@@ -120,7 +120,7 @@ export function usePlayerProvinces() {
         setError(null);
         const response = await MVP1ApiClient.getPlayerProvinces();
         if (response.success) {
-          setProvinces(response.data?.provinces || []);
+          setProvinces((response.data as any)?.provinces || []);
         } else {
           setError(response.message || 'Failed to load player provinces');
         }
@@ -155,11 +155,11 @@ export function useStories(page: number = 1, limit: number = 10) {
         setError(null);
         const response = await MVP1ApiClient.getStories(page, limit);
         if (response.success) {
-          setStories(response.data?.stories || []);
+          setStories((response.data as any)?.stories || []);
           setPagination({
-            page: response.data?.page || page,
-            limit: response.data?.limit || limit,
-            total: response.data?.total || 0,
+            page: (response.data as any)?.page || page,
+            limit: (response.data as any)?.limit || limit,
+            total: (response.data as any)?.total || 0,
           });
         } else {
           setError(response.message || 'Failed to load stories');
@@ -194,7 +194,7 @@ export function useResources() {
         setError(null);
         const response = await MVP1ApiClient.getResources();
         if (response.success) {
-          setResources(response.data?.resources || []);
+          setResources((response.data as any)?.resources || []);
         } else {
           setError(response.message || 'Failed to load resources');
         }
@@ -262,7 +262,7 @@ export function useQuizLeaderboard(limit: number = 10, offset: number = 0) {
         setError(null);
         const response = await MVP1ApiClient.getQuizLeaderboard(limit, offset);
         if (response.success) {
-          setLeaderboard(response.data?.leaderboard || []);
+          setLeaderboard((response.data as any)?.leaderboard || []);
         } else {
           setError(response.message || 'Failed to load leaderboard');
         }
@@ -300,7 +300,7 @@ export function useResourceLeaderboard(
         setError(null);
         const response = await MVP1ApiClient.getResourceLeaderboard(type, limit, offset);
         if (response.success) {
-          setLeaderboard(response.data?.leaderboard || []);
+          setLeaderboard((response.data as any)?.leaderboard || []);
         } else {
           setError(response.message || 'Failed to load leaderboard');
         }
@@ -334,7 +334,7 @@ export function useHeroLeaderboard(limit: number = 10, offset: number = 0) {
         setError(null);
         const response = await MVP1ApiClient.getHeroLeaderboard(limit, offset);
         if (response.success) {
-          setLeaderboard(response.data?.leaderboard || []);
+          setLeaderboard((response.data as any)?.leaderboard || []);
         } else {
           setError(response.message || 'Failed to load leaderboard');
         }

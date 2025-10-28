@@ -180,7 +180,10 @@ export default function Game() {
       </header>
 
       {/* Navigation - Desktop only, mobile uses bottom bar */}
-      <DesktopNav activeTab={activeTab} onTabChange={setActiveTab} />
+      <DesktopNav 
+        activeTab={activeTab} 
+        onTabChange={(tab) => setActiveTab(tab as any)} 
+      />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-4 sm:py-6">
@@ -302,7 +305,10 @@ export default function Game() {
       </footer>
 
       {/* Mobile Bottom Navigation */}
-      <MobileBottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      <MobileBottomNav 
+        activeTab={activeTab} 
+        onTabChange={(tab) => setActiveTab(tab as any)} 
+      />
 
       {/* Tutorial Modal */}
       {showTutorial && (

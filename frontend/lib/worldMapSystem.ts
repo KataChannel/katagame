@@ -1,7 +1,7 @@
 // World Map & Expeditions System
 // Vietnam map with provinces, boss raids, dungeons, stamina, and loot
 
-import { Hero, Pet } from '../../katagame/lib/types';
+import { Hero, Pet } from './types';
 
 // ============= TYPE DEFINITIONS =============
 
