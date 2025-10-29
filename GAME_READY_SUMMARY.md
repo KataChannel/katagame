@@ -4,22 +4,23 @@
 
 ---
 
-## Bug Fixes Completed
+## 🐛 Known Issues & Fixes
 
-### 1. "Không có tỉnh để mở" ✅
-**Root Cause**: Database trống, no auto-unlock
-**Fix**: 
-- Seeded 10 heroes, 8 provinces, 6 resources, 10 stories
-- Auto-unlock 2 provinces on registration (Hà Nội, Hồ Chí Minh)
-- Starting resources: 1000 gold, 1000 rice
+### Bug #1: "không có tỉnh để mở" ✅ FIXED
+**Root Cause**: Empty database - no provinces, heroes, or resources seeded
+**Fix Applied**: 
+- Created `/seed-game-data.sql` with 10 heroes, 8 provinces, 6 resources, 10 stories
+- Modified `player.service.ts` to auto-unlock 2 provinces (IDs 1 & 2) on registration
+- Increased starting resources: 1000 gold, 1000 rice (was 10 each)
 
-### 2. "Đang tải dữ liệu tỉnh thành..." (infinite loading) ✅
-**Root Cause**: Frontend data sync hook lỗi
-**Fix**:
-- File: `/frontend/lib/hooks/useApiDataSync.ts`
-- Check localStorage directly thay vì useAuth context
-- Transform API response đúng Province interface
-- Auto-reload sau login để trigger sync
+### Bug #2: "Đang tải dữ liệu tỉnh thành..." ✅ FIXED
+**Root Cause**: State timing issue in `useApiDataSync` hook - sync functions checked `isAuthenticated` state before it updated
+**Fix Applied**:
+- Rewrote `/frontend/lib/hooks/useApiDataSync.ts` to pass token directly to sync functions
+- Removed useState for authentication - read directly from localStorage
+- Added explicit `provinceId` field in province transform
+- Added `.filter(Boolean)` to remove null entries
+**Result**: Provinces now load immediately on login
 
 ---
 
