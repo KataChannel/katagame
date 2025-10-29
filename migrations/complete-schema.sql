@@ -283,12 +283,16 @@ CREATE TABLE IF NOT EXISTS player_stats (
   learning_streak INTEGER DEFAULT 0,
   last_story_read_at TIMESTAMP,
   
+  tutorial_completed BOOLEAN DEFAULT FALSE,
+  tutorial_step INTEGER DEFAULT 1,
+  
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
 DROP INDEX IF EXISTS idx_player_stats_player;
 CREATE INDEX idx_player_stats_player ON player_stats(player_id);
+CREATE INDEX IF NOT EXISTS idx_player_stats_tutorial ON player_stats(player_id, tutorial_completed);
 
 -- ============================================================================
 -- 10. DAILY QUEST PROGRESS
