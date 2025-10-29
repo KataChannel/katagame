@@ -109,6 +109,12 @@ export default function Game() {
     setIsAuthenticated(true);
     // Initialize MVP1 API client with token
     MVP1ApiClient.setAuthToken(token);
+    
+    // Trigger data sync by dispatching storage event
+    window.dispatchEvent(new Event('storage'));
+    
+    // Force reload to trigger useApiDataSync
+    window.location.reload();
   };
 
   const handleLogout = () => {
