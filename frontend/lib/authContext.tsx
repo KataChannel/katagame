@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { API_CONFIG } from './apiConfig';
+import MVP1ApiClient from './graphqlApiClient';
 
 interface AuthContextType {
   token: string | null;
@@ -44,20 +44,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       setError(null);
 
-      const response = await fetch(API_CONFIG.ENDPOINTS.AUTH_LOGIN, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
+      const result = await MVP1ApiClient.login(email, password);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
-
-      if (data.body?.token) {
-        setToken(data.body.token);
+      if (result.success && result.data) {
+        setToken((result.data as { token: string }).token);
+      } else {
+        throw new Error(result.message || 'Login failed');
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed';
@@ -73,20 +65,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       setError(null);
 
-      const response = await fetch(API_CONFIG.ENDPOINTS.AUTH_REGISTER, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, username }),
-      });
+      const result = await MVP1ApiClient.register(email, password, username);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
-      }
-
-      if (data.body?.token) {
-        setToken(data.body.token);
+      if (result.success && result.data) {
+        setToken((result.data as { token: string }).token);
+      } else {
+        throw new Error(result.message || 'Registration failed');
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Registration failed';

@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useState, useCallback } from 'react';
-import MVP1ApiClient from './mvp1ApiClient';
+import MVP1ApiClient from './graphqlApiClient';
 import type { MVP1GameData, Pet, Achievement, Battle, Guild } from './types/mvp1.types';
 
 interface UseMVP1DataOptions {

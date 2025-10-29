@@ -36,9 +36,9 @@ export class Player {
   @Field(() => Date, { nullable: true })
   lastLogin?: Date;
 
-  @Field(() => Date)
-  createdAt: Date;
+  @Field(() => Date, { nullable: true })
+  createdAt?: Date;
 
-  @Field(() => Date)
-  updatedAt: Date;
+  @Field(() => Date, { nullable: true })
+  updatedAt?: Date;
 }

@@ -40,7 +40,7 @@ import ChangelogPage from './changelog/page';
 import { ErrorBoundary as AppErrorBoundary } from '@/components/ErrorBoundary';
 import { initializeStorageOptimization } from '@/lib/storageOptimization';
 import { DataSyncInitializer } from './DataSyncInitializer';
-import MVP1ApiClient from '@/lib/mvp1ApiClient';
+import MVP1ApiClient from '@/lib/graphqlApiClient';
 
 export default function Game() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);

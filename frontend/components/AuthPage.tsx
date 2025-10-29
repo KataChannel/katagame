@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Lock, Eye, EyeOff, Loader } from 'lucide-react';
 import GoogleSignInButton from './GoogleSignInButton';
-import { API_CONFIG } from '@/lib/apiConfig';
+import MVP1ApiClient from '@/lib/graphqlApiClient';
 
 interface AuthPageProps {
   onAuthSuccess: (token: string, user: any) => void;
@@ -58,40 +58,35 @@ export default function AuthPage({ onAuthSuccess }: AuthPageProps) {
         throw new Error('Email không hợp lệ');
       }
 
-      const response = await fetch(API_CONFIG.ENDPOINTS.AUTH_LOGIN, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: formData.email, // Use email as username for login
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
+      const result = await MVP1ApiClient.login(formData.email, formData.password);
 
-      const data = await response.json();
-
-      if (!data.success || !response.ok) {
-        throw new Error(data.error || data.message || 'Đăng nhập thất bại');
+      if (!result.success || !result.data) {
+        throw new Error(result.message || 'Đăng nhập thất bại');
       }
 
+      const authData = result.data as {
+        token: string;
+        playerId: string;
+        username: string;
+        level: number;
+      };
+
       // Save token to localStorage
-      localStorage.setItem('authToken', data.data.token);
+      localStorage.setItem('authToken', authData.token);
       localStorage.setItem('user', JSON.stringify({
-        id: data.data.playerId,
-        username: data.data.username,
+        id: authData.playerId,
+        username: authData.username,
         email: formData.email,
-        level: data.data.level,
+        level: authData.level,
       }));
 
       setSuccess('Đăng nhập thành công! 🎉');
       setTimeout(() => {
-        onAuthSuccess(data.data.token, {
-          id: data.data.playerId,
-          username: data.data.username,
+        onAuthSuccess(authData.token, {
+          id: authData.playerId,
+          username: authData.username,
           email: formData.email,
-          level: data.data.level,
+          level: authData.level,
         });
       }, 500);
     } catch (err) {
@@ -128,40 +123,35 @@ export default function AuthPage({ onAuthSuccess }: AuthPageProps) {
         throw new Error('Mật khẩu không khớp');
       }
 
-      const response = await fetch(API_CONFIG.ENDPOINTS.AUTH_REGISTER, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: formData.username,
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
+      const result = await MVP1ApiClient.register(formData.email, formData.password, formData.username);
 
-      const data = await response.json();
-
-      if (!data.success || !response.ok) {
-        throw new Error(data.error || data.message || 'Đăng ký thất bại');
+      if (!result.success || !result.data) {
+        throw new Error(result.message || 'Đăng ký thất bại');
       }
 
+      const authData = result.data as {
+        token: string;
+        playerId: string;
+        username: string;
+        level: number;
+      };
+
       // Save token to localStorage
-      localStorage.setItem('authToken', data.data.token);
+      localStorage.setItem('authToken', authData.token);
       localStorage.setItem('user', JSON.stringify({
-        id: data.data.playerId,
-        username: data.data.username,
+        id: authData.playerId,
+        username: authData.username,
         email: formData.email,
-        level: data.data.level,
+        level: authData.level,
       }));
 
       setSuccess('Đăng ký thành công! 🎉');
       setTimeout(() => {
-        onAuthSuccess(data.data.token, {
-          id: data.data.playerId,
-          username: data.data.username,
+        onAuthSuccess(authData.token, {
+          id: authData.playerId,
+          username: authData.username,
           email: formData.email,
-          level: data.data.level,
+          level: authData.level,
         });
       }, 500);
     } catch (err) {

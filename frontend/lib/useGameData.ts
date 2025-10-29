@@ -3,7 +3,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import MVP1ApiClient from './mvp1ApiClient';
+import MVP1ApiClient from './graphqlApiClient';
 
 interface GameDataState {
   stories: any[];

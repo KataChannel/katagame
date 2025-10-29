@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import MVP1ApiClient from '../mvp1ApiClient';
+import MVP1ApiClient from '../graphqlApiClient';
 
 /**
  * Hook for fetching heroes
@@ -434,7 +434,7 @@ export function useGameAction() {
     try {
       setLoading(true);
       setError(null);
-      const response = await MVP1ApiClient.deployHero(heroId, provinceId);
+      const response = await MVP1ApiClient.deployHero(heroId, parseInt(provinceId));
       if (!response.success) {
         setError(response.message || 'Failed to deploy hero');
       }

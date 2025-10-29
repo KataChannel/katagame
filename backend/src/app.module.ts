@@ -5,11 +5,35 @@ import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
+import { AuthModule } from './auth/auth.module';
+import { PlayerModule } from './player/player.module';
+import { ProvinceModule } from './province/province.module';
+import { HeroModule } from './hero/hero.module';
+import { StoryModule } from './story/story.module';
+import { ResourceModule } from './resource/resource.module';
 
 @Module({
   imports: [
     // Prisma Database Module
     PrismaModule,
+    
+    // Authentication Module
+    AuthModule,
+    
+    // Player Module
+    PlayerModule,
+    
+    // Province Module
+    ProvinceModule,
+    
+    // Hero Module
+    HeroModule,
+    
+    // Story & Quiz Module
+    StoryModule,
+    
+    // Resource Module
+    ResourceModule,
     
     // GraphQL Module with Code-First approach
     GraphQLModule.forRoot<ApolloDriverConfig>({

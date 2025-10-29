@@ -2,7 +2,7 @@ import { Province, Resource } from '@/lib/types';
 import { useGameStore } from '@/lib/gameStore';
 import { MapPin, Star, TrendingUp, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
-import MVP1ApiClient from '@/lib/mvp1ApiClient';
+import MVP1ApiClient from '@/lib/graphqlApiClient';
 import { useState } from 'react';
 
 interface MobileProvinceCardProps {

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { Loader } from 'lucide-react';
-import { API_CONFIG } from '@/lib/apiConfig';
+import MVP1ApiClient from '@/lib/graphqlApiClient';
 
 declare global {
   interface Window {
@@ -30,35 +30,33 @@ export default function GoogleSignInButton({ onSuccess }: GoogleSignInButtonProp
     setError('');
 
     try {
-      const res = await fetch(API_CONFIG.ENDPOINTS.AUTH_GOOGLE, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          token: response.credential,
-        }),
-      });
+      const result = await MVP1ApiClient.googleAuth(response.credential);
 
-      const data = await res.json();
-
-      if (!data.success || !res.ok) {
-        throw new Error(data.error || data.message || 'Google login failed');
+      if (!result.success || !result.data) {
+        throw new Error(result.message || 'Google login failed');
       }
 
-      localStorage.setItem('authToken', data.data.token);
+      const authData = result.data as {
+        token: string;
+        playerId: string;
+        username: string;
+        email: string;
+        level: number;
+      };
+
+      localStorage.setItem('authToken', authData.token);
       localStorage.setItem('user', JSON.stringify({
-        id: data.data.playerId,
-        username: data.data.username,
-        email: data.data.email,
-        level: data.data.level,
+        id: authData.playerId,
+        username: authData.username,
+        email: authData.email,
+        level: authData.level,
       }));
 
-      onSuccess(data.data.token, {
-        id: data.data.playerId,
-        username: data.data.username,
-        email: data.data.email,
-        level: data.data.level,
+      onSuccess(authData.token, {
+        id: authData.playerId,
+        username: authData.username,
+        email: authData.email,
+        level: authData.level,
       });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Google login failed';

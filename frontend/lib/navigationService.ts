@@ -1,7 +1,5 @@
 // Frontend API Service for Navigation
-import { API_CONFIG } from './apiConfig';
-
-const API_BASE_URL = API_CONFIG.FULL_BASE_URL;
+import MVP1ApiClient from './graphqlApiClient';
 
 export interface NavigationItem {
   key: string
@@ -28,23 +26,36 @@ export interface NavigationResponse {
 }
 
 /**
- * Fetch player navigation from backend API
+ * Fetch player navigation from backend API via MVP1ApiClient
  */
 export async function getPlayerNavigation(token: string): Promise<NavigationResponse> {
-  const response = await fetch(API_CONFIG.ENDPOINTS.NAVIGATION_PLAYER, {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-  })
+  try {
+    // Set auth token if provided
+    if (token) {
+      MVP1ApiClient.setAuthToken(token);
+    }
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch navigation: ${response.statusText}`)
+    // Use centralized API client
+    const result = await MVP1ApiClient.getPlayerNavigation();
+
+    if (result.success && result.data) {
+      return {
+        success: true,
+        data: result.data as {
+          playerId: string
+          navigation: NavigationItem[]
+          locked: NavigationItem[]
+          totalUnlocked: number
+          totalLocked: number
+        }
+      };
+    }
+
+    throw new Error(result.message || 'Failed to fetch navigation');
+  } catch (error) {
+    console.error('Navigation API error:', error);
+    throw error;
   }
-
-  const result = await response.json()
-  return result.body || result
 }
 
 /**

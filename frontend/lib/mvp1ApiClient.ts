@@ -3,9 +3,10 @@
  * Handles all communication with MVP1 backend endpoints
  */
 
-import { getApiBaseUrl } from './apiConfig';
+import { getBaseUrl } from './apiConfig';
 
-const API_BASE_URL = getApiBaseUrl();
+// Base URL without /api/v1 suffix (we add it in request method)
+const API_BASE_URL = getBaseUrl();
 
 interface ApiResponse<T = any> {
   success: boolean;
@@ -368,6 +369,38 @@ export class MVP1ApiClient {
    */
   static async leaveGuild() {
     return MVP1ApiClient.request('POST', '/guilds/leave', {}, true);
+  }
+
+  // ==================== NAVIGATION ====================
+
+  /**
+   * Get player navigation items based on level and progress
+   */
+  static async getPlayerNavigation() {
+    return MVP1ApiClient.request('GET', '/navigation/player', undefined, true);
+  }
+
+  // ==================== AUTHENTICATION ====================
+
+  /**
+   * Login with email and password
+   */
+  static async login(email: string, password: string) {
+    return MVP1ApiClient.request('POST', '/auth/login', { email, password }, false);
+  }
+
+  /**
+   * Register a new user
+   */
+  static async register(email: string, password: string, username: string) {
+    return MVP1ApiClient.request('POST', '/auth/register', { email, password, username }, false);
+  }
+
+  /**
+   * Google OAuth authentication
+   */
+  static async googleAuth(credential: string) {
+    return MVP1ApiClient.request('POST', '/auth/google', { credential }, false);
   }
 }
 

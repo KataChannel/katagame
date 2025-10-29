@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useGameStore } from '@/lib/gameStore';
 import { useAuth } from '@/lib/authContext';
-import MVP1ApiClient from '@/lib/mvp1ApiClient';
+import MVP1ApiClient from '@/lib/graphqlApiClient';
 
 /**
  * Hook để đồng bộ dữ liệu từ API vào Zustand game store

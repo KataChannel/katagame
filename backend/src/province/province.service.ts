@@ -1,0 +1,294 @@
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { ProvinceWhereInput, PlayerProvinceWhereInput, UnlockProvinceInput, UpgradeProvinceInput } from '../graphql/inputs/province.input';
+
+@Injectable()
+export class ProvinceService {
+  constructor(private prisma: PrismaService) {}
+
+  // Get all provinces
+  async findAll(where?: ProvinceWhereInput, skip?: number, take?: number) {
+    const whereClause = this.buildProvinceWhereClause(where);
+
+    const [provinces, total] = await Promise.all([
+      this.prisma.province.findMany({
+        where: whereClause,
+        skip,
+        take,
+        orderBy: { unlock_order: 'asc' },
+      }),
+      this.prisma.province.count({ where: whereClause }),
+    ]);
+
+    return { provinces, total };
+  }
+
+  // Get province by ID
+  async findById(id: number) {
+    const province = await this.prisma.province.findUnique({
+      where: { id },
+    });
+
+    if (!province) {
+      throw new NotFoundException(`Province with ID ${id} not found`);
+    }
+
+    return province;
+  }
+
+  // Get player's unlocked provinces
+  async getPlayerProvinces(playerId: string, where?: PlayerProvinceWhereInput) {
+    const whereClause = this.buildPlayerProvinceWhereClause(playerId, where);
+
+    return this.prisma.playerProvince.findMany({
+      where: whereClause,
+      include: {
+        province: true,
+        hero: true,
+      },
+      orderBy: { created_at: 'desc' },
+    });
+  }
+
+  // Get specific player province
+  async getPlayerProvince(playerId: string, provinceId: number) {
+    return this.prisma.playerProvince.findUnique({
+      where: {
+        player_id_province_id: {
+          player_id: playerId,
+          province_id: provinceId,
+        },
+      },
+      include: {
+        province: true,
+        hero: true,
+      },
+    });
+  }
+
+  // Unlock province for player
+  async unlockProvince(playerId: string, input: UnlockProvinceInput) {
+    // Check if province exists
+    const province = await this.findById(input.provinceId);
+
+    // Check if already unlocked
+    const existing = await this.getPlayerProvince(playerId, input.provinceId);
+    if (existing) {
+      throw new BadRequestException('Province already unlocked');
+    }
+
+    // Check unlock requirements (story day)
+    const player = await this.prisma.player.findUnique({
+      where: { id: playerId },
+    });
+
+    // Get player's progress (count distinct quest dates as days)
+    const progressCount = await this.prisma.dailyQuestProgress.count({
+      where: {
+        player_id: playerId,
+        story_read: true,
+      },
+    });
+
+    const currentDay = progressCount;
+    if (province.unlock_story_day && currentDay < province.unlock_story_day) {
+      throw new BadRequestException(
+        `Province requires story day ${province.unlock_story_day}. Current day: ${currentDay}`,
+      );
+    }
+
+    // Create player province
+    return this.prisma.playerProvince.create({
+      data: {
+        player_id: playerId,
+        province_id: input.provinceId,
+        hero_id: input.heroId,
+        farmer_level: 1,
+        resource_level: 1,
+        development_level: 1,
+        buildings_count: 0,
+      },
+      include: {
+        province: true,
+        hero: true,
+      },
+    });
+  }
+
+  // Upgrade province (farmer/resource/development)
+  async upgradeProvince(playerId: string, input: UpgradeProvinceInput) {
+    // Get player province
+    const playerProvince = await this.getPlayerProvince(playerId, input.provinceId);
+    if (!playerProvince) {
+      throw new NotFoundException('Province not unlocked');
+    }
+
+    // Calculate upgrade costs
+    const costs = this.calculateUpgradeCosts(playerProvince, input.upgradeType);
+
+    // Check if player has enough resources
+    const player = await this.prisma.player.findUnique({
+      where: { id: playerId },
+      include: { player_resources: true },
+    });
+
+    const hasResources = this.checkResourcesAvailable(player, costs);
+    if (!hasResources) {
+      throw new BadRequestException('Insufficient resources');
+    }
+
+    // Deduct resources and upgrade
+    const updateData = this.getUpgradeUpdateData(input.upgradeType, playerProvince);
+
+    const [updatedProvince] = await Promise.all([
+      this.prisma.playerProvince.update({
+        where: {
+          player_id_province_id: {
+            player_id: playerId,
+            province_id: input.provinceId,
+          },
+        },
+        data: updateData,
+        include: {
+          province: true,
+          hero: true,
+        },
+      }),
+      // Deduct resources
+      ...this.createResourceDeductionPromises(playerId, costs),
+    ]);
+
+    return updatedProvince;
+  }
+
+  // Helper: Build province where clause
+  private buildProvinceWhereClause(where?: ProvinceWhereInput) {
+    if (!where) return undefined;
+
+    const clause: any = {};
+
+    if (where.id) {
+      if (where.id.equals !== undefined) clause.id = where.id.equals;
+      if (where.id.in) clause.id = { in: where.id.in };
+      if (where.id.gte !== undefined || where.id.lte !== undefined) {
+        clause.id = {
+          ...(where.id.gte !== undefined && { gte: where.id.gte }),
+          ...(where.id.lte !== undefined && { lte: where.id.lte }),
+        };
+      }
+    }
+
+    if (where.name) {
+      if (where.name.equals) clause.name = where.name.equals;
+      if (where.name.contains) clause.name = { contains: where.name.contains, mode: 'insensitive' };
+    }
+
+    if (where.region) {
+      if (where.region.equals) clause.region = where.region.equals;
+      if (where.region.contains) clause.region = { contains: where.region.contains, mode: 'insensitive' };
+    }
+
+    if (where.is_capital) {
+      if (where.is_capital.equals !== undefined) clause.is_capital = where.is_capital.equals;
+    }
+
+    if (where.unlock_order) {
+      if (where.unlock_order.equals !== undefined) clause.unlock_order = where.unlock_order.equals;
+      if (where.unlock_order.lte !== undefined) clause.unlock_order = { lte: where.unlock_order.lte };
+    }
+
+    return Object.keys(clause).length > 0 ? clause : undefined;
+  }
+
+  // Helper: Build player province where clause
+  private buildPlayerProvinceWhereClause(playerId: string, where?: PlayerProvinceWhereInput) {
+    const clause: any = { player_id: playerId };
+
+    if (!where) return clause;
+
+    if (where.province_id) {
+      if (where.province_id.equals !== undefined) clause.province_id = where.province_id.equals;
+      if (where.province_id.in) clause.province_id = { in: where.province_id.in };
+    }
+
+    if (where.farmer_level) {
+      if (where.farmer_level.gte !== undefined) clause.farmer_level = { gte: where.farmer_level.gte };
+    }
+
+    if (where.resource_level) {
+      if (where.resource_level.gte !== undefined) clause.resource_level = { gte: where.resource_level.gte };
+    }
+
+    if (where.development_level) {
+      if (where.development_level.gte !== undefined) {
+        clause.development_level = { gte: where.development_level.gte };
+      }
+    }
+
+    return clause;
+  }
+
+  // Helper: Calculate upgrade costs
+  private calculateUpgradeCosts(playerProvince: any, upgradeType: string) {
+    const level = playerProvince[`${upgradeType}_level`] || 1;
+    const baseCost = 100;
+    const multiplier = 1.5;
+
+    const cost = Math.floor(baseCost * Math.pow(multiplier, level - 1));
+
+    return {
+      gold: upgradeType === 'farmer' ? cost : Math.floor(cost * 0.5),
+      rice: upgradeType === 'farmer' ? Math.floor(cost * 1.5) : Math.floor(cost * 0.8),
+      wood: upgradeType === 'development' ? cost : Math.floor(cost * 0.5),
+      stone: upgradeType === 'development' ? Math.floor(cost * 1.2) : Math.floor(cost * 0.3),
+      bazan: upgradeType === 'resource' ? Math.floor(cost * 0.5) : Math.floor(cost * 0.2),
+    };
+  }
+
+  // Helper: Check if player has resources
+  private checkResourcesAvailable(player: any, costs: any) {
+    const resources = player.player_resources || [];
+    const resourceMap = new Map(resources.map((r: any) => [r.resource_type, r.amount]));
+
+    return (
+      (resourceMap.get('gold') || 0) >= costs.gold &&
+      (resourceMap.get('rice') || 0) >= costs.rice &&
+      (resourceMap.get('wood') || 0) >= costs.wood &&
+      (resourceMap.get('stone') || 0) >= costs.stone &&
+      (resourceMap.get('bazan') || 0) >= costs.bazan
+    );
+  }
+
+  // Helper: Get upgrade update data
+  private getUpgradeUpdateData(upgradeType: string, playerProvince: any) {
+    const updateData: any = {};
+
+    if (upgradeType === 'farmer') {
+      updateData.farmer_level = (playerProvince.farmer_level || 1) + 1;
+    } else if (upgradeType === 'resource') {
+      updateData.resource_level = (playerProvince.resource_level || 1) + 1;
+    } else if (upgradeType === 'development') {
+      updateData.development_level = (playerProvince.development_level || 1) + 1;
+    }
+
+    return updateData;
+  }
+
+  // Helper: Create resource deduction promises
+  private createResourceDeductionPromises(playerId: string, costs: any) {
+    const resources = ['gold', 'rice', 'wood', 'stone', 'bazan'];
+    return resources.map((resourceType) =>
+      this.prisma.playerResource.update({
+        where: {
+          player_id_resource_type: {
+            player_id: playerId,
+            resource_type: resourceType,
+          },
+        },
+        data: {
+          amount: { decrement: costs[resourceType] },
+        },
+      }),
+    );
+  }
+}
