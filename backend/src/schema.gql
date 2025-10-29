@@ -86,6 +86,7 @@ input MarkStoryReadInput {
 type Mutation {
   addResources(bazan: Float = 0, gold: Float = 0, lumber: Float = 0, rice: Float = 0, stone: Float = 0): MutationResponse!
   deployHero(input: DeployHeroInput!): PlayerHero!
+  googleAuth(credential: String!): AuthResponse!
   levelUpHero(input: LevelUpHeroInput!): PlayerHero!
   login(email: String!, password: String!): AuthResponse!
   markStoryRead(input: MarkStoryReadInput!): String!

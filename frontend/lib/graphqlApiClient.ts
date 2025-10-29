@@ -7,6 +7,7 @@ import apolloClient from './apolloClient';
 import {
   REGISTER,
   LOGIN,
+  GOOGLE_AUTH,
   GET_ME,
   GET_PLAYER,
   UPDATE_PLAYER,
@@ -753,10 +754,27 @@ export class GraphQLApiClient {
   }
 
   static async googleAuth(credential: string): Promise<ApiResponse> {
-    return {
-      success: false,
-      message: 'Google Auth not implemented in GraphQL backend yet',
-    };
+    try {
+      const { data } = await apolloClient.mutate({
+        mutation: GOOGLE_AUTH,
+        variables: { credential },
+      });
+
+      if ((data as any).googleAuth.success && (data as any).googleAuth.token) {
+        GraphQLApiClient.setAuthToken((data as any).googleAuth.token);
+      }
+
+      return {
+        success: (data as any).googleAuth.success,
+        data: (data as any).googleAuth,
+        message: (data as any).googleAuth.message,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message || 'Google authentication failed',
+      };
+    }
   }
 
   static async getPlayerNavigation(): Promise<ApiResponse> {

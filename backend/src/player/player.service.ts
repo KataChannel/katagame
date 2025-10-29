@@ -40,17 +40,37 @@ export class PlayerService {
         level: 1,
         experience: 0,
         resources: {
-          gold: 10,
-          rice: 10,
-          lumber: 10,
-          stone: 10,
-          bazan: 10,
+          gold: 1000,
+          rice: 1000,
+          lumber: 500,
+          stone: 500,
+          bazan: 100,
           gems: 1500,
-          culture: 20,
+          culture: 100,
         },
         status: 'active',
         region: 'global',
       },
+    });
+
+    // Auto-unlock first 2 provinces (Hà Nội and Hồ Chí Minh)
+    await this.prisma.playerProvince.createMany({
+      data: [
+        {
+          player_id: player.id,
+          province_id: 1, // Hà Nội
+          farmer_level: 1,
+          resource_level: 1,
+          development_level: 1,
+        },
+        {
+          player_id: player.id,
+          province_id: 2, // Hồ Chí Minh
+          farmer_level: 1,
+          resource_level: 1,
+          development_level: 1,
+        },
+      ],
     });
 
     // Generate JWT token
@@ -108,6 +128,109 @@ export class PlayerService {
       username: player.username,
       level: player.level ?? 1,
     };
+  }
+
+  /**
+   * Google OAuth authentication
+   */
+  async googleAuth(credential: string) {
+    try {
+      // Decode Google JWT token (in production, verify with Google API)
+      // Extract email from the credential
+      const parts = credential.split('.');
+      if (parts.length !== 3) {
+        throw new Error('Invalid Google credential format');
+      }
+
+      const base64Url = parts[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      
+      // Add padding if needed
+      const paddedBase64 = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+      
+      // Decode base64 to JSON string
+      const jsonPayload = Buffer.from(paddedBase64, 'base64').toString('utf8');
+      
+      const googleData = JSON.parse(jsonPayload);
+      const email = googleData.email;
+      const name = googleData.name || googleData.email?.split('@')[0] || 'user';
+
+      if (!email) {
+        throw new Error('Email not found in Google credential');
+      }
+
+      // Check if player exists
+      let player = await this.prisma.player.findUnique({
+        where: { email },
+      });
+
+      // If player doesn't exist, create one
+      if (!player) {
+        player = await this.prisma.player.create({
+          data: {
+            email,
+            username: name.replace(/\s+/g, '_').toLowerCase() + '_' + Date.now(),
+            password_hash: await bcrypt.hash(Math.random().toString(36), 10), // Random password
+            level: 1,
+            experience: 0,
+            resources: {
+              gold: 1000,
+              rice: 1000,
+              lumber: 500,
+              stone: 500,
+              bazan: 100,
+              gems: 1500,
+              culture: 100,
+            },
+            status: 'active',
+            region: 'global',
+          },
+        });
+
+        // Auto-unlock first 2 provinces for new Google users
+        await this.prisma.playerProvince.createMany({
+          data: [
+            {
+              player_id: player.id,
+              province_id: 1, // Hà Nội
+              farmer_level: 1,
+              resource_level: 1,
+              development_level: 1,
+            },
+            {
+              player_id: player.id,
+              province_id: 2, // Hồ Chí Minh
+              farmer_level: 1,
+              resource_level: 1,
+              development_level: 1,
+            },
+          ],
+        });
+      }
+
+      // Update last login
+      await this.prisma.player.update({
+        where: { id: player.id },
+        data: { last_login: new Date() },
+      });
+
+      // Generate JWT token
+      const token = this.jwtService.sign({
+        sub: player.id,
+        email: player.email,
+        username: player.username,
+      });
+
+      return {
+        success: true,
+        token,
+        playerId: player.id,
+        username: player.username,
+        level: player.level ?? 1,
+      };
+    } catch (error) {
+      throw new Error(`Google authentication failed: ${error.message}`);
+    }
   }
 
   /**

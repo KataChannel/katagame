@@ -28,6 +28,19 @@ export const LOGIN = gql`
   }
 `;
 
+export const GOOGLE_AUTH = gql`
+  mutation GoogleAuth($credential: String!) {
+    googleAuth(credential: $credential) {
+      success
+      message
+      token
+      playerId
+      username
+      level
+    }
+  }
+`;
+
 // ==================== PLAYER ====================
 
 export const GET_ME = gql`

@@ -56,6 +56,20 @@ export class PlayerResolver {
     }
   }
 
+  @Mutation(() => AuthResponse)
+  async googleAuth(
+    @Args('credential') credential: string,
+  ): Promise<AuthResponse> {
+    try {
+      return await this.playerService.googleAuth(credential);
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
+  }
+
   // ==================== QUERIES ====================
 
   @Query(() => Player, { nullable: true })
