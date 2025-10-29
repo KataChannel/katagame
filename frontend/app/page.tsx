@@ -215,18 +215,28 @@ export default function Game() {
               <h2 className="text-2xl font-bold text-red-800 mb-4 text-center">
                 🗺️ Các Tỉnh Thành Việt Nam
               </h2>
-              {/* Mobile: Vertical stack with swipeable cards */}
-              <div className="md:hidden space-y-4">
-                {provinces.map((province) => (
-                  <MobileProvinceCard key={province.id} province={province} />
-                ))}
-              </div>
-              {/* Desktop: Grid layout */}
-              <div className="hidden md:grid lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-                {provinces.map((province) => (
-                  <ProvinceCard key={province.id} province={province} />
-                ))}
-              </div>
+              
+              {provinces.length === 0 ? (
+                <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-8 text-center">
+                  <p className="text-lg text-yellow-800 mb-2">🔄 Đang tải dữ liệu tỉnh thành...</p>
+                  <p className="text-sm text-yellow-600">Nếu bạn là người chơi mới, hãy đợi vài giây để hệ thống khởi tạo.</p>
+                </div>
+              ) : (
+                <>
+                  {/* Mobile: Vertical stack with swipeable cards */}
+                  <div className="md:hidden space-y-4">
+                    {provinces.map((province, index) => (
+                      <MobileProvinceCard key={province.id || `province-${index}`} province={province} />
+                    ))}
+                  </div>
+                  {/* Desktop: Grid layout */}
+                  <div className="hidden md:grid lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+                    {provinces.map((province, index) => (
+                      <ProvinceCard key={province.id || `province-${index}`} province={province} />
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Game Instructions */}

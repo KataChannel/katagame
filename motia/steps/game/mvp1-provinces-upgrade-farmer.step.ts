@@ -7,7 +7,7 @@ const MVP1_CONFIG = require('../../src/config/mvp1.config').default
 const config = {
   type: 'api' as const,
   method: 'POST',
-  path: '/api/v1/provinces/:id/upgrade/farmer',
+  path: '/api/v1/provinces/:provinceId/upgrade/farmer',
   name: 'MVP1 Upgrade Farmer',
   flows: ['game-flow'],
   emits: [],
@@ -15,6 +15,11 @@ const config = {
 
 const handler = async (request: any) => {
   try {
+    console.log('=== UPGRADE FARMER DEBUG ===');
+    console.log('request.params:', request.params);
+    console.log('typeof request.params:', typeof request.params);
+    console.log('request keys:', Object.keys(request || {}).join(', '));
+    
     const token = request.headers.authorization?.replace('Bearer ', '')
     if (!token) {
       return {
@@ -32,8 +37,11 @@ const handler = async (request: any) => {
       }
     }
 
-    const provinceId = request.params?.id
+    const provinceId = request.params?.provinceId
+    console.log('🔍 Extracted provinceId:', provinceId);
+    
     if (!provinceId) {
+      console.error('❌ Province ID missing! request.params:', request.params);
       return {
         status: 400,
         body: wrapResponse(400, { success: false, message: 'Province ID is required' }),

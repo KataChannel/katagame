@@ -61,9 +61,9 @@ export class MVP1ApiClient {
         headers,
         body: body ? JSON.stringify(body) : undefined,
       });
-
+      console.log(response);
       const data = await response.json();
-
+      
       if (!response.ok) {
         throw new Error(data?.body?.message || data.message || `API Error: ${response.status}`);
       }

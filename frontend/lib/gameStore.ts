@@ -133,28 +133,44 @@ const createEmptyResource = (): Resource => ({
   culture: 0,
 });
 
-const addResources = (a: Resource, b: Resource): Resource => ({
-  gold: a.gold + b.gold,
-  rice: a.rice + b.rice,
-  lumber: a.lumber + b.lumber,
-  stone: a.stone + b.stone,
-  culture: a.culture + b.culture,
-});
+const addResources = (a: Resource, b: Resource): Resource => {
+  // Handle undefined or null values defensively
+  const safeA = a || createEmptyResource();
+  const safeB = b || createEmptyResource();
+  
+  return {
+    gold: (safeA.gold || 0) + (safeB.gold || 0),
+    rice: (safeA.rice || 0) + (safeB.rice || 0),
+    lumber: (safeA.lumber || 0) + (safeB.lumber || 0),
+    stone: (safeA.stone || 0) + (safeB.stone || 0),
+    culture: (safeA.culture || 0) + (safeB.culture || 0),
+  };
+};
 
-const subtractResources = (a: Resource, b: Resource): Resource => ({
-  gold: a.gold - b.gold,
-  rice: a.rice - b.rice,
-  lumber: a.lumber - b.lumber,
-  stone: a.stone - b.stone,
-  culture: a.culture - b.culture,
-});
+const subtractResources = (a: Resource, b: Resource): Resource => {
+  // Handle undefined or null values defensively
+  const safeA = a || createEmptyResource();
+  const safeB = b || createEmptyResource();
+  
+  return {
+    gold: (safeA.gold || 0) - (safeB.gold || 0),
+    rice: (safeA.rice || 0) - (safeB.rice || 0),
+    lumber: (safeA.lumber || 0) - (safeB.lumber || 0),
+    stone: (safeA.stone || 0) - (safeB.stone || 0),
+    culture: (safeA.culture || 0) - (safeB.culture || 0),
+  };
+};
 
 const canAfford = (available: Resource, cost: Resource): boolean => {
-  return available.gold >= cost.gold &&
-         available.rice >= cost.rice &&
-         available.lumber >= cost.lumber &&
-         available.stone >= cost.stone &&
-         available.culture >= cost.culture;
+  // Handle undefined or null values defensively
+  const safeAvailable = available || createEmptyResource();
+  const safeCost = cost || createEmptyResource();
+  
+  return (safeAvailable.gold || 0) >= (safeCost.gold || 0) &&
+         (safeAvailable.rice || 0) >= (safeCost.rice || 0) &&
+         (safeAvailable.lumber || 0) >= (safeCost.lumber || 0) &&
+         (safeAvailable.stone || 0) >= (safeCost.stone || 0) &&
+         (safeAvailable.culture || 0) >= (safeCost.culture || 0);
 };
 
 // Initial game data cho MVP 1

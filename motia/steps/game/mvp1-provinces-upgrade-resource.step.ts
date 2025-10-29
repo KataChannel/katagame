@@ -7,7 +7,7 @@ const MVP1_CONFIG = require('../../src/config/mvp1.config').default
 const config = {
   type: 'api' as const,
   method: 'POST',
-  path: '/api/v1/provinces/:id/upgrade/resource',
+  path: '/api/v1/provinces/:provinceId/upgrade/resource',
   name: 'MVP1 Upgrade Resource',
   flows: ['game-flow'],
   emits: [],
@@ -32,7 +32,7 @@ const handler = async (request: any) => {
       }
     }
 
-    const provinceId = request.params?.id
+    const provinceId = request.params?.provinceId
     if (!provinceId) {
       return {
         status: 400,
