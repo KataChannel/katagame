@@ -72,6 +72,17 @@ export const DEFAULT_NAVIGATION: NavigationItem[] = [
     category: 'core',
   },
   {
+    key: 'changelog',
+    label: 'Changelog',
+    labelVietnamese: 'Cập Nhật',
+    icon: 'Book',
+    color: '#3b82f6',
+    unlockLevel: 1,
+    isUnlocked: true,
+    order: 3,
+    category: 'core',
+  },
+  {
     key: 'settings',
     label: 'Settings',
     labelVietnamese: 'Cài Đặt',

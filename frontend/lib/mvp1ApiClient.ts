@@ -3,7 +3,7 @@
  * Handles all communication with MVP1 backend endpoints
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:11001/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:11001';
 
 interface ApiResponse<T = any> {
   success: boolean;
@@ -54,7 +54,7 @@ export class MVP1ApiClient {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1${endpoint}`, {
         method,
         headers,
         body: body ? JSON.stringify(body) : undefined,
@@ -302,6 +302,70 @@ export class MVP1ApiClient {
    */
   static async getConfig() {
     return MVP1ApiClient.request('GET', '/config', undefined, false);
+  }
+
+  // ==================== PETS ====================
+
+  /**
+   * Get player's pets
+   */
+  static async getPets() {
+    return MVP1ApiClient.request('GET', '/pets/my-pets', undefined, true);
+  }
+
+  // ==================== ACHIEVEMENTS ====================
+
+  /**
+   * Get player's achievements
+   */
+  static async getAchievements() {
+    return MVP1ApiClient.request('GET', '/achievements/my-achievements', undefined, true);
+  }
+
+  // ==================== BATTLES ====================
+
+  /**
+   * Get player's battle history
+   */
+  static async getBattles() {
+    return MVP1ApiClient.request('GET', '/battles/my-battles', undefined, true);
+  }
+
+  /**
+   * Start a new battle
+   */
+  static async startBattle(opponentId: string, battleType: string = 'pvp') {
+    return MVP1ApiClient.request('POST', '/battles/start', { opponentId, battleType }, true);
+  }
+
+  // ==================== GUILDS ====================
+
+  /**
+   * Get player's guild information
+   */
+  static async getMyGuild() {
+    return MVP1ApiClient.request('GET', '/guilds/my-guild', undefined, true);
+  }
+
+  /**
+   * Create a new guild
+   */
+  static async createGuild(name: string, description?: string) {
+    return MVP1ApiClient.request('POST', '/guilds/create', { name, description }, true);
+  }
+
+  /**
+   * Join a guild
+   */
+  static async joinGuild(guildId: string) {
+    return MVP1ApiClient.request('POST', '/guilds/join', { guildId }, true);
+  }
+
+  /**
+   * Leave current guild
+   */
+  static async leaveGuild() {
+    return MVP1ApiClient.request('POST', '/guilds/leave', {}, true);
   }
 }
 

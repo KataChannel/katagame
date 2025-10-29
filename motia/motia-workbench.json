@@ -129,6 +129,14 @@
         "x": 41,
         "y": 3820
       },
+      "steps/game/mvp1-pets-player.step.ts": {
+        "x": 46,
+        "y": 3971
+      },
+      "steps/game/mvp1-navigation-player.step.ts": {
+        "x": 25,
+        "y": 4122
+      },
       "steps/game/mvp1-heroes-recruit.step.ts": {
         "x": 33,
         "y": 3971
@@ -149,6 +157,10 @@
         "x": 37,
         "y": 4575
       },
+      "steps/game/mvp1-guilds-my-guild.step.ts": {
+        "x": 33,
+        "y": 5028
+      },
       "steps/game/mvp1-game-data.step.ts": {
         "x": 54,
         "y": 4726
@@ -157,6 +169,14 @@
         "x": 69,
         "y": 4877
       },
+      "steps/game/mvp1-battles-player.step.ts": {
+        "x": 20,
+        "y": 5481
+      },
+      "steps/game/mvp1-achievements-player.step.ts": {
+        "x": 0,
+        "y": 5632
+      },
       "steps/game/marketplace-transaction.step.ts": {
         "x": 602,
         "y": 356
@@ -164,14 +184,6 @@
       "steps/game/leaderboard-cron.step.ts": {
         "x": 0,
         "y": 637
-      },
-      "steps/game/hero-recruit.step.ts": {
-        "x": 33,
-        "y": 1762
-      },
-      "steps/game/hero-list.step.ts": {
-        "x": 50,
-        "y": 1913
       },
       "steps/game/guild-war.step.ts": {
         "x": 0,

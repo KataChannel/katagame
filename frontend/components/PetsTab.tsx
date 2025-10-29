@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useGameStore } from '@/lib/gameStore';
+import { usePets } from '@/lib/useMVP1Data';
 import { allPets, calculatePetBonus } from '@/lib/petsData';
 import { Pet, ElementType } from '@/lib/types';
 import { getElementData, getElementColor, getElementEmoji } from '@/lib/elementSystem';
@@ -28,10 +28,24 @@ export default function PetsTab() {
   const [filterElement, setFilterElement] = useState<ElementType | 'all'>('all');
   const [filterRarity, setFilterRarity] = useState<'all' | 'common' | 'rare' | 'epic' | 'legendary'>('all');
   const [showOnlyOwned, setShowOnlyOwned] = useState(false);
-  const { pets: gamePets, provinces } = useGameStore();
+  
+  // Use real API data
+  const { pets: apiPets, isLoading, error, refreshPets } = usePets();
+  
+  // Merge API data with local pet definitions
+  const petsData = allPets.map(pet => {
+    const apiPet = apiPets?.find(p => p.name === pet.name || p.name === pet.displayName);
+    return {
+      ...pet,
+      owned: !!apiPet,
+      level: apiPet?.level || pet.level,
+      experience: apiPet?.experience || pet.experience,
+      id: apiPet?.id || pet.id,
+    };
+  });
 
   // Filter pets
-  const filteredPets = allPets.filter((pet) => {
+  const filteredPets = petsData.filter((pet) => {
     const elementMatch = filterElement === 'all' || pet.element === filterElement;
     const rarityMatch = filterRarity === 'all' || pet.rarity === filterRarity;
     const ownedMatch = !showOnlyOwned || pet.owned;
@@ -39,7 +53,37 @@ export default function PetsTab() {
   });
 
   // Count owned pets
-  const ownedCount = allPets.filter(p => p.owned).length;
+  const ownedCount = petsData.filter(p => p.owned).length;
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center pb-24 md:pb-6">
+        <div className="text-center">
+          <Sparkles className="w-16 h-16 text-emerald-500 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Đang tải dữ liệu thú cưng...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center pb-24 md:pb-6">
+        <div className="text-center">
+          <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <p className="text-red-600 mb-4">Lỗi: {error}</p>
+          <button
+            onClick={refreshPets}
+            className="bg-emerald-500 text-white px-6 py-2 rounded-lg hover:bg-emerald-600"
+          >
+            Thử lại
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-24 md:pb-6">
@@ -291,16 +335,14 @@ function PetCard({ pet, onClick }: { pet: Pet; onClick: () => void }) {
 
 // Pet Details Modal
 function PetDetailsModal({ pet, onClose }: { pet: Pet; onClose: () => void }) {
-  const { provinces, equipPet } = useGameStore();
   const [selectedProvince, setSelectedProvince] = useState<string>('');
-
-  // Find provinces where this pet can be equipped
-  const availableProvinces = provinces.filter(p => p.unlocked);
+  
+  // Mock provinces for now - will be replaced with real data
+  const availableProvinces: any[] = [];
 
   const handleEquipPet = () => {
     if (selectedProvince && pet.owned) {
-      equipPet(pet.id, selectedProvince);
-      // Show success notification
+      // TODO: Call API to equip pet
       alert(`${pet.displayName} đã được trang bị cho tỉnh!`);
     }
   };

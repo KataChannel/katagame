@@ -1,309 +1,244 @@
-import { useGameStore } from '@/lib/gameStore';
-import { Trophy, Star, Lock, Gift, CheckCircle } from 'lucide-react';
+'use client';
+
+import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useAchievements } from '@/lib/useMVP1Data';
+import { Trophy, Star, Lock, Gift, Sparkles, Award, Target, Crown } from 'lucide-react';
 
-const Achievements = () => {
-  const { player, completeAchievement } = useGameStore();
+export default function Achievements() {
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const { achievements, isLoading, error, refreshAchievements } = useAchievements();
 
-  const achievementsData = [
-    // Beginner Achievements
-    {
-      id: 'first-click',
-      name: 'Bước Đầu Tiên',
-      description: 'Thu thập tài nguyên lần đầu',
-      icon: '🖱️',
-      category: 'Người Mới',
-      reward: { gold: 50, culture: 10 },
-      requirement: { type: 'click', target: 1 },
-      unlocked: true,
-      progress: Math.min(player.experience, 1),
-      maxProgress: 1
-    },
-    {
-      id: 'first-farmer',
-      name: 'Ông Chủ Đầu Tiên',
-      description: 'Thuê nông dân đầu tiên',
-      icon: '👨‍🌾',
-      category: 'Người Mới',
-      reward: { gold: 100, rice: 50 },
-      requirement: { type: 'farmer', target: 1 },
-      unlocked: true,
-      progress: 0, // Would be calculated based on actual farmer count
-      maxProgress: 1
-    },
-    {
-      id: 'province-unlock',
-      name: 'Nhà Thám Hiểm',
-      description: 'Mở khóa tỉnh thứ 2',
-      icon: '🗺️',
-      category: 'Khám Phá',
-      reward: { gold: 200, culture: 50 },
-      requirement: { type: 'province', target: 2 },
-      unlocked: true,
-      progress: player.unlockedProvinces.length,
-      maxProgress: 2
-    },
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center pb-24 md:pb-6">
+        <div className="text-center">
+          <Trophy className="w-16 h-16 text-yellow-500 animate-pulse mx-auto mb-4" />
+          <p className="text-gray-600">Đang tải thành tựu...</p>
+        </div>
+      </div>
+    );
+  }
 
-    // Resource Achievements  
-    {
-      id: 'gold-collector',
-      name: 'Thợ Mỏ Vàng',
-      description: 'Thu thập 1,000 vàng',
-      icon: '💰',
-      category: 'Thu Thập',
-      reward: { gold: 500, culture: 25 },
-      requirement: { type: 'resource', resource: 'gold', target: 1000 },
-      unlocked: true,
-      progress: Math.min(player.totalResources.gold, 1000),
-      maxProgress: 1000
-    },
-    {
-      id: 'rice-farmer',
-      name: 'Nông Dân Lúa',
-      description: 'Thu thập 500 lúa',
-      icon: '🌾',
-      category: 'Thu Thập',
-      reward: { rice: 200, culture: 20 },
-      requirement: { type: 'resource', resource: 'rice', target: 500 },
-      unlocked: true,
-      progress: Math.min(player.totalResources.rice, 500),
-      maxProgress: 500
-    },
-    {
-      id: 'culture-scholar',
-      name: 'Học Giả Văn Hóa',
-      description: 'Thu thập 100 điểm văn hóa',
-      icon: '📚',
-      category: 'Văn Hóa',
-      reward: { culture: 100, gold: 200 },
-      requirement: { type: 'resource', resource: 'culture', target: 100 },
-      unlocked: true,
-      progress: Math.min(player.totalResources.culture, 100),
-      maxProgress: 100
-    },
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center pb-24 md:pb-6">
+        <div className="text-center">
+          <Award className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <p className="text-red-600 mb-4">Lỗi: {error}</p>
+          <button
+            onClick={refreshAchievements}
+            className="bg-yellow-500 text-white px-6 py-2 rounded-lg hover:bg-yellow-600"
+          >
+            Thử lại
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-    // Level Achievements
-    {
-      id: 'level-5',
-      name: 'Nhà Lãnh Đạo',
-      description: 'Đạt cấp độ 5',
-      icon: '⭐',
-      category: 'Cấp Độ',
-      reward: { gold: 300, culture: 75 },
-      requirement: { type: 'level', target: 5 },
-      unlocked: true,
-      progress: player.level,
-      maxProgress: 5
-    },
-    {
-      id: 'level-10',
-      name: 'Bậc Thầy',
-      description: 'Đạt cấp độ 10',
-      icon: '🏆',
-      category: 'Cấp Độ',
-      reward: { gold: 1000, culture: 200 },
-      requirement: { type: 'level', target: 10 },
-      unlocked: player.level >= 3, // Unlock at level 3
-      progress: player.level,
-      maxProgress: 10
-    },
+  const achievementsData = achievements || [];
+  const unlockedCount = achievementsData.filter((a: any) => a.unlocked || a.claimed).length;
+  const totalCount = achievementsData.length;
+  const completionRate = totalCount > 0 ? Math.round((unlockedCount / totalCount) * 100) : 0;
 
-    // Premium Achievements
-    {
-      id: 'premium-supporter',
-      name: 'Người Ủng Hộ',
-      description: 'Mua Premium Pass',
-      icon: '👑',
-      category: 'Premium',
-      reward: { gold: 500, culture: 100 },
-      requirement: { type: 'premium', target: 1 },
-      unlocked: true,
-      progress: player.premiumPass ? 1 : 0,
-      maxProgress: 1
-    },
+  const categories = ['all', ...Array.from(new Set(achievementsData.map((a: any) => a.category || 'general')))];
 
-    // Special Cultural Achievements
-    {
-      id: 'hanoi-master',
-      name: 'Chúa Tể Thăng Long',
-      description: 'Nâng Hà Nội lên cấp 5',
-      icon: '🏛️',
-      category: 'Văn Hóa',
-      reward: { gold: 800, culture: 150 },
-      requirement: { type: 'province-level', province: 'hanoi', target: 5 },
-      unlocked: true,
-      progress: 1, // Would calculate based on actual province level
-      maxProgress: 5
-    },
-    {
-      id: 'three-provinces',
-      name: 'Tam Vương',
-      description: 'Mở khóa cả 3 tỉnh MVP 1',
-      icon: '👑',
-      category: 'Khám Phá',
-      reward: { gold: 1500, culture: 300 },
-      requirement: { type: 'province', target: 3 },
-      unlocked: true,
-      progress: player.unlockedProvinces.length,
-      maxProgress: 3
-    }
-  ];
-
-  const categories = ['Tất Cả', 'Người Mới', 'Thu Thập', 'Văn Hóa', 'Cấp Độ', 'Khám Phá', 'Premium'];
-  const [selectedCategory, setSelectedCategory] = useState('Tất Cả');
-
-  const filteredAchievements = achievementsData.filter(achievement => 
-    selectedCategory === 'Tất Cả' || achievement.category === selectedCategory
-  );
-
-  const unlockedCount = achievementsData.filter(a => a.unlocked).length;
-  const completedCount = achievementsData.filter(a => a.progress >= a.maxProgress).length;
-
-  const handleClaimReward = (achievement: any) => {
-    if (achievement.progress >= achievement.maxProgress) {
-      completeAchievement(achievement.id);
-      // In real implementation, would add rewards to player resources
-      alert(`Đã nhận phần thưởng: ${Object.entries(achievement.reward).map(([key, value]) => `${value} ${key}`).join(', ')}`);
-    }
-  };
+  const filteredAchievements = selectedCategory === 'all' 
+    ? achievementsData 
+    : achievementsData.filter((a: any) => (a.category || 'general') === selectedCategory);
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-3xl font-bold text-red-800 mb-2">🏆 Thành Tích</h2>
-        <p className="text-gray-600">Hoàn thành thử thách và nhận phần thưởng</p>
-        <div className="flex justify-center gap-4 mt-4">
-          <div className="bg-blue-100 rounded-lg px-4 py-2">
-            <div className="text-lg font-bold text-blue-800">{completedCount}/{unlockedCount}</div>
-            <div className="text-sm text-blue-600">Đã Hoàn Thành</div>
+    <div className="min-h-screen pb-24 md:pb-6 bg-gradient-to-br from-yellow-50 to-orange-50">
+      <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-lg shadow-lg p-6 mb-6">
+        <h1 className="text-3xl font-bold flex items-center gap-2 mb-2">
+          <Trophy className="w-8 h-8" />
+          Thành Tựu
+        </h1>
+        <p className="text-yellow-100">Hoàn thành nhiệm vụ để nhận phần thưởng</p>
+        
+        <div className="mt-4 grid grid-cols-3 gap-4">
+          <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3 text-center">
+            <Star className="w-6 h-6 mx-auto mb-1" />
+            <div className="text-2xl font-bold">{unlockedCount}</div>
+            <div className="text-xs text-yellow-100">Đã mở khóa</div>
           </div>
-          <div className="bg-green-100 rounded-lg px-4 py-2">
-            <div className="text-lg font-bold text-green-800">{unlockedCount}/{achievementsData.length}</div>
-            <div className="text-sm text-green-600">Đã Mở Khóa</div>
+          <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3 text-center">
+            <Target className="w-6 h-6 mx-auto mb-1" />
+            <div className="text-2xl font-bold">{totalCount}</div>
+            <div className="text-xs text-yellow-100">Tổng số</div>
+          </div>
+          <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3 text-center">
+            <Crown className="w-6 h-6 mx-auto mb-1" />
+            <div className="text-2xl font-bold">{completionRate}%</div>
+            <div className="text-xs text-yellow-100">Hoàn thành</div>
           </div>
         </div>
       </div>
 
-      {/* Category Filter */}
-      <div className="flex flex-wrap gap-2 justify-center">
-        {categories.map(category => (
-          <button
-            key={category}
-            onClick={() => setSelectedCategory(category)}
-            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-              selectedCategory === category
-                ? 'bg-red-500 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-red-100'
-            }`}
-          >
-            {category}
-          </button>
-        ))}
-      </div>
-
-      {/* Achievements Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredAchievements.map((achievement, index) => {
-          const isCompleted = achievement.progress >= achievement.maxProgress;
-          const isLocked = !achievement.unlocked;
-          const progressPercent = Math.min((achievement.progress / achievement.maxProgress) * 100, 100);
-
-          return (
-            <motion.div
-              key={achievement.id}
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: index * 0.05 }}
-              className={`bg-white rounded-lg p-4 border-2 shadow-lg transition-all ${
-                isLocked 
-                  ? 'border-gray-300 opacity-50' 
-                  : isCompleted 
-                    ? 'border-green-400 bg-green-50' 
-                    : 'border-gray-200 hover:border-red-300'
-              }`}
+      <div className="mb-6">
+        <h3 className="text-sm font-semibold text-gray-700 mb-2">Lọc theo danh mục:</h3>
+        <div className="flex gap-2 overflow-x-auto pb-2">
+          {categories.map((category) => (
+            <button
+              key={category}
+              onClick={() => setSelectedCategory(category)}
+              className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all duration-200 \${selectedCategory === category ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-md scale-105' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
             >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div className={`text-3xl ${isLocked ? 'grayscale' : ''}`}>
-                    {isLocked ? '🔒' : achievement.icon}
-                  </div>
-                  <div>
-                    <h3 className={`font-bold ${isLocked ? 'text-gray-500' : 'text-red-800'}`}>
-                      {achievement.name}
-                    </h3>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      isLocked ? 'bg-gray-200 text-gray-500' : 'bg-red-100 text-red-600'
-                    }`}>
-                      {achievement.category}
-                    </span>
-                  </div>
-                </div>
-                
-                {isCompleted && (
-                  <CheckCircle className="h-6 w-6 text-green-500" />
-                )}
-              </div>
-
-              <p className={`text-sm mb-3 ${isLocked ? 'text-gray-500' : 'text-gray-700'}`}>
-                {achievement.description}
-              </p>
-
-              {/* Progress Bar */}
-              {!isLocked && (
-                <div className="mb-3">
-                  <div className="flex justify-between text-xs mb-1">
-                    <span>Tiến độ</span>
-                    <span>{achievement.progress}/{achievement.maxProgress}</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className={`h-2 rounded-full transition-all ${
-                        isCompleted ? 'bg-green-500' : 'bg-blue-500'
-                      }`}
-                      style={{ width: `${progressPercent}%` }}
-                    ></div>
-                  </div>
-                </div>
-              )}
-
-              {/* Rewards */}
-              <div className="mb-3">
-                <h4 className="text-xs font-semibold text-gray-600 mb-1">Phần thưởng:</h4>
-                <div className="flex flex-wrap gap-1">
-                  {Object.entries(achievement.reward).map(([key, value]) => (
-                    <span
-                      key={key}
-                      className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs"
-                    >
-                      +{value} {key}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Claim Button */}
-              {!isLocked && (
-                <button
-                  onClick={() => handleClaimReward(achievement)}
-                  disabled={!isCompleted}
-                  className={`w-full py-2 rounded-lg font-semibold text-sm transition-colors ${
-                    isCompleted
-                      ? 'bg-green-500 text-white hover:bg-green-600'
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
-                >
-                  {isCompleted ? '🎁 Nhận Thưởng' : '⏳ Chưa Hoàn Thành'}
-                </button>
-              )}
-            </motion.div>
-          );
-        })}
+              {getCategoryName(category)}
+            </button>
+          ))}
+        </div>
       </div>
+
+      {filteredAchievements.length === 0 ? (
+        <div className="text-center py-12 text-gray-500">
+          <Lock className="w-16 h-16 mx-auto mb-4 opacity-50" />
+          <p className="text-lg font-medium">Chưa có thành tựu</p>
+          <p className="text-sm">Hãy bắt đầu chơi để mở khóa thành tựu!</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredAchievements.map((achievement: any) => (
+            <AchievementCard key={achievement.id} achievement={achievement} />
+          ))}
+        </div>
+      )}
     </div>
   );
-};
+}
 
-// Need to import useState
-import { useState } from 'react';
+function AchievementCard({ achievement }: { achievement: any }) {
+  const isUnlocked = achievement.unlocked || achievement.claimed;
+  const progress = achievement.progress || 0;
+  const maxProgress = achievement.max_progress || achievement.maxProgress || 100;
+  const progressPercent = Math.min((progress / maxProgress) * 100, 100);
+  const isCompleted = progress >= maxProgress;
 
-export default Achievements;
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`relative bg-white rounded-xl shadow-lg overflow-hidden \${isUnlocked ? 'border-2 border-yellow-400' : 'border-2 border-gray-200'} transition-all duration-200 hover:shadow-xl`}
+    >
+      {!isUnlocked && (
+        <div className="absolute inset-0 bg-black bg-opacity-30 z-10 flex items-center justify-center">
+          <Lock className="w-12 h-12 text-white opacity-75" />
+        </div>
+      )}
+
+      <div className="p-5">
+        <div className="flex items-start gap-4 mb-3">
+          <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-2xl \${isUnlocked ? 'bg-gradient-to-br from-yellow-400 to-orange-500' : 'bg-gray-200'}`}>
+            {getAchievementIcon(achievement.category)}
+          </div>
+
+          <div className="flex-1">
+            <h3 className="font-bold text-lg text-gray-900 mb-1">
+              {achievement.name || achievement.title || 'Thành tựu'}
+            </h3>
+            <p className="text-sm text-gray-600 line-clamp-2">
+              {achievement.description || 'Hoàn thành nhiệm vụ để nhận phần thưởng'}
+            </p>
+          </div>
+
+          {achievement.rarity && (
+            <div className={`px-2 py-1 rounded-full text-xs font-bold \${getRarityStyle(achievement.rarity)}`}>
+              {achievement.rarity}
+            </div>
+          )}
+        </div>
+
+        <div className="mb-3">
+          <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+            <span>Tiến độ</span>
+            <span className="font-semibold">{progress}/{maxProgress}</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${progressPercent}%` }}
+              transition={{ duration: 0.5 }}
+              className={`h-full \${isCompleted ? 'bg-gradient-to-r from-green-400 to-emerald-500' : 'bg-gradient-to-r from-yellow-400 to-orange-500'}`}
+            />
+          </div>
+        </div>
+
+        {(achievement.reward_gold || achievement.reward_exp) && (
+          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-3 border border-yellow-200">
+            <div className="flex items-center gap-2 mb-2">
+              <Gift className="w-4 h-4 text-yellow-600" />
+              <span className="text-xs font-semibold text-yellow-800">Phần thưởng</span>
+            </div>
+            <div className="flex gap-3 flex-wrap text-sm">
+              {achievement.reward_gold && (
+                <div className="flex items-center gap-1">
+                  <span className="text-yellow-600">💰</span>
+                  <span className="font-semibold">{achievement.reward_gold.toLocaleString()}</span>
+                  <span className="text-gray-600">vàng</span>
+                </div>
+              )}
+              {achievement.reward_exp && (
+                <div className="flex items-center gap-1">
+                  <span className="text-blue-600">⭐</span>
+                  <span className="font-semibold">{achievement.reward_exp.toLocaleString()}</span>
+                  <span className="text-gray-600">EXP</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {isCompleted && !achievement.claimed && (
+          <button className="w-full mt-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white py-2 rounded-lg font-bold hover:from-green-600 hover:to-emerald-700 transition-all duration-200 shadow-md hover:shadow-lg">
+            <Sparkles className="w-4 h-4 inline mr-2" />
+            Nhận thưởng
+          </button>
+        )}
+
+        {achievement.claimed && (
+          <div className="mt-3 bg-green-100 text-green-700 py-2 rounded-lg font-bold text-center border border-green-300">
+            ✓ Đã hoàn thành
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+function getCategoryName(category: string): string {
+  const map: any = {
+    all: '🏆 Tất cả',
+    general: '📌 Chung',
+    combat: '⚔️ Chiến đấu',
+    economy: '💰 Kinh tế',
+    exploration: '🗺️ Khám phá',
+    social: '👥 Xã hội',
+    collection: '📦 Sưu tập',
+    story: '📖 Cốt truyện',
+  };
+  return map[category] || category;
+}
+
+function getAchievementIcon(category: string): string {
+  const map: any = {
+    general: '📌',
+    combat: '⚔️',
+    economy: '💰',
+    exploration: '🗺️',
+    social: '👥',
+    collection: '📦',
+    story: '📖',
+  };
+  return map[category] || '��';
+}
+
+function getRarityStyle(rarity: string): string {
+  const map: any = {
+    common: 'bg-gray-200 text-gray-700',
+    rare: 'bg-blue-200 text-blue-700',
+    epic: 'bg-purple-200 text-purple-700',
+    legendary: 'bg-yellow-200 text-yellow-700',
+  };
+  return map[rarity.toLowerCase()] || 'bg-gray-200 text-gray-700';
+}

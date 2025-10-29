@@ -36,14 +36,17 @@ import CustomizationTab from '@/components/CustomizationTab';
 import AnalyticsTab from '@/components/AnalyticsTab';
 import MultiplayerTab from '@/components/MultiplayerTab';
 import MarketplaceTab from '@/components/MarketplaceTab';
+import ChangelogPage from './changelog/page';
 import { ErrorBoundary as AppErrorBoundary } from '@/components/ErrorBoundary';
 import { initializeStorageOptimization } from '@/lib/storageOptimization';
+import { DataSyncInitializer } from './DataSyncInitializer';
+import MVP1ApiClient from '@/lib/mvp1ApiClient';
 
 export default function Game() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authToken, setAuthToken] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'game' | 'premium' | 'shop' | 'culture' | 'achievements' | 'settings' | 'combat' | 'heroes' | 'pets' | 'battlepass' | 'gacha' | 'guild' | 'arena' | 'worldmap' | 'missions' | 'friends' | 'enhancedshop' | 'customization' | 'analytics' | 'multiplayer' | 'marketplace'>('game');
+  const [activeTab, setActiveTab] = useState<'game' | 'premium' | 'shop' | 'culture' | 'achievements' | 'settings' | 'combat' | 'heroes' | 'pets' | 'battlepass' | 'gacha' | 'guild' | 'arena' | 'worldmap' | 'missions' | 'friends' | 'enhancedshop' | 'customization' | 'analytics' | 'multiplayer' | 'marketplace' | 'changelog'>('game');
   const [showTutorial, setShowTutorial] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { 
@@ -69,6 +72,8 @@ export default function Game() {
       setAuthToken(token);
       setCurrentUser(JSON.parse(user));
       setIsAuthenticated(true);
+      // Initialize MVP1 API client with token
+      MVP1ApiClient.setAuthToken(token);
     }
     
     // Simulate loading time and initialize game
@@ -102,6 +107,8 @@ export default function Game() {
     setAuthToken(token);
     setCurrentUser(user);
     setIsAuthenticated(true);
+    // Initialize MVP1 API client with token
+    MVP1ApiClient.setAuthToken(token);
   };
 
   const handleLogout = () => {
@@ -128,8 +135,9 @@ export default function Game() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gradient-to-br from-red-50 via-yellow-50 to-orange-50">
-      <GameLoop />
+      <DataSyncInitializer>
+        <div className="min-h-screen bg-gradient-to-br from-red-50 via-yellow-50 to-orange-50">
+        <GameLoop />
       
       {/* Header */}
       <header className="bg-gradient-to-r from-red-600 to-yellow-500 text-white shadow-lg">
@@ -182,7 +190,8 @@ export default function Game() {
       {/* Navigation - Desktop only, mobile uses bottom bar */}
       <DesktopNav 
         activeTab={activeTab} 
-        onTabChange={(tab) => setActiveTab(tab as any)} 
+        onTabChange={(tab) => setActiveTab(tab as any)}
+        token={authToken || undefined}
       />
 
       {/* Main Content */}
@@ -292,6 +301,8 @@ export default function Game() {
         
         {activeTab === 'achievements' && <Achievements />}
 
+        {activeTab === 'changelog' && <ChangelogPage />}
+
         {activeTab === 'settings' && <SettingsPanel />}
       </main>
 
@@ -307,7 +318,8 @@ export default function Game() {
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav 
         activeTab={activeTab} 
-        onTabChange={(tab) => setActiveTab(tab as any)} 
+        onTabChange={(tab) => setActiveTab(tab as any)}
+        token={authToken || undefined}
       />
 
       {/* Tutorial Modal */}
@@ -318,6 +330,7 @@ export default function Game() {
       {/* Notifications */}
       <NotificationComponent />
       </div>
+      </DataSyncInitializer>
     </ErrorBoundary>
   );
 }

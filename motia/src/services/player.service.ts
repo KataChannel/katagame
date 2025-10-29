@@ -1,4 +1,4 @@
-import { getDatabase } from './database.service'
+import { initDatabase } from './database.service'
 
 /**
  * Player Data Model
@@ -30,7 +30,7 @@ export interface Player {
  * Handles all player-related database operations
  */
 export class PlayerService {
-  private db = getDatabase()
+  private db = initDatabase(process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:11003/katagame')
 
   /**
    * Get player by ID
