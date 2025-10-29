@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Lock, Eye, EyeOff, Loader } from 'lucide-react';
 import GoogleSignInButton from './GoogleSignInButton';
+import { API_CONFIG } from '@/lib/apiConfig';
 
 interface AuthPageProps {
   onAuthSuccess: (token: string, user: any) => void;
@@ -21,9 +22,6 @@ export default function AuthPage({ onAuthSuccess }: AuthPageProps) {
     password: '',
     confirmPassword: '',
   });
-
-  // API base URL
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:11001/api/v1';
 
   // Validate email
   const validateEmail = (email: string) => {
@@ -60,7 +58,7 @@ export default function AuthPage({ onAuthSuccess }: AuthPageProps) {
         throw new Error('Email không hợp lệ');
       }
 
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      const response = await fetch(API_CONFIG.ENDPOINTS.AUTH_LOGIN, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -130,7 +128,7 @@ export default function AuthPage({ onAuthSuccess }: AuthPageProps) {
         throw new Error('Mật khẩu không khớp');
       }
 
-      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+      const response = await fetch(API_CONFIG.ENDPOINTS.AUTH_REGISTER, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

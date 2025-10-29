@@ -1,5 +1,7 @@
 // Frontend API Service for Navigation
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:11001'
+import { API_CONFIG } from './apiConfig';
+
+const API_BASE_URL = API_CONFIG.FULL_BASE_URL;
 
 export interface NavigationItem {
   key: string
@@ -29,7 +31,7 @@ export interface NavigationResponse {
  * Fetch player navigation from backend API
  */
 export async function getPlayerNavigation(token: string): Promise<NavigationResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/navigation/player`, {
+  const response = await fetch(API_CONFIG.ENDPOINTS.NAVIGATION_PLAYER, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,

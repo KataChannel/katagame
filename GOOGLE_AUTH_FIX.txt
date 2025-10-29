@@ -1,0 +1,47 @@
+╔════════════════════════════════════════════════════════════╗
+║          🔧 GOOGLE AUTH 404 ERROR - FIXED ✅               ║
+╚════════════════════════════════════════════════════════════╝
+
+PROBLEM
+-------
+Google Sign-In was calling wrong URL:
+  ❌ http://localhost:11001/auth/google (404 Not Found)
+
+SOLUTION
+--------
+Fixed .env.local file:
+  ✅ http://localhost:11001/api/v1/auth/google
+
+WHAT WAS CHANGED
+----------------
+File: /frontend/.env.local
+
+Before:
+  NEXT_PUBLIC_API_URL=http://localhost:11001
+
+After:
+  NEXT_PUBLIC_API_URL=http://localhost:11001/api/v1
+
+HOW TO APPLY
+------------
+1. Stop frontend server (Ctrl+C)
+2. Run: cd frontend && bun run dev
+3. Test Google Sign-In button
+4. Should work now! ✅
+
+VERIFICATION
+------------
+Open browser DevTools → Network tab
+Click "Sign in with Google"
+Should see: POST http://localhost:11001/api/v1/auth/google
+Status: 200 OK (not 404!)
+
+FILES MODIFIED
+--------------
+✅ /frontend/.env.local
+✅ /frontend/.env.example
+✅ /docs/73-GOOGLE_AUTH_404_FIX.md
+
+═══════════════════════════════════════════════════════════
+Status: FIXED ✅ | Next: Restart frontend and test!
+═══════════════════════════════════════════════════════════

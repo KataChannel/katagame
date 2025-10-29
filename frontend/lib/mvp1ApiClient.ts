@@ -3,7 +3,9 @@
  * Handles all communication with MVP1 backend endpoints
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:11001';
+import { getApiBaseUrl } from './apiConfig';
+
+const API_BASE_URL = getApiBaseUrl();
 
 interface ApiResponse<T = any> {
   success: boolean;
@@ -54,7 +56,7 @@ export class MVP1ApiClient {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1${endpoint}`, {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method,
         headers,
         body: body ? JSON.stringify(body) : undefined,

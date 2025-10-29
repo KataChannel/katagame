@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { Loader } from 'lucide-react';
+import { API_CONFIG } from '@/lib/apiConfig';
 
 declare global {
   interface Window {
@@ -18,7 +19,6 @@ export default function GoogleSignInButton({ onSuccess }: GoogleSignInButtonProp
   const [error, setError] = useState('');
   const [scriptReady, setScriptReady] = useState(false);
   const scriptLoadedRef = useRef(false);
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:11001/api/v1';
 
   const handleGoogleLogin = async (response: any) => {
     if (!response?.credential) {
@@ -30,7 +30,7 @@ export default function GoogleSignInButton({ onSuccess }: GoogleSignInButtonProp
     setError('');
 
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/google`, {
+      const res = await fetch(API_CONFIG.ENDPOINTS.AUTH_GOOGLE, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
