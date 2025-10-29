@@ -24,6 +24,9 @@ model Player {
   updated_at           DateTime?            @default(now()) @updatedAt @db.Timestamp(6)
   daily_quest_progress DailyQuestProgress[]
   player_provinces     PlayerProvince[]
+  player_heroes        PlayerHero[]
+  player_resources     PlayerResource[]
+  quiz_submissions     QuizSubmission[]
   player_stats         PlayerStats?
 
   @@map("players")
@@ -75,6 +78,7 @@ model Hero {
   created_at         DateTime?        @default(now()) @db.Timestamp(6)
   updated_at         DateTime?        @default(now()) @updatedAt @db.Timestamp(6)
   player_provinces   PlayerProvince[]
+  player_heroes      PlayerHero[]     @relation("PlayerHeroToHero")
   stories            Story[]
 
   @@map("heroes")
@@ -145,6 +149,7 @@ model Story {
   updated_at           DateTime?            @default(now()) @updatedAt @db.Timestamp(6)
   daily_quest_progress DailyQuestProgress[]
   quiz_questions       QuizQuestion[]
+  quiz_submissions     QuizSubmission[]
   hero                 Hero?                @relation(fields: [hero_id], references: [id], onUpdate: NoAction)
   province             Province?            @relation(fields: [province_id], references: [id], onUpdate: NoAction)
 
@@ -191,6 +196,8 @@ model PlayerProvince {
   province          Province  @relation(fields: [province_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([player_id, province_id])
+  @@index([player_id], map: "idx_player_provinces_player")
+  @@index([province_id], map: "idx_player_provinces_province")
   @@map("player_provinces")
 }
 
@@ -556,4 +563,63 @@ model user_achievements {
   @@unique([player_id, achievement_id])
   @@index([player_id], map: "idx_user_achievements_player")
   @@index([unlocked_at], map: "idx_user_achievements_unlocked")
+}
+
+// ============================================================================
+// MVP1 ADDITIONAL MODELS
+// ============================================================================
+
+model PlayerHero {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  player_id    String    @db.Uuid
+  hero_id      String    @db.Uuid
+  level        Int?      @default(1)
+  experience   Int?      @default(0)
+  deployed_to  Int?      @db.SmallInt
+  acquired_at  DateTime? @default(now()) @db.Timestamp(6)
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+  updated_at   DateTime? @default(now()) @updatedAt @db.Timestamp(6)
+  player       Player    @relation(fields: [player_id], references: [id], onDelete: Cascade)
+  hero         Hero      @relation("PlayerHeroToHero", fields: [hero_id], references: [id], onDelete: Cascade)
+
+  @@unique([player_id, hero_id])
+  @@index([player_id], map: "idx_player_heroes_player")
+  @@index([hero_id], map: "idx_player_heroes_hero")
+  @@map("player_heroes")
+}
+
+model PlayerResource {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  player_id       String    @db.Uuid
+  resource_type   String    @db.VarChar(50)
+  amount          Int       @default(0)
+  last_harvest_at DateTime? @db.Timestamp(6)
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  updated_at      DateTime? @default(now()) @updatedAt @db.Timestamp(6)
+  player          Player    @relation(fields: [player_id], references: [id], onDelete: Cascade)
+
+  @@unique([player_id, resource_type])
+  @@index([player_id], map: "idx_player_resources_player")
+  @@index([resource_type], map: "idx_player_resources_type")
+  @@map("player_resources")
+}
+
+model QuizSubmission {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  player_id   String    @db.Uuid
+  story_id    String    @db.VarChar(50)
+  score       Int       @default(0)
+  max_score   Int       @default(0)
+  answers     Json?
+  time_taken  Int?      // seconds
+  multiplier  Decimal?  @db.Decimal(5, 2)
+  rewards     Json?
+  submitted_at DateTime? @default(now()) @db.Timestamp(6)
+  player      Player    @relation(fields: [player_id], references: [id], onDelete: Cascade)
+  story       Story     @relation(fields: [story_id], references: [id], onDelete: Cascade)
+
+  @@index([player_id], map: "idx_quiz_submissions_player")
+  @@index([story_id], map: "idx_quiz_submissions_story")
+  @@index([submitted_at(sort: Desc)], map: "idx_quiz_submissions_date")
+  @@map("quiz_submissions")
 }
