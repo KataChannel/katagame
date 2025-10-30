@@ -231,18 +231,28 @@ export class ProvinceService {
   // Helper: Calculate upgrade costs
   private calculateUpgradeCosts(playerProvince: any, upgradeType: string) {
     const level = playerProvince[`${upgradeType}_level`] || 1;
-    const baseCost = 100;
-    const multiplier = 1.5;
-
-    const cost = Math.floor(baseCost * Math.pow(multiplier, level - 1));
-
-    return {
-      gold: upgradeType === 'farmer' ? cost : Math.floor(cost * 0.5),
-      rice: upgradeType === 'farmer' ? Math.floor(cost * 1.5) : Math.floor(cost * 0.8),
-      wood: upgradeType === 'development' ? cost : Math.floor(cost * 0.5),
-      stone: upgradeType === 'development' ? Math.floor(cost * 1.2) : Math.floor(cost * 0.3),
-      bazan: upgradeType === 'resource' ? Math.floor(cost * 0.5) : Math.floor(cost * 0.2),
-    };
+    
+    // Match Motia backend costs exactly
+    if (upgradeType === 'farmer') {
+      return {
+        gold: 500 * level,
+        rice: 300 * level,
+      };
+    } else if (upgradeType === 'resource') {
+      return {
+        gold: 800 * level,
+        wood: 400 * level,
+      };
+    } else if (upgradeType === 'development') {
+      return {
+        gold: 1000 * level,
+        rice: 500 * level,
+        wood: 300 * level,
+        stone: 200 * level,
+      };
+    }
+    
+    return {};
   }
 
   // Helper: Check if player has resources
@@ -250,13 +260,17 @@ export class ProvinceService {
     const resources = player.player_resources || [];
     const resourceMap = new Map(resources.map((r: any) => [r.resource_type, r.amount]));
 
-    return (
-      (resourceMap.get('gold') || 0) >= costs.gold &&
-      (resourceMap.get('rice') || 0) >= costs.rice &&
-      (resourceMap.get('wood') || 0) >= costs.wood &&
-      (resourceMap.get('stone') || 0) >= costs.stone &&
-      (resourceMap.get('bazan') || 0) >= costs.bazan
-    );
+    // Only check resources that are actually required for this upgrade
+    for (const [resourceType, amount] of Object.entries(costs)) {
+      const requiredAmount = amount as number;
+      const availableAmount = (resourceMap.get(resourceType) as number) || 0;
+      
+      if (availableAmount < requiredAmount) {
+        return false;
+      }
+    }
+    
+    return true;
   }
 
   // Helper: Get upgrade update data
@@ -276,19 +290,21 @@ export class ProvinceService {
 
   // Helper: Create resource deduction promises
   private createResourceDeductionPromises(playerId: string, costs: any) {
-    const resources = ['gold', 'rice', 'wood', 'stone', 'bazan'];
-    return resources.map((resourceType) =>
-      this.prisma.playerResource.update({
-        where: {
-          player_id_resource_type: {
-            player_id: playerId,
-            resource_type: resourceType,
+    // Only deduct resources that are actually being used (have non-zero cost)
+    return Object.entries(costs)
+      .filter(([_, amount]) => (amount as number) > 0)
+      .map(([resourceType, amount]) =>
+        this.prisma.playerResource.update({
+          where: {
+            player_id_resource_type: {
+              player_id: playerId,
+              resource_type: resourceType,
+            },
           },
-        },
-        data: {
-          amount: { decrement: costs[resourceType] },
-        },
-      }),
-    );
+          data: {
+            amount: { decrement: amount as number },
+          },
+        }),
+      );
   }
 }
