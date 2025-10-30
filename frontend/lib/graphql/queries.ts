@@ -280,9 +280,15 @@ export const UPGRADE_PROVINCE = gql`
       farmerLevel
       resourceLevel
       developmentLevel
+      buildingsCount
+      heroId
       province {
         id
         name
+        nameVietnamese
+        nameEnglish
+        region
+        unlockCost
       }
     }
   }

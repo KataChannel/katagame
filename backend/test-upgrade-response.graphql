@@ -1,0 +1,16 @@
+mutation TestUpgrade {
+  upgradeProvince(input: { provinceId: 1, upgradeType: FARMER }) {
+    id
+    playerId
+    provinceId
+    farmerLevel
+    resourceLevel
+    developmentLevel
+    province {
+      id
+      name
+      nameVietnamese
+      region
+    }
+  }
+}

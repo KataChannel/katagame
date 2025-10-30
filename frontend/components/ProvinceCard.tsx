@@ -3,15 +3,22 @@ import { useGameStore } from '@/lib/gameStore';
 import { MapPin, Star, TrendingUp, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import MVP1ApiClient from '@/lib/graphqlApiClient';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { syncProvincesFromApi } from '@/lib/hooks/useApiDataSync';
 
 interface ProvinceCardProps {
   province: any; // Using any for MVP1 API data
 }
 
-const ProvinceCard = ({ province }: ProvinceCardProps) => {
+const ProvinceCard = ({ province: initialProvince }: ProvinceCardProps) => {
   const { player } = useGameStore();
   const [isUpgrading, setIsUpgrading] = useState(false);
+  const [province, setProvince] = useState(initialProvince);
+
+  // Update local state when prop changes
+  useEffect(() => {
+    setProvince(initialProvince);
+  }, [initialProvince]);
 
   // Safety check - province must exist and have required data
   if (!province || Object.keys(province).length === 0) {
@@ -39,13 +46,20 @@ const ProvinceCard = ({ province }: ProvinceCardProps) => {
       setIsUpgrading(true);
       const response = await MVP1ApiClient.upgradeFarmer(provinceId.toString());
       
-      if (response?.success) {
-        // Refresh provinces data
-        const provincesData = await MVP1ApiClient.getPlayerProvinces();
-        if (provincesData?.success) {
-          const provinces = (provincesData.data as any)?.provinces || [];
-          useGameStore.setState({ provinces });
-        }
+      if (response?.success && response.data) {
+        console.log('✅ Farmer upgraded successfully', response.data);
+        // Merge response data with current province data for instant UI update
+        setProvince({
+          ...province,
+          ...response.data,
+          name: response.data.province?.nameVietnamese || response.data.province?.name || province.name,
+          displayName: response.data.province?.nameVietnamese || province.displayName,
+          region: response.data.province?.region || province.region,
+        });
+        // Sync all provinces from API to update Zustand store (for parent re-renders)
+        await syncProvincesFromApi();
+      } else {
+        console.error('❌ Farmer upgrade failed:', response?.message);
       }
     } catch (error) {
       console.error('Failed to upgrade farmer:', error);
@@ -61,13 +75,20 @@ const ProvinceCard = ({ province }: ProvinceCardProps) => {
       setIsUpgrading(true);
       const response = await MVP1ApiClient.upgradeResource(provinceId.toString());
       
-      if (response?.success) {
-        // Refresh provinces data
-        const provincesData = await MVP1ApiClient.getPlayerProvinces();
-        if (provincesData?.success) {
-          const provinces = (provincesData.data as any)?.provinces || [];
-          useGameStore.setState({ provinces });
-        }
+      if (response?.success && response.data) {
+        console.log('✅ Resource upgraded successfully', response.data);
+        // Merge response data with current province data for instant UI update
+        setProvince({
+          ...province,
+          ...response.data,
+          name: response.data.province?.nameVietnamese || response.data.province?.name || province.name,
+          displayName: response.data.province?.nameVietnamese || province.displayName,
+          region: response.data.province?.region || province.region,
+        });
+        // Sync all provinces from API to update Zustand store
+        await syncProvincesFromApi();
+      } else {
+        console.error('❌ Resource upgrade failed:', response?.message);
       }
     } catch (error) {
       console.error('Failed to upgrade resource:', error);
@@ -83,13 +104,20 @@ const ProvinceCard = ({ province }: ProvinceCardProps) => {
       setIsUpgrading(true);
       const response = await MVP1ApiClient.upgradeDevelopment(provinceId.toString());
       
-      if (response?.success) {
-        // Refresh provinces data
-        const provincesData = await MVP1ApiClient.getPlayerProvinces();
-        if (provincesData?.success) {
-          const provinces = (provincesData.data as any)?.provinces || [];
-          useGameStore.setState({ provinces });
-        }
+      if (response?.success && response.data) {
+        console.log('✅ Development upgraded successfully', response.data);
+        // Merge response data with current province data for instant UI update
+        setProvince({
+          ...province,
+          ...response.data,
+          name: response.data.province?.nameVietnamese || response.data.province?.name || province.name,
+          displayName: response.data.province?.nameVietnamese || province.displayName,
+          region: response.data.province?.region || province.region,
+        });
+        // Sync all provinces from API to update Zustand store
+        await syncProvincesFromApi();
+      } else {
+        console.error('❌ Development upgrade failed:', response?.message);
       }
     } catch (error) {
       console.error('Failed to upgrade development:', error);

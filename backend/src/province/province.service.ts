@@ -1,9 +1,11 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ProvinceWhereInput, PlayerProvinceWhereInput, UnlockProvinceInput, UpgradeProvinceInput } from '../graphql/inputs/province.input';
 
 @Injectable()
 export class ProvinceService {
+  private readonly logger = new Logger(ProvinceService.name);
+  
   constructor(private prisma: PrismaService) {}
 
   // Get all provinces
@@ -68,12 +70,16 @@ export class ProvinceService {
 
   // Unlock province for player
   async unlockProvince(playerId: string, input: UnlockProvinceInput) {
+    this.logger.log(`🔓 Unlock request: Player=${playerId}, Province=${input.provinceId}`);
+    
     // Check if province exists
     const province = await this.findById(input.provinceId);
+    this.logger.debug(`📍 Province found: ${province.name} (Region: ${province.region})`);
 
     // Check if already unlocked
     const existing = await this.getPlayerProvince(playerId, input.provinceId);
     if (existing) {
+      this.logger.error(`❌ Province ${input.provinceId} already unlocked`);
       throw new BadRequestException('Province already unlocked');
     }
 
@@ -91,14 +97,17 @@ export class ProvinceService {
     });
 
     const currentDay = progressCount;
+    this.logger.debug(`📅 Player progress: Day ${currentDay}, Required: ${province.unlock_story_day || 'No requirement'}`);
+    
     if (province.unlock_story_day && currentDay < province.unlock_story_day) {
+      this.logger.error(`❌ Unlock requirements not met: Need day ${province.unlock_story_day}, current day ${currentDay}`);
       throw new BadRequestException(
         `Province requires story day ${province.unlock_story_day}. Current day: ${currentDay}`,
       );
     }
 
     // Create player province
-    return this.prisma.playerProvince.create({
+    const newPlayerProvince = await this.prisma.playerProvince.create({
       data: {
         player_id: playerId,
         province_id: input.provinceId,
@@ -113,18 +122,32 @@ export class ProvinceService {
         hero: true,
       },
     });
+
+    this.logger.log(`✅ Province ${province.name} unlocked successfully!`);
+    return newPlayerProvince;
   }
 
   // Upgrade province (farmer/resource/development)
   async upgradeProvince(playerId: string, input: UpgradeProvinceInput) {
+    this.logger.log(`🔧 Upgrade request: Player=${playerId}, Province=${input.provinceId}, Type=${input.upgradeType}`);
+    
     // Get player province
     const playerProvince = await this.getPlayerProvince(playerId, input.provinceId);
     if (!playerProvince) {
+      this.logger.error(`❌ Province ${input.provinceId} not unlocked for player ${playerId}`);
       throw new NotFoundException('Province not unlocked');
     }
 
+    this.logger.debug(`📊 Current province state: ${JSON.stringify({
+      provinceId: playerProvince.province_id,
+      farmerLevel: playerProvince.farmer_level,
+      resourceLevel: playerProvince.resource_level,
+      developmentLevel: playerProvince.development_level,
+    })}`);
+
     // Calculate upgrade costs
     const costs = this.calculateUpgradeCosts(playerProvince, input.upgradeType);
+    this.logger.log(`💰 Upgrade costs: ${JSON.stringify(costs)}`);
 
     // Check if player has enough resources
     const player = await this.prisma.player.findUnique({
@@ -132,13 +155,21 @@ export class ProvinceService {
       include: { player_resources: true },
     });
 
+    this.logger.debug(`🏦 Player resources: ${JSON.stringify(
+      player?.player_resources.map(r => ({ type: r.resource_type, amount: r.amount }))
+    )}`);
+
     const hasResources = this.checkResourcesAvailable(player, costs);
     if (!hasResources) {
+      this.logger.error(`❌ Insufficient resources. Required: ${JSON.stringify(costs)}`);
       throw new BadRequestException('Insufficient resources');
     }
 
+    this.logger.log(`✅ Resource check passed`);
+
     // Deduct resources and upgrade
     const updateData = this.getUpgradeUpdateData(input.upgradeType, playerProvince);
+    this.logger.debug(`📝 Update data: ${JSON.stringify(updateData)}`);
 
     const [updatedProvince] = await Promise.all([
       this.prisma.playerProvince.update({
@@ -157,6 +188,8 @@ export class ProvinceService {
       // Deduct resources
       ...this.createResourceDeductionPromises(playerId, costs),
     ]);
+
+    this.logger.log(`✅ Upgrade completed successfully! New ${input.upgradeType}_level: ${updatedProvince[`${input.upgradeType}_level`]}`);
 
     return updatedProvince;
   }
@@ -266,8 +299,11 @@ export class ProvinceService {
       const availableAmount = (resourceMap.get(resourceType) as number) || 0;
       
       if (availableAmount < requiredAmount) {
+        this.logger.warn(`⚠️  Insufficient ${resourceType}: Have ${availableAmount}, Need ${requiredAmount}`);
         return false;
       }
+      
+      this.logger.debug(`✓ ${resourceType}: ${availableAmount} >= ${requiredAmount}`);
     }
     
     return true;

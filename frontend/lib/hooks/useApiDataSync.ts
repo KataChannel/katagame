@@ -4,6 +4,68 @@ import { useEffect } from 'react';
 import { useGameStore } from '@/lib/gameStore';
 import MVP1ApiClient from '@/lib/graphqlApiClient';
 
+/**
+ * Sync provinces data từ API vào Zustand store
+ * Export để có thể gọi từ components sau khi mutations
+ */
+export const syncProvincesFromApi = async () => {
+  try {
+    const provincesResponse = await MVP1ApiClient.getPlayerProvinces();
+    console.log('🔄 Syncing provinces from API:', provincesResponse);
+    
+    if (provincesResponse?.success && provincesResponse?.data) {
+      const apiProvinces = Array.isArray(provincesResponse.data) ? provincesResponse.data : [];
+      console.log('📦 Received', apiProvinces.length, 'provinces from API');
+      
+      const transformedProvinces = apiProvinces.map((p: any) => {
+        const provinceId = p.provinceId || p.province?.id;
+        if (!provinceId) {
+          console.warn('Province missing provinceId, skipping:', p);
+          return null;
+        }
+
+        return {
+          id: String(provinceId),
+          provinceId: provinceId,
+          name: p.province?.nameVietnamese || p.province?.name || 'Unknown',
+          displayName: p.province?.nameVietnamese || p.province?.name || 'Unknown',
+          description: 'Tỉnh ' + (p.province?.region || 'Unknown'),
+          unlocked: true,
+          level: p.farmerLevel || 1,
+          maxLevel: 10,
+          resources: { gold: 0, rice: 0, lumber: 0, stone: 0, culture: 0, bazan: 0 },
+          resourcesPerSecond: {
+            gold: (p.resourceLevel || 1) * 10,
+            rice: (p.resourceLevel || 1) * 10,
+            lumber: (p.resourceLevel || 1) * 5,
+            stone: (p.resourceLevel || 1) * 5,
+            culture: (p.developmentLevel || 1) * 2,
+            bazan: 0,
+          },
+          specialties: [],
+          culturalBonus: '',
+          farmers: [],
+          buildings: [],
+          region: (p.province?.region?.toLowerCase() || 'north'),
+          farmerLevel: p.farmerLevel || 1,
+          resourceLevel: p.resourceLevel || 1,
+          developmentLevel: p.developmentLevel || 1,
+        };
+      }).filter(Boolean);
+      
+      console.log('✅ Transformed', transformedProvinces.length, 'provinces, updating Zustand store');
+      useGameStore.setState({ provinces: transformedProvinces as any });
+      return transformedProvinces;
+    } else {
+      console.warn('No provinces data in API response');
+      return [];
+    }
+  } catch (error) {
+    console.error('❌ Failed to sync provinces:', error);
+    return [];
+  }
+};
+
 export const useApiDataSync = () => {
   useEffect(() => {
     const storedToken = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
@@ -62,60 +124,8 @@ export const useApiDataSync = () => {
 
       console.log('Starting game data sync from API...');
 
-      try {
-        const provincesResponse = await MVP1ApiClient.getPlayerProvinces();
-        console.log('Provinces API Response:', provincesResponse);
-        
-        if (provincesResponse?.success && provincesResponse?.data) {
-          const apiProvinces = Array.isArray(provincesResponse.data) ? provincesResponse.data : [];
-          console.log('Received', apiProvinces.length, 'provinces from API');
-          
-          const transformedProvinces = apiProvinces.map((p: any) => {
-            const provinceId = p.provinceId || p.province?.id;
-            if (!provinceId) {
-              console.warn('Province missing provinceId, skipping:', p);
-              return null;
-            }
-
-            return {
-              id: String(provinceId),
-              provinceId: provinceId,
-              name: p.province?.name || 'Unknown',
-              displayName: p.province?.name || 'Unknown',
-              description: 'Tinh ' + (p.province?.region || 'Unknown'),
-              unlocked: true,
-              level: p.farmerLevel || 1,
-              maxLevel: 10,
-              resources: { gold: 0, rice: 0, lumber: 0, stone: 0, culture: 0, bazan: 0 },
-              resourcesPerSecond: {
-                gold: (p.resourceLevel || 1) * 10,
-                rice: (p.resourceLevel || 1) * 10,
-                lumber: (p.resourceLevel || 1) * 5,
-                stone: (p.resourceLevel || 1) * 5,
-                culture: (p.developmentLevel || 1) * 2,
-                bazan: 0,
-              },
-              specialties: [],
-              culturalBonus: '',
-              farmers: [],
-              buildings: [],
-              region: (p.province?.region?.toLowerCase() || 'north'),
-              farmerLevel: p.farmerLevel || 1,
-              resourceLevel: p.resourceLevel || 1,
-              developmentLevel: p.developmentLevel || 1,
-            };
-          }).filter(Boolean);
-          
-          console.log('Transformed', transformedProvinces.length, 'provinces for frontend');
-          useGameStore.setState({ provinces: transformedProvinces as any });
-        } else {
-          console.warn('No provinces data in API response');
-          useGameStore.setState({ provinces: [] });
-        }
-      } catch (e: any) {
-        console.error('Failed to load provinces:', e.message);
-        useGameStore.setState({ provinces: [] });
-      }
+      // Use the shared sync function
+      await syncProvincesFromApi();
 
       try {
         const heroesResponse = await MVP1ApiClient.getPlayerHeroes();

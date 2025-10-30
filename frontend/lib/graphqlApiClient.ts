@@ -362,6 +362,11 @@ export class GraphQLApiClient {
         variables: {
           input: { provinceId, heroId },
         },
+        refetchQueries: [
+          { query: GET_MY_PROVINCES },
+          { query: GET_MY_RESOURCES },
+        ],
+        awaitRefetchQueries: true,
       });
 
       return {
@@ -369,6 +374,7 @@ export class GraphQLApiClient {
         data: (data as any).unlockProvince,
       };
     } catch (error: any) {
+      console.error('❌ unlockProvince error:', error);
       return {
         success: false,
         message: error.message,
@@ -383,6 +389,14 @@ export class GraphQLApiClient {
         variables: {
           input: { provinceId, upgradeType },
         },
+        // Refetch queries to update cache
+        refetchQueries: [
+          { query: GET_MY_PROVINCES },
+          { query: GET_MY_PROVINCE, variables: { provinceId } },
+          { query: GET_MY_RESOURCES },
+        ],
+        // Update cache immediately for better UX
+        awaitRefetchQueries: true,
       });
 
       return {
@@ -390,6 +404,7 @@ export class GraphQLApiClient {
         data: (data as any).upgradeProvince,
       };
     } catch (error: any) {
+      console.error('❌ upgradeProvince error:', error);
       return {
         success: false,
         message: error.message,
@@ -482,6 +497,11 @@ export class GraphQLApiClient {
         variables: {
           input: { heroId },
         },
+        refetchQueries: [
+          { query: GET_MY_HEROES },
+          { query: GET_MY_RESOURCES },
+        ],
+        awaitRefetchQueries: true,
       });
 
       return {
@@ -489,6 +509,7 @@ export class GraphQLApiClient {
         data: (data as any).recruitHero,
       };
     } catch (error: any) {
+      console.error('❌ recruitHero error:', error);
       return {
         success: false,
         message: error.message,
@@ -503,6 +524,12 @@ export class GraphQLApiClient {
         variables: {
           input: { heroId, provinceId },
         },
+        refetchQueries: [
+          { query: GET_MY_HEROES },
+          { query: GET_MY_PROVINCES },
+          { query: GET_MY_PROVINCE, variables: { provinceId } },
+        ],
+        awaitRefetchQueries: true,
       });
 
       return {
@@ -510,6 +537,7 @@ export class GraphQLApiClient {
         data: (data as any).deployHero,
       };
     } catch (error: any) {
+      console.error('❌ deployHero error:', error);
       return {
         success: false,
         message: error.message,
@@ -524,6 +552,11 @@ export class GraphQLApiClient {
         variables: {
           input: { playerHeroId },
         },
+        refetchQueries: [
+          { query: GET_MY_HEROES },
+          { query: GET_MY_RESOURCES },
+        ],
+        awaitRefetchQueries: true,
       });
 
       return {
@@ -531,6 +564,7 @@ export class GraphQLApiClient {
         data: (data as any).levelUpHero,
       };
     } catch (error: any) {
+      console.error('❌ levelUpHero error:', error);
       return {
         success: false,
         message: error.message,
@@ -623,6 +657,11 @@ export class GraphQLApiClient {
         variables: {
           input: { storyId },
         },
+        refetchQueries: [
+          { query: GET_ME },
+          { query: GET_STORIES },
+        ],
+        awaitRefetchQueries: true,
       });
 
       return {
@@ -630,6 +669,7 @@ export class GraphQLApiClient {
         data: (data as any).markStoryRead,
       };
     } catch (error: any) {
+      console.error('❌ markStoryRead error:', error);
       return {
         success: false,
         message: error.message,
@@ -648,6 +688,12 @@ export class GraphQLApiClient {
         variables: {
           input: { storyId, answers, timeTaken },
         },
+        refetchQueries: [
+          { query: GET_MY_QUIZ_SUBMISSIONS },
+          { query: GET_MY_RESOURCES },
+          { query: GET_ME },
+        ],
+        awaitRefetchQueries: true,
       });
 
       return {
@@ -655,6 +701,7 @@ export class GraphQLApiClient {
         data: (data as any).submitQuiz,
       };
     } catch (error: any) {
+      console.error('❌ submitQuiz error:', error);
       return {
         success: false,
         message: error.message,

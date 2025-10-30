@@ -11,6 +11,7 @@ import { ProvinceModule } from './province/province.module';
 import { HeroModule } from './hero/hero.module';
 import { StoryModule } from './story/story.module';
 import { ResourceModule } from './resource/resource.module';
+import { GraphQLLoggingPlugin } from './graphql/plugins/logging.plugin';
 
 @Module({
   imports: [
@@ -44,6 +45,14 @@ import { ResourceModule } from './resource/resource.module';
       introspection: true,
       context: ({ req, res }) => ({ req, res }),
       formatError: (error) => {
+        const isDev = process.env.NODE_ENV === 'development';
+        console.error('🔴 GraphQL Error:', {
+          message: error.message,
+          code: error.extensions?.code,
+          path: error.path,
+          ...(isDev && { originalError: error.extensions?.originalError }),
+        });
+        
         return {
           message: error.message,
           code: error.extensions?.code || 'INTERNAL_SERVER_ERROR',
@@ -53,6 +62,6 @@ import { ResourceModule } from './resource/resource.module';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, GraphQLLoggingPlugin],
 })
 export class AppModule {}
