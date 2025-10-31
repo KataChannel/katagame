@@ -51,6 +51,7 @@ export const GET_ME = gql`
       email
       level
       experience
+      resources
       status
       region
       premiumPassActive
@@ -285,10 +286,10 @@ export const UPGRADE_PROVINCE = gql`
       province {
         id
         name
-        nameVietnamese
         nameEnglish
         region
-        unlockCost
+        description
+        unlockOrder
       }
     }
   }

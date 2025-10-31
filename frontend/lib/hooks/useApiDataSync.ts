@@ -27,8 +27,8 @@ export const syncProvincesFromApi = async () => {
         return {
           id: String(provinceId),
           provinceId: provinceId,
-          name: p.province?.nameVietnamese || p.province?.name || 'Unknown',
-          displayName: p.province?.nameVietnamese || p.province?.name || 'Unknown',
+          name: p.province?.name || 'Unknown',
+          displayName: p.province?.name || 'Unknown',
           description: 'Tỉnh ' + (p.province?.region || 'Unknown'),
           unlocked: true,
           level: p.farmerLevel || 1,
@@ -63,6 +63,35 @@ export const syncProvincesFromApi = async () => {
   } catch (error) {
     console.error('❌ Failed to sync provinces:', error);
     return [];
+  }
+};
+
+/**
+ * Sync player data (including resources) từ API
+ * Export để components có thể gọi sau mutations
+ */
+export const syncPlayerFromApi = async () => {
+  try {
+    const meResponse = await MVP1ApiClient.getMe();
+    if (meResponse?.success && meResponse?.data) {
+      const playerData = meResponse.data;
+      console.log('✅ Player data synced:', playerData);
+      
+      useGameStore.setState((state) => ({
+        player: {
+          ...state.player,
+          ...playerData,
+          resources: playerData.resources || state.player.resources,
+          totalResources: playerData.resources || state.player.totalResources,
+        },
+      }));
+      
+      return playerData;
+    }
+    return null;
+  } catch (error) {
+    console.error('❌ Failed to sync player:', error);
+    return null;
   }
 };
 
@@ -105,13 +134,42 @@ export const useApiDataSync = () => {
 
   const syncPlayerDataFromApi = async (token: string) => {
     try {
-      if (!token) return;
-      const gameDataResponse = await MVP1ApiClient.getGameData();
-      if (gameDataResponse?.data) {
-        console.log('Game data synced from API:', gameDataResponse.data);
+      if (!token) {
+        console.log('⏸️ Skipping player data sync - no token');
+        return;
       }
+      
+      // Sync player data including resources
+      const meResponse = await MVP1ApiClient.getMe();
+      
+      if (!meResponse) {
+        console.warn('⚠️ getMe returned undefined response');
+        return;
+      }
+
+      if (!meResponse.success) {
+        console.warn('⚠️ getMe failed:', meResponse.message);
+        return;
+      }
+
+      if (!meResponse.data) {
+        console.warn('⚠️ getMe returned no data');
+        return;
+      }
+
+      const playerData = meResponse.data;
+      console.log('✅ Player data synced from API:', playerData);
+      
+      useGameStore.setState((state) => ({
+        player: {
+          ...state.player,
+          ...playerData,
+          resources: playerData.resources || state.player.resources,
+          totalResources: playerData.resources || state.player.totalResources,
+        },
+      }));
     } catch (error) {
-      console.warn('Failed to sync player data:', error);
+      console.warn('⚠️ Failed to sync player data:', error);
     }
   };
 

@@ -43,9 +43,33 @@ interface ApiResponse<T = any> {
   message?: string;
 }
 
-// Helper to handle GraphQL response
+// Helper to safely handle GraphQL response
 function handleGraphQLResponse(data: unknown, field: string): any {
-  return (data as any)?.[field];
+  // Check if data is null, undefined, or not an object
+  if (!data || typeof data !== 'object') {
+    console.error(`❌ Invalid GraphQL response: data is ${typeof data}`, { field });
+    return null;
+  }
+  
+  // Check if data is an empty object
+  const dataObj = data as any;
+  if (Object.keys(dataObj).length === 0) {
+    console.error(`❌ Empty GraphQL response object for field: ${field}`);
+    return null;
+  }
+  
+  const result = dataObj[field];
+  
+  // Check if the specific field exists
+  if (result === undefined) {
+    console.error(`❌ GraphQL response missing field: ${field}`, { 
+      field,
+      availableFields: Object.keys(dataObj) 
+    });
+    return null;
+  }
+  
+  return result;
 }
 
 export class GraphQLApiClient {
@@ -141,18 +165,33 @@ export class GraphQLApiClient {
 
   static async getMe(): Promise<ApiResponse> {
     try {
-      const { data } = await apolloClient.query({
+      const result = await apolloClient.query({
         query: GET_ME,
       });
 
+      const data = result.data as any;
+      const errors = (result as any).errors;
+
+      // Check if data is empty or me is null/undefined
+      if (!data || !data.me) {
+        console.warn('⚠️ getMe returned empty data:', { data, errors });
+        return {
+          success: false,
+          message: errors?.[0]?.message || 'No player data returned',
+          data: null,
+        };
+      }
+
       return {
         success: true,
-        data: (data as any).me,
+        data: data.me,
       };
     } catch (error: any) {
+      console.error('❌ getMe error:', error);
       return {
         success: false,
-        message: error.message,
+        message: error.message || 'Failed to get player data',
+        data: null,
       };
     }
   }
@@ -369,15 +408,24 @@ export class GraphQLApiClient {
         awaitRefetchQueries: true,
       });
 
+      const result = handleGraphQLResponse(data, 'unlockProvince');
+      
+      if (!result) {
+        return {
+          success: false,
+          message: 'Invalid response from server',
+        };
+      }
+
       return {
         success: true,
-        data: (data as any).unlockProvince,
+        data: result,
       };
     } catch (error: any) {
       console.error('❌ unlockProvince error:', error);
       return {
         success: false,
-        message: error.message,
+        message: error.message || 'Failed to unlock province',
       };
     }
   }
@@ -391,6 +439,7 @@ export class GraphQLApiClient {
         },
         // Refetch queries to update cache
         refetchQueries: [
+          { query: GET_ME },
           { query: GET_MY_PROVINCES },
           { query: GET_MY_PROVINCE, variables: { provinceId } },
           { query: GET_MY_RESOURCES },
@@ -399,15 +448,25 @@ export class GraphQLApiClient {
         awaitRefetchQueries: true,
       });
 
+      // Safely extract response data
+      const result = handleGraphQLResponse(data, 'upgradeProvince');
+      
+      if (!result) {
+        return {
+          success: false,
+          message: 'Invalid response from server',
+        };
+      }
+
       return {
         success: true,
-        data: (data as any).upgradeProvince,
+        data: result,
       };
     } catch (error: any) {
       console.error('❌ upgradeProvince error:', error);
       return {
         success: false,
-        message: error.message,
+        message: error.message || 'Failed to upgrade province',
       };
     }
   }
@@ -504,15 +563,24 @@ export class GraphQLApiClient {
         awaitRefetchQueries: true,
       });
 
+      const result = handleGraphQLResponse(data, 'recruitHero');
+      
+      if (!result) {
+        return {
+          success: false,
+          message: 'Invalid response from server',
+        };
+      }
+
       return {
         success: true,
-        data: (data as any).recruitHero,
+        data: result,
       };
     } catch (error: any) {
       console.error('❌ recruitHero error:', error);
       return {
         success: false,
-        message: error.message,
+        message: error.message || 'Failed to recruit hero',
       };
     }
   }
@@ -532,15 +600,24 @@ export class GraphQLApiClient {
         awaitRefetchQueries: true,
       });
 
+      const result = handleGraphQLResponse(data, 'deployHero');
+      
+      if (!result) {
+        return {
+          success: false,
+          message: 'Invalid response from server',
+        };
+      }
+
       return {
         success: true,
-        data: (data as any).deployHero,
+        data: result,
       };
     } catch (error: any) {
       console.error('❌ deployHero error:', error);
       return {
         success: false,
-        message: error.message,
+        message: error.message || 'Failed to deploy hero',
       };
     }
   }
@@ -559,15 +636,24 @@ export class GraphQLApiClient {
         awaitRefetchQueries: true,
       });
 
+      const result = handleGraphQLResponse(data, 'levelUpHero');
+      
+      if (!result) {
+        return {
+          success: false,
+          message: 'Invalid response from server',
+        };
+      }
+
       return {
         success: true,
-        data: (data as any).levelUpHero,
+        data: result,
       };
     } catch (error: any) {
       console.error('❌ levelUpHero error:', error);
       return {
         success: false,
-        message: error.message,
+        message: error.message || 'Failed to level up hero',
       };
     }
   }
@@ -664,15 +750,24 @@ export class GraphQLApiClient {
         awaitRefetchQueries: true,
       });
 
+      const result = handleGraphQLResponse(data, 'markStoryRead');
+      
+      if (!result) {
+        return {
+          success: false,
+          message: 'Invalid response from server',
+        };
+      }
+
       return {
         success: true,
-        data: (data as any).markStoryRead,
+        data: result,
       };
     } catch (error: any) {
       console.error('❌ markStoryRead error:', error);
       return {
         success: false,
-        message: error.message,
+        message: error.message || 'Failed to mark story as read',
       };
     }
   }
@@ -696,15 +791,24 @@ export class GraphQLApiClient {
         awaitRefetchQueries: true,
       });
 
+      const result = handleGraphQLResponse(data, 'submitQuiz');
+      
+      if (!result) {
+        return {
+          success: false,
+          message: 'Invalid response from server',
+        };
+      }
+
       return {
         success: true,
-        data: (data as any).submitQuiz,
+        data: result,
       };
     } catch (error: any) {
       console.error('❌ submitQuiz error:', error);
       return {
         success: false,
-        message: error.message,
+        message: error.message || 'Failed to submit quiz',
       };
     }
   }

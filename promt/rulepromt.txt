@@ -1,0 +1,7 @@
+1. Sử dụng dynamic graphql cho tất cả model backend và frontend
+2. Code Like Senior
+3. Frontend code giao diện Mobile First + Responsive + PWA
+4. Bỏ qua testing
+5. Không git
+6. Chỉ tạo 1 file .md tổng hợp ngắn gọn cuối cùng bằng tiếng việt
+7. Dự án với frontend nextjs thư mục frontend, backend ở thư mục backend nestjs

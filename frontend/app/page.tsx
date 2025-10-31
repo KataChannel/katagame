@@ -212,7 +212,7 @@ export default function Game() {
                 <MobileResourceBar />
               </div>
               <div className="hidden md:block">
-                <ResourceBar resources={player.totalResources} />
+                <ResourceBar />
               </div>
             </div>
 

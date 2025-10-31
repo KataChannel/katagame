@@ -4,7 +4,7 @@ import { MapPin, Star, TrendingUp, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import MVP1ApiClient from '@/lib/graphqlApiClient';
 import { useState, useEffect } from 'react';
-import { syncProvincesFromApi } from '@/lib/hooks/useApiDataSync';
+import { syncProvincesFromApi, syncPlayerFromApi } from '@/lib/hooks/useApiDataSync';
 
 interface MobileProvinceCardProps {
   province: any; // Using any for MVP1 API data
@@ -52,11 +52,11 @@ export default function MobileProvinceCard({ province: initialProvince, classNam
         setProvince({
           ...province,
           ...response.data,
-          name: response.data.province?.nameVietnamese || response.data.province?.name || province.name,
-          displayName: response.data.province?.nameVietnamese || province.displayName,
+          name: response.data.province?.name || province.name,
+          displayName: response.data.province?.name || province.displayName,
           region: response.data.province?.region || province.region,
         });
-        await syncProvincesFromApi();
+        await Promise.all([syncPlayerFromApi(), syncProvincesFromApi()]);
       } else {
         console.error('❌ Farmer upgrade failed:', response?.message);
       }
@@ -79,11 +79,11 @@ export default function MobileProvinceCard({ province: initialProvince, classNam
         setProvince({
           ...province,
           ...response.data,
-          name: response.data.province?.nameVietnamese || response.data.province?.name || province.name,
-          displayName: response.data.province?.nameVietnamese || province.displayName,
+          name: response.data.province?.name || province.name,
+          displayName: response.data.province?.name || province.displayName,
           region: response.data.province?.region || province.region,
         });
-        await syncProvincesFromApi();
+        await Promise.all([syncPlayerFromApi(), syncProvincesFromApi()]);
       } else {
         console.error('❌ Resource upgrade failed:', response?.message);
       }
@@ -106,11 +106,11 @@ export default function MobileProvinceCard({ province: initialProvince, classNam
         setProvince({
           ...province,
           ...response.data,
-          name: response.data.province?.nameVietnamese || response.data.province?.name || province.name,
-          displayName: response.data.province?.nameVietnamese || province.displayName,
+          name: response.data.province?.name || province.name,
+          displayName: response.data.province?.name || province.displayName,
           region: response.data.province?.region || province.region,
         });
-        await syncProvincesFromApi();
+        await Promise.all([syncPlayerFromApi(), syncProvincesFromApi()]);
       } else {
         console.error('❌ Development upgrade failed:', response?.message);
       }
@@ -139,6 +139,31 @@ export default function MobileProvinceCard({ province: initialProvince, classNam
           )}
         </div>
       </div>
+
+      {/* Player Resources Display */}
+      {player?.resources && (
+        <div className="mb-4 p-3 bg-white/80 rounded-lg border border-amber-200">
+          <div className="text-xs font-semibold text-gray-600 mb-2">Tài nguyên:</div>
+          <div className="grid grid-cols-4 gap-2 text-xs">
+            <div className="text-center">
+              <div className="font-bold text-yellow-600">💰 {player.resources.gold || 0}</div>
+              <div className="text-gray-500">Vàng</div>
+            </div>
+            <div className="text-center">
+              <div className="font-bold text-amber-600">🌾 {player.resources.rice || 0}</div>
+              <div className="text-gray-500">Gạo</div>
+            </div>
+            <div className="text-center">
+              <div className="font-bold text-orange-600">🪵 {player.resources.lumber || 0}</div>
+              <div className="text-gray-500">Gỗ</div>
+            </div>
+            <div className="text-center">
+              <div className="font-bold text-gray-600">🪨 {player.resources.stone || 0}</div>
+              <div className="text-gray-500">Đá</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Levels Display */}
       <div className="grid grid-cols-3 gap-3 mb-4">
@@ -173,39 +198,48 @@ export default function MobileProvinceCard({ province: initialProvince, classNam
           whileTap={{ scale: 0.95 }}
           onClick={handleUpgradeFarmer}
           disabled={isUpgrading}
-          className={`w-full px-4 py-3 rounded-lg font-semibold text-white transition-all ${
+          className={`w-full px-4 py-2 rounded-lg font-semibold text-white transition-all ${
             isUpgrading
               ? 'bg-gray-400 cursor-not-allowed'
               : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
           }`}
         >
-          {isUpgrading ? 'Đang nâng cấp...' : `Nâng Cấp Nông Dân → Cấp ${farmerLevel + 1}`}
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-sm">{isUpgrading ? 'Đang nâng cấp...' : `Nông Dân → Cấp ${farmerLevel + 1}`}</span>
+            <span className="text-xs opacity-90">💰 {500 * farmerLevel} | 🌾 {300 * farmerLevel}</span>
+          </div>
         </motion.button>
 
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={handleUpgradeResource}
           disabled={isUpgrading}
-          className={`w-full px-4 py-3 rounded-lg font-semibold text-white transition-all ${
+          className={`w-full px-4 py-2 rounded-lg font-semibold text-white transition-all ${
             isUpgrading
               ? 'bg-gray-400 cursor-not-allowed'
               : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700'
           }`}
         >
-          {isUpgrading ? 'Đang nâng cấp...' : `Nâng Cấp Tài Nguyên → Cấp ${resourceLevel + 1}`}
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-sm">{isUpgrading ? 'Đang nâng cấp...' : `Tài Nguyên → Cấp ${resourceLevel + 1}`}</span>
+            <span className="text-xs opacity-90">💰 {800 * resourceLevel} | 🪵 {400 * resourceLevel}</span>
+          </div>
         </motion.button>
 
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={handleUpgradeDevelopment}
           disabled={isUpgrading}
-          className={`w-full px-4 py-3 rounded-lg font-semibold text-white transition-all ${
+          className={`w-full px-4 py-2 rounded-lg font-semibold text-white transition-all ${
             isUpgrading
               ? 'bg-gray-400 cursor-not-allowed'
               : 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700'
           }`}
         >
-          {isUpgrading ? 'Đang nâng cấp...' : `Nâng Cấp Phát Triển → Cấp ${developmentLevel + 1}`}
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-sm">{isUpgrading ? 'Đang nâng cấp...' : `Phát Triển → Cấp ${developmentLevel + 1}`}</span>
+            <span className="text-xs opacity-90">💰 {1000 * developmentLevel} | 🌾 {500 * developmentLevel} | 🪵 {300 * developmentLevel} | 🪨 {200 * developmentLevel}</span>
+          </div>
         </motion.button>
       </div>
 

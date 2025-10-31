@@ -78,6 +78,7 @@ export interface Player {
   level: number;
   experience: number;
   totalResources: Resource;
+  resources?: Resource; // MVP1 GraphQL - JSON field from backend
   unlockedProvinces: string[];
   premiumPass: PremiumPass | null;
   achievements: Achievement[];

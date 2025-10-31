@@ -131,6 +131,10 @@ export class ProvinceService {
   async upgradeProvince(playerId: string, input: UpgradeProvinceInput) {
     this.logger.log(`🔧 Upgrade request: Player=${playerId}, Province=${input.provinceId}, Type=${input.upgradeType}`);
     
+    // Normalize upgrade type to lowercase for consistency
+    const normalizedUpgradeType = input.upgradeType.toLowerCase();
+    this.logger.debug(`📝 Normalized upgrade type: ${input.upgradeType} → ${normalizedUpgradeType}`);
+    
     // Get player province
     const playerProvince = await this.getPlayerProvince(playerId, input.provinceId);
     if (!playerProvince) {
@@ -145,19 +149,16 @@ export class ProvinceService {
       developmentLevel: playerProvince.development_level,
     })}`);
 
-    // Calculate upgrade costs
-    const costs = this.calculateUpgradeCosts(playerProvince, input.upgradeType);
+    // Calculate upgrade costs (now using normalized type)
+    const costs = this.calculateUpgradeCosts(playerProvince, normalizedUpgradeType);
     this.logger.log(`💰 Upgrade costs: ${JSON.stringify(costs)}`);
 
     // Check if player has enough resources
     const player = await this.prisma.player.findUnique({
       where: { id: playerId },
-      include: { player_resources: true },
     });
 
-    this.logger.debug(`🏦 Player resources: ${JSON.stringify(
-      player?.player_resources.map(r => ({ type: r.resource_type, amount: r.amount }))
-    )}`);
+    this.logger.debug(`🏦 Player resources (JSON): ${JSON.stringify(player?.resources)}`);
 
     const hasResources = this.checkResourcesAvailable(player, costs);
     if (!hasResources) {
@@ -167,29 +168,29 @@ export class ProvinceService {
 
     this.logger.log(`✅ Resource check passed`);
 
-    // Deduct resources and upgrade
-    const updateData = this.getUpgradeUpdateData(input.upgradeType, playerProvince);
+    // Deduct resources and upgrade (using normalized type)
+    const updateData = this.getUpgradeUpdateData(normalizedUpgradeType, playerProvince);
     this.logger.debug(`📝 Update data: ${JSON.stringify(updateData)}`);
 
-    const [updatedProvince] = await Promise.all([
-      this.prisma.playerProvince.update({
-        where: {
-          player_id_province_id: {
-            player_id: playerId,
-            province_id: input.provinceId,
-          },
-        },
-        data: updateData,
-        include: {
-          province: true,
-          hero: true,
-        },
-      }),
-      // Deduct resources
-      ...this.createResourceDeductionPromises(playerId, costs),
-    ]);
+    // Deduct resources first
+    await this.deductPlayerResources(playerId, costs);
 
-    this.logger.log(`✅ Upgrade completed successfully! New ${input.upgradeType}_level: ${updatedProvince[`${input.upgradeType}_level`]}`);
+    // Then upgrade province
+    const updatedProvince = await this.prisma.playerProvince.update({
+      where: {
+        player_id_province_id: {
+          player_id: playerId,
+          province_id: input.provinceId,
+        },
+      },
+      data: updateData,
+      include: {
+        province: true,
+        hero: true,
+      },
+    });
+
+    this.logger.log(`✅ Upgrade completed successfully! New ${normalizedUpgradeType}_level: ${updatedProvince[`${normalizedUpgradeType}_level`]}`);
 
     return updatedProvince;
   }
@@ -263,24 +264,26 @@ export class ProvinceService {
 
   // Helper: Calculate upgrade costs
   private calculateUpgradeCosts(playerProvince: any, upgradeType: string) {
-    const level = playerProvince[`${upgradeType}_level`] || 1;
+    // Normalize to lowercase for case-insensitive comparison
+    const normalizedType = upgradeType.toLowerCase();
+    const level = playerProvince[`${normalizedType}_level`] || 1;
     
-    // Match Motia backend costs exactly
-    if (upgradeType === 'farmer') {
+    // Match database resource field names: gold, rice, lumber, stone, culture, gems, bazan
+    if (normalizedType === 'farmer') {
       return {
         gold: 500 * level,
         rice: 300 * level,
       };
-    } else if (upgradeType === 'resource') {
+    } else if (normalizedType === 'resource') {
       return {
         gold: 800 * level,
-        wood: 400 * level,
+        lumber: 400 * level, // Fixed: was 'wood', now 'lumber'
       };
-    } else if (upgradeType === 'development') {
+    } else if (normalizedType === 'development') {
       return {
         gold: 1000 * level,
-        rice: 500 * level,
-        wood: 300 * level,
+        rice: 600 * level, // Updated from 500
+        lumber: 300 * level, // Fixed: was 'wood', now 'lumber'
         stone: 200 * level,
       };
     }
@@ -290,13 +293,15 @@ export class ProvinceService {
 
   // Helper: Check if player has resources
   private checkResourcesAvailable(player: any, costs: any) {
-    const resources = player.player_resources || [];
-    const resourceMap = new Map(resources.map((r: any) => [r.resource_type, r.amount]));
+    // Player resources are stored in JSON field 'resources'
+    const resources = player?.resources || {};
+    
+    this.logger.debug(`📦 Available resources: ${JSON.stringify(resources)}`);
 
-    // Only check resources that are actually required for this upgrade
+    // Check each required resource
     for (const [resourceType, amount] of Object.entries(costs)) {
       const requiredAmount = amount as number;
-      const availableAmount = (resourceMap.get(resourceType) as number) || 0;
+      const availableAmount = (resources[resourceType] as number) || 0;
       
       if (availableAmount < requiredAmount) {
         this.logger.warn(`⚠️  Insufficient ${resourceType}: Have ${availableAmount}, Need ${requiredAmount}`);
@@ -312,12 +317,15 @@ export class ProvinceService {
   // Helper: Get upgrade update data
   private getUpgradeUpdateData(upgradeType: string, playerProvince: any) {
     const updateData: any = {};
+    
+    // Normalize to lowercase for case-insensitive comparison
+    const normalizedType = upgradeType.toLowerCase();
 
-    if (upgradeType === 'farmer') {
+    if (normalizedType === 'farmer') {
       updateData.farmer_level = (playerProvince.farmer_level || 1) + 1;
-    } else if (upgradeType === 'resource') {
+    } else if (normalizedType === 'resource') {
       updateData.resource_level = (playerProvince.resource_level || 1) + 1;
-    } else if (upgradeType === 'development') {
+    } else if (normalizedType === 'development') {
       updateData.development_level = (playerProvince.development_level || 1) + 1;
     }
 
@@ -325,22 +333,37 @@ export class ProvinceService {
   }
 
   // Helper: Create resource deduction promises
-  private createResourceDeductionPromises(playerId: string, costs: any) {
-    // Only deduct resources that are actually being used (have non-zero cost)
-    return Object.entries(costs)
-      .filter(([_, amount]) => (amount as number) > 0)
-      .map(([resourceType, amount]) =>
-        this.prisma.playerResource.update({
-          where: {
-            player_id_resource_type: {
-              player_id: playerId,
-              resource_type: resourceType,
-            },
-          },
-          data: {
-            amount: { decrement: amount as number },
-          },
-        }),
-      );
+  private async deductPlayerResources(playerId: string, costs: any) {
+    // Get current player resources
+    const player = await this.prisma.player.findUnique({
+      where: { id: playerId },
+      select: { resources: true },
+    });
+
+    if (!player) {
+      throw new NotFoundException('Player not found');
+    }
+
+    // Create new resources object with deductions
+    const currentResources = (player.resources as any) || {};
+    const updatedResources = { ...currentResources };
+
+    // Deduct costs from resources
+    for (const [resourceType, amount] of Object.entries(costs)) {
+      const deductAmount = amount as number;
+      if (deductAmount > 0) {
+        const currentAmount = (updatedResources[resourceType] as number) || 0;
+        updatedResources[resourceType] = Math.max(0, currentAmount - deductAmount);
+        this.logger.debug(`💸 Deducting ${resourceType}: ${currentAmount} - ${deductAmount} = ${updatedResources[resourceType]}`);
+      }
+    }
+
+    // Update player resources
+    await this.prisma.player.update({
+      where: { id: playerId },
+      data: { resources: updatedResources },
+    });
+    
+    this.logger.log(`✅ Resources deducted successfully`);
   }
 }

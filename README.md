@@ -11,3 +11,7 @@
 - Mỗi khu vực khi mở sẽ có điểm cộng của 1 tài nguyên tương ứng.
 3. Bổ sung Anh hùng tương ứng với thời kỳ, Pet... Có 3 Cấp độ : Mặc định là cấp độ 1 (level1), level2 = 2 x level1, level3 = 3 x level 2, level 4 = 4 x level 3 , level 5 = 5 level 4 (MAX)
 4. Hệ thống câu chuyện lịch sử về nhân vật, sự kiên, địa lý, văn hóa ... liên quan đến thời kỳ đó. Mỗi ngày sẽ mở khóa đọc 1 câu chuyện sẽ được nhận gói phần thưởng. Có QUIZ 3 câu về câu chuyện đó. Trả lời đúng sẽ được x5 phần thưởng đó.
+
+
+1. Sử dụng rule trong file rulepromt.txt
+2. Lấy 0-GAME_MECHANICS_ROADMAP_COMPLETE.md làm cốt lõi game 

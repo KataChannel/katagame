@@ -35,9 +35,18 @@ export default function MobileResourceBar() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
 
+  // Get resources from player (either from resources field or totalResources fallback)
+  const playerResources = player?.resources || player?.totalResources || {
+    gold: 0,
+    rice: 0,
+    lumber: 0,
+    stone: 0,
+    culture: 0,
+  };
+
   // Calculate total resources per second from all unlocked provinces
   const calculateResourcesPerSecond = () => {
-    const perSecond: typeof player.totalResources = {
+    const perSecond: typeof playerResources = {
       gold: 0,
       rice: 0,
       lumber: 0,
@@ -70,7 +79,7 @@ export default function MobileResourceBar() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const resourceEntries = Object.entries(player.totalResources) as [keyof typeof RESOURCE_ICONS, number][];
+  const resourceEntries = Object.entries(playerResources) as [keyof typeof RESOURCE_ICONS, number][];
   const visibleResources = isMobile ? [resourceEntries[currentIndex]] : resourceEntries;
 
   const handleNext = () => {
