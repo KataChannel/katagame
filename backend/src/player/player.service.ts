@@ -411,6 +411,29 @@ export class PlayerService {
       });
 
       console.log(`  ✅ Player reset to level 1 with initial resources`);
+
+      // 5. Auto-unlock first 2 provinces (Hà Nội and Hồ Chí Minh)
+      // Same as register() to ensure player can start playing immediately
+      await tx.playerProvince.createMany({
+        data: [
+          {
+            player_id: playerId,
+            province_id: 1, // Hà Nội
+            farmer_level: 1,
+            resource_level: 1,
+            development_level: 1,
+          },
+          {
+            player_id: playerId,
+            province_id: 2, // Hồ Chí Minh
+            farmer_level: 1,
+            resource_level: 1,
+            development_level: 1,
+          },
+        ],
+      });
+
+      console.log(`  ✅ Auto-unlocked 2 starter provinces (Hà Nội, Hồ Chí Minh)`);
       console.log(`🎉 Player data reset complete for: ${player.username}`);
 
       return resetPlayer;
