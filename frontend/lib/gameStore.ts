@@ -4,6 +4,13 @@ import { Resource, Province, Farmer, Player, GameState, PremiumPass, Achievement
 import { v4 as uuidv4 } from 'uuid';
 import { SoundManager } from './soundManager';
 import { calculateTotalProduction, getProductionBonus } from './elementSystem';
+import { 
+  Notification, 
+  createInsufficientResourcesNotification,
+  createSuccessNotification,
+  createInfoNotification,
+  createWarningNotification,
+} from './notifications';
 import {
   initializeSeason,
   addXP,
@@ -124,13 +131,15 @@ import {
   CustomizationState,
 } from './customizationSystem';
 
-// Helper functions
+// Helper functions - Updated for MVP1 mechanics
 const createEmptyResource = (): Resource => ({
   gold: 0,
   rice: 0,
   lumber: 0,
   stone: 0,
+  bazan: 0,
   culture: 0,
+  gems: 0,
 });
 
 const addResources = (a: Resource, b: Resource): Resource => {
@@ -143,7 +152,9 @@ const addResources = (a: Resource, b: Resource): Resource => {
     rice: (safeA.rice || 0) + (safeB.rice || 0),
     lumber: (safeA.lumber || 0) + (safeB.lumber || 0),
     stone: (safeA.stone || 0) + (safeB.stone || 0),
+    bazan: (safeA.bazan || 0) + (safeB.bazan || 0),
     culture: (safeA.culture || 0) + (safeB.culture || 0),
+    gems: (safeA.gems || 0) + (safeB.gems || 0),
   };
 };
 
@@ -157,7 +168,9 @@ const subtractResources = (a: Resource, b: Resource): Resource => {
     rice: (safeA.rice || 0) - (safeB.rice || 0),
     lumber: (safeA.lumber || 0) - (safeB.lumber || 0),
     stone: (safeA.stone || 0) - (safeB.stone || 0),
+    bazan: (safeA.bazan || 0) - (safeB.bazan || 0),
     culture: (safeA.culture || 0) - (safeB.culture || 0),
+    gems: (safeA.gems || 0) - (safeB.gems || 0),
   };
 };
 
@@ -170,6 +183,7 @@ const canAfford = (available: Resource, cost: Resource): boolean => {
          (safeAvailable.rice || 0) >= (safeCost.rice || 0) &&
          (safeAvailable.lumber || 0) >= (safeCost.lumber || 0) &&
          (safeAvailable.stone || 0) >= (safeCost.stone || 0) &&
+         (safeAvailable.bazan || 0) >= (safeCost.bazan || 0) &&
          (safeAvailable.culture || 0) >= (safeCost.culture || 0);
 };
 
@@ -184,7 +198,7 @@ const initialProvinces: Province[] = [
     level: 1,
     maxLevel: 10,
     resources: createEmptyResource(),
-    resourcesPerSecond: { gold: 2, rice: 1.5, lumber: 1, stone: 0.5, culture: 1.2 },
+    resourcesPerSecond: { gold: 2, rice: 1.5, lumber: 1, stone: 0.5, bazan: 0.3, culture: 1.2 },
     specialties: ['Văn hóa', 'Giáo dục', 'Thủ công mỹ nghệ'],
     culturalBonus: 'Bonus +20% Culture generation',
     farmers: [],
@@ -199,7 +213,7 @@ const initialProvinces: Province[] = [
     level: 0,
     maxLevel: 10,
     resources: createEmptyResource(),
-    resourcesPerSecond: { gold: 1.5, rice: 2.5, lumber: 1.2, stone: 0.8, culture: 1.5 },
+    resourcesPerSecond: { gold: 1.5, rice: 2.5, lumber: 1.2, stone: 0.8, bazan: 0.4, culture: 1.5 },
     specialties: ['Nông nghiệp', 'Cách mạng', 'Văn học'],
     culturalBonus: 'Bonus +30% Rice production',
     farmers: [],
@@ -214,7 +228,7 @@ const initialProvinces: Province[] = [
     level: 0,
     maxLevel: 10,
     resources: createEmptyResource(),
-    resourcesPerSecond: { gold: 3, rice: 0.8, lumber: 0.5, stone: 2, culture: 1 },
+    resourcesPerSecond: { gold: 3, rice: 0.8, lumber: 0.5, stone: 2, bazan: 0.2, culture: 1 },
     specialties: ['Khai mỏ', 'Du lịch', 'Hải sản'],
     culturalBonus: 'Bonus +25% Gold and Stone production',
     farmers: [],
@@ -227,7 +241,7 @@ const initialPlayer: Player = {
   name: 'Người chơi',
   level: 1,
   experience: 0,
-  totalResources: { gold: 200, rice: 100, lumber: 50, stone: 30, culture: 20, gems: 1500 },
+  totalResources: { gold: 10, rice: 10, lumber: 10, stone: 10, bazan: 10, culture: 0, gems: 0 },
   unlockedProvinces: ['hanoi'],
   premiumPass: null,
   achievements: [],
@@ -254,9 +268,9 @@ interface GameStore extends GameState {
   addPet: (pet: Pet) => void;
   equipPet: (petId: string, provinceId?: string) => void;
   recordCombat: (result: CombatResult) => void;
-  // Notifications
-  notifications: Array<{id: string, type: string, title: string, message: string}>;
-  addNotification: (notification: {type: string, title: string, message: string}) => void;
+  // Notifications - Enhanced with detailed resource breakdown
+  notifications: Notification[];
+  addNotification: (notification: Omit<Notification, 'id' | 'timestamp'> & Partial<Pick<Notification, 'id' | 'timestamp'>>) => void;
   removeNotification: (id: string) => void;
   // Battle Pass System
   initializeBattlePass: (seasonNumber: number) => void;
@@ -368,17 +382,30 @@ export const useGameStore = create<GameStore>()(
       notifications: [],
 
       addNotification: (notification) => {
-        const id = Date.now().toString();
+        const fullNotification: Notification = {
+          ...notification,
+          id: notification.id || `notification-${Date.now()}`,
+          timestamp: notification.timestamp || Date.now(),
+          duration: notification.duration || 4000, // ✅ Đảm bảo luôn có duration
+        };
+        
+        console.log('➕ Adding notification:', {
+          id: fullNotification.id,
+          title: fullNotification.title,
+          duration: fullNotification.duration,
+          timestamp: fullNotification.timestamp,
+        });
+        
         set((state) => ({
-          notifications: [...state.notifications, { ...notification, id }],
+          notifications: [...state.notifications, fullNotification],
         }));
-        // Auto remove after 4 seconds
-        setTimeout(() => {
-          get().removeNotification(id);
-        }, 4000);
+        
+        // ✅ Auto remove - NotificationProvider sẽ xử lý, không cần setTimeout ở đây
+        // Xóa setTimeout để tránh conflict với interval cleanup
       },
 
       removeNotification: (id) => {
+        console.log('➖ Removing notification:', id);
         set((state) => ({
           notifications: state.notifications.filter(n => n.id !== id),
         }));
@@ -427,10 +454,20 @@ export const useGameStore = create<GameStore>()(
         if (!province) return;
 
         const farmerCost: Resource = farmerType === 'auto'
-          ? { gold: 30, rice: 15, lumber: 8, stone: 3, culture: 3 }
-          : { gold: 10, rice: 5, lumber: 3, stone: 2, culture: 1 };
+          ? { gold: 30, rice: 15, lumber: 8, stone: 3, bazan: 2, culture: 3 }
+          : { gold: 10, rice: 5, lumber: 3, stone: 2, bazan: 1, culture: 1 };
 
-        if (!canAfford(state.player.totalResources, farmerCost)) return;
+        // Check affordability with detailed message
+        if (!canAfford(state.player.totalResources, farmerCost)) {
+          get().addNotification(
+            createInsufficientResourcesNotification(
+              state.player.totalResources,
+              farmerCost,
+              `thuê ${farmerType === 'auto' ? 'Nông dân tự động' : 'Nông dân thủ công'}`
+            )
+          );
+          return;
+        }
 
         const newFarmer: Farmer = {
           id: uuidv4(),
@@ -455,13 +492,14 @@ export const useGameStore = create<GameStore>()(
           ),
         }));
         
-        // Play sound and show notification
+        // Play sound and show success notification with cost breakdown
         SoundManager.getInstance().playSound('purchase');
-        get().addNotification({
-          type: 'success',
-          title: 'Thuê Nông Dân Thành Công!',
-          message: `Đã thuê ${newFarmer.name} cho ${province.displayName}`
-        });
+        get().addNotification(
+          createSuccessNotification(
+            `Đã thuê ${newFarmer.name} cho ${province.displayName}`,
+            farmerCost
+          )
+        );
       },
 
       upgradeFarmer: (provinceId, farmerId) => {
@@ -475,6 +513,7 @@ export const useGameStore = create<GameStore>()(
           rice: farmer.level * 10,
           lumber: farmer.level * 5,
           stone: farmer.level * 3,
+          bazan: farmer.level * 2,
           culture: farmer.level * 2,
         };
 
@@ -512,9 +551,18 @@ export const useGameStore = create<GameStore>()(
         const province = state.provinces.find(p => p.id === provinceId);
         if (!province || province.unlocked) return;
 
-        const unlockCost: Resource = { gold: 150, rice: 75, lumber: 35, stone: 20, culture: 30 };
+        const unlockCost: Resource = { gold: 150, rice: 75, lumber: 35, stone: 20, bazan: 10, culture: 30 };
 
-        if (!canAfford(state.player.totalResources, unlockCost)) return;
+        if (!canAfford(state.player.totalResources, unlockCost)) {
+          get().addNotification(
+            createInsufficientResourcesNotification(
+              state.player.totalResources,
+              unlockCost,
+              `mở khóa ${province.displayName}`
+            )
+          );
+          return;
+        }
 
         set((state) => ({
           player: {
@@ -530,11 +578,12 @@ export const useGameStore = create<GameStore>()(
         get().addExperience(50);
         
         SoundManager.getInstance().playSound('unlock');
-        get().addNotification({
-          type: 'reward',
-          title: '🎆 Mở Khóa Tỉnh Mới!',
-          message: `Chào mừng đến với ${province.displayName}! +50 EXP`
-        });
+        get().addNotification(
+          createSuccessNotification(
+            `🎆 Mở khóa ${province.displayName} thành công! +50 EXP`,
+            unlockCost
+          )
+        );
       },
 
       upgradeProvince: (provinceId) => {
@@ -547,10 +596,20 @@ export const useGameStore = create<GameStore>()(
           rice: province.level * 50,
           lumber: province.level * 25,
           stone: province.level * 15,
+          bazan: province.level * 10,
           culture: province.level * 20,
         };
 
-        if (!canAfford(state.player.totalResources, upgradeCost)) return;
+        if (!canAfford(state.player.totalResources, upgradeCost)) {
+          get().addNotification(
+            createInsufficientResourcesNotification(
+              state.player.totalResources,
+              upgradeCost,
+              `nâng cấp ${province.displayName}`
+            )
+          );
+          return;
+        }
 
         set((state) => ({
           player: {
@@ -567,6 +626,7 @@ export const useGameStore = create<GameStore>()(
                     rice: p.resourcesPerSecond.rice * 1.15,
                     lumber: p.resourcesPerSecond.lumber * 1.15,
                     stone: p.resourcesPerSecond.stone * 1.15,
+                    bazan: p.resourcesPerSecond.bazan * 1.15,
                     culture: p.resourcesPerSecond.culture * 1.15,
                   },
                 }
@@ -613,7 +673,7 @@ export const useGameStore = create<GameStore>()(
         
         SoundManager.getInstance().playSound('purchase');
         get().addNotification({
-          type: 'reward',
+          type: 'success',
           title: '👑 Premium Pass Kích Hoạt!',
           message: `Chúc mừng! Bạn đã kích hoạt ${newPass.name}`
         });

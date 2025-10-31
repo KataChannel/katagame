@@ -92,6 +92,7 @@ type Mutation {
   markStoryRead(input: MarkStoryReadInput!): String!
   recruitHero(input: RecruitHeroInput!): PlayerHero!
   register(email: String!, password: String!, username: String!): AuthResponse!
+  resetPlayerData: MutationResponse!
   submitQuiz(input: SubmitQuizInput!): QuizSubmission!
   unlockProvince(input: UnlockProvinceInput!): PlayerProvince!
   updatePlayer(data: PlayerUpdateInput!): Player!

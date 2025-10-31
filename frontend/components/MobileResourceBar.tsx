@@ -11,6 +11,7 @@ const RESOURCE_ICONS = {
   rice: '🌾',
   lumber: '🪵',
   stone: '🪨',
+  bazan: '🌋',
   culture: '📚',
 };
 
@@ -19,6 +20,7 @@ const RESOURCE_COLORS = {
   rice: 'from-green-400 to-green-600',
   lumber: 'from-brown-400 to-brown-600',
   stone: 'from-gray-400 to-gray-600',
+  bazan: 'from-red-500 to-orange-600',
   culture: 'from-purple-400 to-purple-600',
 };
 
@@ -27,6 +29,7 @@ const RESOURCE_LABELS = {
   rice: 'Lúa',
   lumber: 'Gỗ',
   stone: 'Đá',
+  bazan: 'Đất Đỏ',
   culture: 'Văn Hóa',
 };
 
@@ -41,6 +44,7 @@ export default function MobileResourceBar() {
     rice: 0,
     lumber: 0,
     stone: 0,
+    bazan: 0,
     culture: 0,
   };
 
@@ -51,6 +55,7 @@ export default function MobileResourceBar() {
       rice: 0,
       lumber: 0,
       stone: 0,
+      bazan: 0,
       culture: 0,
     };
     
@@ -60,6 +65,7 @@ export default function MobileResourceBar() {
         perSecond.rice += province.resourcesPerSecond.rice;
         perSecond.lumber += province.resourcesPerSecond.lumber;
         perSecond.stone += province.resourcesPerSecond.stone;
+        perSecond.bazan += province.resourcesPerSecond.bazan;
         perSecond.culture += province.resourcesPerSecond.culture;
       }
     });

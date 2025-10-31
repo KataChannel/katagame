@@ -1,11 +1,12 @@
-// Game Types cho MVP 1
+// Game Types cho MVP 1 - Updated for 0-GAME_MECHANICS_ROADMAP_COMPLETE.md
 export interface Resource {
-  gold: number;
-  rice: number;
-  lumber: number;
-  stone: number;
-  culture: number; // Điểm văn hóa
-  gems?: number; // Premium currency for MVP 2
+  gold: number;      // 🏅 Vàng (Kim - Metal)
+  rice: number;      // 🌾 Lúa (Thủy - Water) 
+  lumber: number;    // 🪵 Gỗ (Mộc - Wood)
+  stone: number;     // 🪨 Đá (Thổ - Earth)
+  bazan: number;     // 🌋 Đất đỏ Bazan (Hỏa - Fire)
+  culture: number;   // 📜 Văn hóa (Hero recruitment)
+  gems?: number;     // 💎 Ngọc (Premium currency)
 }
 
 // MVP 2: Element System (Ngũ Hành)

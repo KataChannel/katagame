@@ -35,6 +35,7 @@ import {
   MARK_STORY_READ,
   SUBMIT_QUIZ,
   GET_MY_QUIZ_SUBMISSIONS,
+  RESET_PLAYER_DATA,
 } from './graphql/queries';
 
 interface ApiResponse<T = any> {
@@ -964,6 +965,53 @@ export class GraphQLApiClient {
       success: false,
       message: 'Resource harvesting not implemented in GraphQL backend yet',
     };
+  }
+
+  // ==================== PLAYER DATA MANAGEMENT ====================
+
+  /**
+   * Reset player data on server (DELETE ALL PROGRESS)
+   * This will:
+   * - Delete all player provinces
+   * - Delete all player heroes
+   * - Reset player resources to initial values
+   * - Reset player level to 1
+   * - Keep account but delete game progress
+   * 
+   * NOTE: Does NOT refetch queries to avoid showing stale data.
+   * The page should be reloaded after this operation.
+   */
+  static async resetPlayerData(): Promise<ApiResponse> {
+    try {
+      const { data } = await apolloClient.mutate({
+        mutation: RESET_PLAYER_DATA,
+        // DO NOT refetchQueries - we will reload the page instead
+        // This prevents showing stale cached data
+      });
+
+      const result = handleGraphQLResponse(data, 'resetPlayerData');
+      
+      if (!result) {
+        return {
+          success: false,
+          message: 'Invalid response from server',
+        };
+      }
+
+      // Important: Clear Apollo cache immediately after reset
+      await apolloClient.clearStore();
+
+      return {
+        success: result.success || true,
+        message: result.message || 'Player data reset successfully',
+      };
+    } catch (error: any) {
+      console.error('❌ resetPlayerData error:', error);
+      return {
+        success: false,
+        message: error.message || 'Failed to reset player data',
+      };
+    }
   }
 }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { Coins, Wheat, TreePine, Mountain, Scroll } from 'lucide-react';
+import { Coins, Wheat, TreePine, Mountain, Flame, Scroll } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '@/lib/gameStore';
 import { useEffect } from 'react';
@@ -41,6 +41,7 @@ const ResourceBar = () => {
     { key: 'rice', icon: Wheat, color: 'text-green-500', label: 'Lúa' },
     { key: 'lumber', icon: TreePine, color: 'text-amber-600', label: 'Gỗ' },
     { key: 'stone', icon: Mountain, color: 'text-gray-500', label: 'Đá' },
+    { key: 'bazan', icon: Flame, color: 'text-red-600', label: 'Đất Đỏ Bazan' },
     { key: 'culture', icon: Scroll, color: 'text-purple-500', label: 'Văn Hóa' },
   ];
 

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useGameStore } from '@/lib/gameStore';
 import { SaveGameManager } from '@/lib/saveGameManager';
 import { useSound } from '@/lib/soundManager';
+import { GraphQLApiClient } from '@/lib/graphqlApiClient';
+import apolloClient from '@/lib/apolloClient';
 import { Download, Upload, Trash2, Volume2, VolumeX, Music, Save, RefreshCw } from 'lucide-react';
 
 const SettingsPanel = () => {
@@ -9,6 +11,7 @@ const SettingsPanel = () => {
   const soundManager = useSound();
   const [saveInfo, setSaveInfo] = useState(SaveGameManager.getSaveInfo());
   const [importCode, setImportCode] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
 
   const handleExportSave = () => {
     const exportData = SaveGameManager.exportSave();
@@ -35,14 +38,211 @@ const SettingsPanel = () => {
     }
   };
 
-  const handleDeleteSave = () => {
-    if (confirm('⚠️ Bạn có chắc muốn xóa dữ liệu game?\nHành động này không thể hoàn tác!')) {
-      if (SaveGameManager.deleteSave()) {
-        alert('✅ Đã xóa dữ liệu game. Tải lại trang để bắt đầu mới.');
-        setSaveInfo(SaveGameManager.getSaveInfo());
-      } else {
-        alert('❌ Không thể xóa dữ liệu');
+  const handleDeleteSave = async () => {
+    const confirmed = confirm(
+      '⚠️ XÓA DỮ LIỆU GAME LOCAL\n\n' +
+      'Hành động này sẽ:\n' +
+      '• Xóa toàn bộ tiến độ game local (provinces, heroes, resources)\n' +
+      '• Đăng xuất tài khoản hiện tại\n' +
+      '• Xóa cache và dữ liệu đồng bộ\n\n' +
+      '⚠️ LƯU Ý: Dữ liệu trên server VẪN CÒN.\n' +
+      'Khi đăng nhập lại, dữ liệu sẽ được đồng bộ từ server.\n\n' +
+      'Bạn có CHẮC CHẮN muốn tiếp tục?'
+    );
+    
+    if (!confirmed) return;
+
+    const doubleConfirm = confirm(
+      '⚠️ XÁC NHẬN LẦN CUỐI\n\n' +
+      'Bạn có CHẮC CHẮN muốn xóa dữ liệu game local?\n' +
+      'Hành động này không thể hoàn tác!'
+    );
+
+    if (!doubleConfirm) return;
+
+    try {
+      console.log('🗑️ Bắt đầu xóa dữ liệu game local...');
+      
+      // 1. Delete local save data (localStorage game-storage)
+      const deleteSaveResult = SaveGameManager.deleteSave();
+      console.log('📦 Xóa localStorage:', deleteSaveResult ? '✅' : '❌');
+
+      // 2. Clear Zustand store (reset to initial state)
+      // Note: This will be handled by page reload
+      
+      // 3. Logout and clear auth token
+      console.log('🔐 Đang đăng xuất...');
+      await GraphQLApiClient.logout();
+      
+      // 4. Clear Apollo Client cache (GraphQL data)
+      console.log('🗄️ Xóa GraphQL cache...');
+      await apolloClient.clearStore();
+      
+      // 5. Clear all localStorage items related to game
+      console.log('🧹 Dọn dẹp localStorage...');
+      if (typeof window !== 'undefined') {
+        // Remove specific keys
+        const keysToRemove = [
+          'katagame-store',
+          'game-storage',
+          'authToken',
+          'auth-storage',
+        ];
+        
+        keysToRemove.forEach(key => {
+          try {
+            localStorage.removeItem(key);
+            console.log(`  ✅ Removed: ${key}`);
+          } catch (e) {
+            console.warn(`  ⚠️ Failed to remove: ${key}`, e);
+          }
+        });
       }
+
+      // 6. Show success message
+      alert(
+        '✅ ĐÃ XÓA DỮ LIỆU LOCAL THÀNH CÔNG!\n\n' +
+        '• Dữ liệu local đã được xóa\n' +
+        '• Đã đăng xuất tài khoản\n' +
+        '• Cache đã được làm sạch\n\n' +
+        '🔄 Trang web sẽ tự động tải lại...'
+      );
+
+      // 7. Reload page to apply changes
+      console.log('🔄 Reloading page...');
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1000);
+
+    } catch (error) {
+      console.error('❌ Lỗi khi xóa dữ liệu:', error);
+      alert(
+        '❌ LỖI KHI XÓA DỮ LIỆU\n\n' +
+        'Đã xảy ra lỗi trong quá trình xóa dữ liệu.\n' +
+        'Vui lòng thử lại hoặc xóa cache/cookies thủ công trong trình duyệt.\n\n' +
+        'Chi tiết lỗi: ' + (error instanceof Error ? error.message : 'Unknown error')
+      );
+    }
+  };
+
+  const handleResetServerData = async () => {
+    if (isResetting) {
+      alert('⏳ Đang xử lý... Vui lòng đợi!');
+      return;
+    }
+
+    const confirmed = confirm(
+      '🔥 XÓA DỮ LIỆU TRÊN SERVER 🔥\n\n' +
+      '⚠️⚠️⚠️ CẢNH BÁO NGHIÊM TRỌNG ⚠️⚠️⚠️\n\n' +
+      'Hành động này sẽ XÓA VĨNH VIỄN:\n' +
+      '• TẤT CẢ tỉnh thành đã mở khóa\n' +
+      '• TẤT CẢ anh hùng đã tuyển mộ\n' +
+      '• TẤT CẢ tài nguyên đã thu thập\n' +
+      '• Reset level về 1\n' +
+      '• Reset tất cả tiến độ game\n\n' +
+      '❌ KHÔNG THỂ KHÔI PHỤC!\n' +
+      '❌ KHÔNG THỂ HOÀN TÁC!\n\n' +
+      'Tài khoản của bạn vẫn còn nhưng TẤT CẢ TIẾN ĐỘ sẽ MẤT.\n\n' +
+      'Bạn có CHẮC CHẮN muốn xóa VĨNH VIỄN dữ liệu trên server?'
+    );
+    
+    if (!confirmed) return;
+
+    const doubleConfirm = confirm(
+      '⚠️ XÁC NHẬN LẦN 2\n\n' +
+      'Bạn THỰC SỰ muốn xóa TOÀN BỘ dữ liệu game trên server?\n' +
+      'Tất cả tiến độ sẽ MẤT VĨNH VIỄN!'
+    );
+
+    if (!doubleConfirm) return;
+
+    const tripleConfirm = confirm(
+      '🚨 XÁC NHẬN LẦN CUỐI 🚨\n\n' +
+      'Đây là cơ hội CUỐI CÙNG để hủy bỏ!\n\n' +
+      'Nhấn OK = XÓA VĨNH VIỄN dữ liệu server\n' +
+      'Nhấn Cancel = Hủy bỏ và giữ nguyên dữ liệu\n\n' +
+      'Bạn có CHẮC CHẮN 100%?'
+    );
+
+    if (!tripleConfirm) return;
+
+    setIsResetting(true);
+
+    try {
+      console.log('🔥 Bắt đầu xóa dữ liệu trên server...');
+      
+      // 1. Call API to reset player data on server
+      console.log('📡 Calling resetPlayerData mutation...');
+      const result = await GraphQLApiClient.resetPlayerData();
+      
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to reset server data');
+      }
+
+      console.log('✅ Server response:', result);
+      console.log('✅ Dữ liệu server đã được reset');
+
+      // 2. Clear Apollo Client cache FIRST (to prevent refetch)
+      console.log('🗄️ Xóa GraphQL cache...');
+      await apolloClient.clearStore();
+      
+      // 3. Clear all localStorage data
+      console.log('🧹 Dọn dẹp localStorage...');
+      SaveGameManager.deleteSave();
+      
+      if (typeof window !== 'undefined') {
+        const keysToRemove = [
+          'katagame-store',      // Zustand persist
+          'game-storage',        // Save game data
+          'authToken',          // JWT token
+          'auth-storage',       // Auth context
+        ];
+        
+        keysToRemove.forEach(key => {
+          try {
+            localStorage.removeItem(key);
+            console.log(`  ✅ Removed: ${key}`);
+          } catch (e) {
+            console.warn(`  ⚠️ Failed to remove: ${key}`, e);
+          }
+        });
+      }
+
+      // 4. Logout and clear auth token
+      console.log('🔐 Đang đăng xuất...');
+      await GraphQLApiClient.logout();
+
+      // Show success message
+      alert(
+        '✅ ĐÃ XÓA DỮ LIỆU SERVER THÀNH CÔNG!\n\n' +
+        '🔥 Tất cả tiến độ game đã bị xóa vĩnh viễn!\n\n' +
+        '• Provinces: Đã xóa\n' +
+        '• Heroes: Đã xóa\n' +
+        '• Resources: Reset về ban đầu\n' +
+        '• Level: Reset về 1\n\n' +
+        '🔄 Trang web sẽ tự động tải lại...\n' +
+        'Bạn có thể đăng nhập lại để bắt đầu từ đầu.'
+      );
+
+      // 5. Force reload page (hard reload to clear all cache)
+      console.log('🔄 Force reloading page...');
+      setTimeout(() => {
+        // Force hard reload to clear all cache
+        window.location.replace('/');
+      }, 1500);
+
+    } catch (error) {
+      setIsResetting(false);
+      console.error('❌ Lỗi khi xóa dữ liệu server:', error);
+      alert(
+        '❌ LỖI KHI XÓA DỮ LIỆU SERVER\n\n' +
+        'Không thể xóa dữ liệu trên server.\n\n' +
+        'Nguyên nhân có thể:\n' +
+        '• Backend chưa triển khai mutation resetPlayerData\n' +
+        '• Lỗi kết nối mạng\n' +
+        '• Lỗi xác thực\n\n' +
+        'Chi tiết lỗi: ' + (error instanceof Error ? error.message : 'Unknown error')
+      );
     }
   };
 
@@ -188,17 +388,70 @@ const SettingsPanel = () => {
             </button>
           </div>
 
-          {/* Delete Save */}
-          <div className="mt-4 pt-4 border-t">
+          {/* Delete Save - Local Only */}
+          <div className="mt-4 pt-4 border-t border-yellow-200 bg-yellow-50 rounded-lg p-4">
+            <div className="mb-3">
+              <h4 className="font-bold text-yellow-800 mb-2 flex items-center gap-2">
+                <Trash2 className="h-5 w-5" />
+                Xóa Dữ Liệu Local
+              </h4>
+              <div className="text-xs text-yellow-700 space-y-1 mb-3">
+                <p>⚠️ Hành động này sẽ:</p>
+                <ul className="list-disc list-inside pl-2">
+                  <li>Xóa tiến độ game trên thiết bị này</li>
+                  <li>Đăng xuất tài khoản</li>
+                  <li>Xóa cache local</li>
+                </ul>
+                <p className="font-semibold text-green-800 mt-2">
+                  ✅ Dữ liệu trên server VẪN CÒN
+                </p>
+                <p>Đăng nhập lại → khôi phục từ server.</p>
+              </div>
+            </div>
+            
             <button
               onClick={handleDeleteSave}
-              className="flex items-center justify-center gap-2 w-full bg-red-500 text-white px-4 py-3 rounded-lg font-semibold hover:bg-red-600 transition-colors"
+              className="flex items-center justify-center gap-2 w-full bg-yellow-600 text-white px-4 py-3 rounded-lg font-bold hover:bg-yellow-700 transition-colors shadow-lg hover:shadow-xl"
             >
               <Trash2 className="h-4 w-4" />
-              Xóa Dữ Liệu Game
+              Xóa Dữ Liệu Local
             </button>
-            <p className="text-xs text-gray-500 mt-2 text-center">
-              ⚠️ Hành động này sẽ xóa toàn bộ tiến độ game
+          </div>
+
+          {/* Delete Save - Server Data */}
+          <div className="mt-4 pt-4 border-t-2 border-red-500 bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 shadow-lg">
+            <div className="mb-3">
+              <h4 className="font-bold text-red-900 mb-2 flex items-center gap-2">
+                <Trash2 className="h-6 w-6 animate-pulse" />
+                🔥 XÓA DỮ LIỆU SERVER 🔥
+              </h4>
+              <div className="text-xs text-red-800 space-y-1 mb-3 bg-white/50 p-3 rounded border-2 border-red-300">
+                <p className="font-bold text-red-900 text-sm">⚠️⚠️⚠️ CẢNH BÁO NGHIÊM TRỌNG ⚠️⚠️⚠️</p>
+                <p className="font-semibold">Hành động này sẽ XÓA VĨNH VIỄN:</p>
+                <ul className="list-disc list-inside pl-2">
+                  <li><strong>TẤT CẢ</strong> tỉnh thành đã mở</li>
+                  <li><strong>TẤT CẢ</strong> anh hùng đã tuyển</li>
+                  <li><strong>TẤT CẢ</strong> tài nguyên</li>
+                  <li>Reset level về 1</li>
+                  <li>Reset toàn bộ tiến độ</li>
+                </ul>
+                <div className="mt-2 p-2 bg-red-200 rounded border border-red-400">
+                  <p className="font-bold text-red-900">❌ KHÔNG THỂ KHÔI PHỤC!</p>
+                  <p className="font-bold text-red-900">❌ KHÔNG THỂ HOÀN TÁC!</p>
+                </div>
+              </div>
+            </div>
+            
+            <button
+              onClick={handleResetServerData}
+              disabled={isResetting}
+              className="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-red-600 to-red-800 text-white px-4 py-4 rounded-lg font-black hover:from-red-700 hover:to-red-900 transition-all shadow-2xl hover:shadow-red-500/50 border-2 border-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Trash2 className={`h-5 w-5 ${isResetting ? 'animate-spin' : 'animate-pulse'}`} />
+              {isResetting ? 'ĐANG XÓA DỮ LIỆU...' : 'XÓA VĨNH VIỄN DỮ LIỆU SERVER'}
+            </button>
+            <p className="text-xs text-red-900 mt-2 text-center font-bold">
+              ⚠️ Yêu cầu xác nhận 3 lần!
             </p>
           </div>
         </div>

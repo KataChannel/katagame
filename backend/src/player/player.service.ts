@@ -341,4 +341,80 @@ export class PlayerService {
       data: { resources: updatedResources },
     });
   }
+
+  /**
+   * Reset player data (DELETE ALL PROGRESS)
+   * WARNING: This will permanently delete all player progress!
+   * - Deletes all player_provinces
+   * - Deletes all player_heroes  
+   * - Resets resources to initial values
+   * - Resets level to 1
+   * - Resets experience to 0
+   * - Keeps account but deletes all game progress
+   */
+  async resetPlayerData(playerId: string) {
+    // Verify player exists
+    const player = await this.prisma.player.findUnique({
+      where: { id: playerId },
+    });
+
+    if (!player) {
+      throw new Error('Player not found');
+    }
+
+    console.log(`🔥 Resetting player data for: ${player.username} (${playerId})`);
+
+    // Use transaction to ensure all operations succeed or fail together
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Delete all player_provinces
+      const deletedProvinces = await tx.playerProvince.deleteMany({
+        where: { player_id: playerId },
+      });
+      console.log(`  ✅ Deleted ${deletedProvinces.count} provinces`);
+
+      // 2. Delete all player_heroes
+      const deletedHeroes = await tx.playerHero.deleteMany({
+        where: { player_id: playerId },
+      });
+      console.log(`  ✅ Deleted ${deletedHeroes.count} heroes`);
+
+      // 3. Delete all quiz submissions (if table exists)
+      try {
+        const deletedQuizzes = await tx.quizSubmission.deleteMany({
+          where: { player_id: playerId },
+        });
+        console.log(`  ✅ Deleted ${deletedQuizzes.count} quiz submissions`);
+      } catch (error) {
+        console.log(`  ⚠️ Quiz submissions: ${error.message}`);
+      }
+
+      // Note: PlayerStory table may not exist yet, skip for now
+
+      // 4. Reset player to initial state
+      const initialResources = {
+        gold: 1000,
+        rice: 1000,
+        lumber: 500,
+        stone: 500,
+        bazan: 100,
+        gems: 1500,
+        culture: 100,
+      };
+
+      const resetPlayer = await tx.player.update({
+        where: { id: playerId },
+        data: {
+          level: 1,
+          experience: 0,
+          resources: initialResources,
+        },
+      });
+
+      console.log(`  ✅ Player reset to level 1 with initial resources`);
+      console.log(`🎉 Player data reset complete for: ${player.username}`);
+
+      return resetPlayer;
+    });
+  }
 }
+

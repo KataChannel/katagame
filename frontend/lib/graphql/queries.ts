@@ -571,3 +571,14 @@ export const GET_MY_QUIZ_SUBMISSIONS = gql`
     }
   }
 `;
+
+// ==================== PLAYER DATA MANAGEMENT ====================
+
+export const RESET_PLAYER_DATA = gql`
+  mutation ResetPlayerData {
+    resetPlayerData {
+      success
+      message
+    }
+  }
+`;

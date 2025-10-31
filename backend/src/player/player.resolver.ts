@@ -133,4 +133,21 @@ export class PlayerResolver {
       return { success: false, message: error.message };
     }
   }
+
+  @Mutation(() => MutationResponse)
+  @UseGuards(JwtAuthGuard)
+  async resetPlayerData(@CurrentUser() user: any): Promise<MutationResponse> {
+    try {
+      await this.playerService.resetPlayerData(user.id);
+      return { 
+        success: true, 
+        message: 'Player data has been reset successfully. All progress deleted.' 
+      };
+    } catch (error) {
+      return { 
+        success: false, 
+        message: error.message || 'Failed to reset player data' 
+      };
+    }
+  }
 }
