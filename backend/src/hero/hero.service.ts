@@ -373,4 +373,165 @@ export class HeroService {
       }),
     );
   }
+
+  // ========================================
+  // MVP2 SPRINT 3: HERO LEVELS & STATS SYSTEM
+  // ========================================
+
+  /**
+   * Calculate hero stats based on level (1-5)
+   * Each level increases stats by 20%
+   */
+  calculateHeroStats(playerHero: any) {
+    const baseHero = playerHero.hero;
+    const level = playerHero.level || 1;
+    
+    if (!baseHero) {
+      return {
+        hp: 100,
+        attack: 10,
+        defense: 5,
+        speed: 8,
+        level: level,
+        baseHP: 100,
+        baseAttack: 10,
+        baseDefense: 5,
+        baseSpeed: 8,
+      };
+    }
+
+    // Base stats from hero template
+    const baseHP = baseHero.base_hp || 100;
+    const baseAttack = baseHero.base_attack || 10;
+    const baseDefense = baseHero.base_defense || 5;
+    const baseSpeed = baseHero.base_speed || 8;
+
+    // 20% increase per level (Level 1 = 100%, Level 5 = 180%)
+    const multiplier = 1 + (level - 1) * 0.2;
+
+    return {
+      hp: Math.floor(baseHP * multiplier),
+      attack: Math.floor(baseAttack * multiplier),
+      defense: Math.floor(baseDefense * multiplier),
+      speed: Math.floor(baseSpeed * multiplier),
+      level: level, // Always return level
+      baseHP: baseHP,
+      baseAttack: baseAttack,
+      baseDefense: baseDefense,
+      baseSpeed: baseSpeed,
+    };
+  }
+
+  /**
+   * Get experience required for next level
+   * Exp requirements: Level 1→2: 100, 2→3: 250, 3→4: 500, 4→5: 1000
+   */
+  getExpForNextLevel(currentLevel: number): number {
+    const expTable = {
+      1: 100,
+      2: 250,
+      3: 500,
+      4: 1000,
+      5: 0, // Max level, no more exp needed
+    };
+
+    return expTable[currentLevel] || 0;
+  }
+
+  /**
+   * Grant experience to hero
+   * Auto-levels up if exp reaches threshold
+   */
+  async grantExpToHero(playerId: string, heroId: string, expAmount: number): Promise<any> {
+    const playerHero = await this.prisma.playerHero.findFirst({
+      where: {
+        player_id: playerId,
+        hero_id: heroId,
+      },
+      include: { hero: true },
+    });
+
+    if (!playerHero) {
+      throw new NotFoundException('Hero not found');
+    }
+
+    const currentLevel = playerHero.level || 1;
+    const currentExp = playerHero.experience || 0;
+
+    if (currentLevel >= 5) {
+      // Max level, no more exp
+      return playerHero;
+    }
+
+    let newExp = currentExp + expAmount;
+    let newLevel = currentLevel;
+
+    // Check for level ups
+    while (newLevel < 5) {
+      const requiredExp = this.getExpForNextLevel(newLevel);
+      
+      if (newExp >= requiredExp) {
+        newExp -= requiredExp;
+        newLevel++;
+      } else {
+        break;
+      }
+    }
+
+    // Update hero with new level and exp
+    const updated = await this.prisma.playerHero.update({
+      where: { id: playerHero.id },
+      data: {
+        level: newLevel,
+        experience: newExp,
+      },
+      include: { hero: true },
+    });
+
+    return {
+      ...updated,
+      leveledUp: newLevel > currentLevel,
+      levelsGained: newLevel - currentLevel,
+    };
+  }
+
+  /**
+   * Get hero with calculated stats
+   */
+  async getPlayerHeroWithStats(playerId: string, heroId: string) {
+    const playerHero = await this.getPlayerHero(playerId, heroId);
+    
+    if (!playerHero) {
+      throw new NotFoundException('Hero not found');
+    }
+
+    const stats = this.calculateHeroStats(playerHero);
+    const expForNextLevel = this.getExpForNextLevel(playerHero.level || 1);
+
+    return {
+      ...playerHero,
+      stats,
+      expForNextLevel,
+      expProgress: expForNextLevel > 0 ? ((playerHero.experience || 0) / expForNextLevel) * 100 : 100,
+    };
+  }
+
+  /**
+   * Get all player heroes with stats
+   */
+  async getPlayerHeroesWithStats(playerId: string) {
+    const heroes = await this.getPlayerHeroes(playerId);
+
+    return heroes.map((playerHero) => {
+      const stats = this.calculateHeroStats(playerHero);
+      const expForNextLevel = this.getExpForNextLevel(playerHero.level || 1);
+
+      return {
+        ...playerHero,
+        stats,
+        expForNextLevel,
+        expProgress: expForNextLevel > 0 ? ((playerHero.experience || 0) / expForNextLevel) * 100 : 100,
+      };
+    });
+  }
 }

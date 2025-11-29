@@ -8,26 +8,33 @@ datasource db {
 }
 
 model Player {
-  id                   String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  username             String               @unique @db.VarChar(100)
-  email                String               @unique @db.VarChar(100)
-  password_hash        String               @db.VarChar(255)
-  level                Int?                 @default(1)
-  experience           Int?                 @default(0)
-  resources            Json?                @default("{\"gems\": 1500, \"gold\": 200, \"rice\": 100, \"stone\": 30, \"lumber\": 50, \"culture\": 20}")
-  status               String?              @default("active") @db.VarChar(20)
-  region               String?              @default("global") @db.VarChar(20)
-  premium_pass_active  Boolean?             @default(false)
-  premium_expires_at   DateTime?            @db.Timestamp(6)
-  last_login           DateTime?            @db.Timestamp(6)
-  created_at           DateTime?            @default(now()) @db.Timestamp(6)
-  updated_at           DateTime?            @default(now()) @updatedAt @db.Timestamp(6)
-  daily_quest_progress DailyQuestProgress[]
-  player_provinces     PlayerProvince[]
-  player_heroes        PlayerHero[]
-  player_resources     PlayerResource[]
-  quiz_submissions     QuizSubmission[]
-  player_stats         PlayerStats?
+  id                      String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username                String               @unique @db.VarChar(100)
+  email                   String               @unique @db.VarChar(100)
+  password_hash           String               @db.VarChar(255)
+  level                   Int?                 @default(1)
+  experience              Int?                 @default(0)
+  resources               Json?                @default("{\"gems\": 1500, \"gold\": 200, \"rice\": 100, \"stone\": 30, \"lumber\": 50, \"culture\": 20}")
+  status                  String?              @default("active") @db.VarChar(20)
+  region                  String?              @default("global") @db.VarChar(20)
+  premium_pass_active     Boolean?             @default(false)
+  premium_expires_at      DateTime?            @db.Timestamp(6)
+  last_login              DateTime?            @db.Timestamp(6)
+  // MVP2: Era progression
+  current_era             String?              @default("Thời Hùng Vương") @db.VarChar(100)
+  unlocked_eras           Json?                @default("[\"Thời Hùng Vương\"]")
+  // MVP2: Resource synergy (Wu Xing)
+  resource_synergy_bonuses Json?               @default("{}")
+  // MVP2: Daily story unlocks
+  registration_date       DateTime?            @default(now()) @db.Date
+  created_at              DateTime?            @default(now()) @db.Timestamp(6)
+  updated_at              DateTime?            @default(now()) @updatedAt @db.Timestamp(6)
+  daily_quest_progress    DailyQuestProgress[]
+  player_provinces        PlayerProvince[]
+  player_heroes           PlayerHero[]
+  player_resources        PlayerResource[]
+  quiz_submissions        QuizSubmission[]
+  player_stats            PlayerStats?
 
   @@map("players")
 }
@@ -95,6 +102,9 @@ model Resource {
   base_generation_rate  Decimal    @default(1.0) @db.Decimal(10, 2)
   base_storage_capacity Int        @default(500)
   value_points          Int?       @default(1)
+  // MVP2: Resource synergy (Wu Xing cycle)
+  synergy_gives_to      String?    @db.VarChar(50)
+  synergy_bonus_percent Decimal?   @default(10.0) @db.Decimal(5, 2)
   created_at            DateTime?  @default(now()) @db.Timestamp(6)
   updated_at            DateTime?  @default(now()) @updatedAt @db.Timestamp(6)
   buildings             Building[]
@@ -181,19 +191,24 @@ model QuizQuestion {
 }
 
 model PlayerProvince {
-  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  player_id         String    @db.Uuid
-  province_id       Int       @db.SmallInt
-  farmer_level      Int?      @default(1)
-  resource_level    Int?      @default(1)
-  development_level Int?      @default(1)
-  buildings_count   Int?      @default(0)
-  hero_id           String?   @db.Uuid
-  created_at        DateTime? @default(now()) @db.Timestamp(6)
-  updated_at        DateTime? @default(now()) @updatedAt @db.Timestamp(6)
-  hero              Hero?     @relation(fields: [hero_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  player            Player    @relation(fields: [player_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  province          Province  @relation(fields: [province_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id                        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  player_id                 String    @db.Uuid
+  province_id               Int       @db.SmallInt
+  farmer_level              Int?      @default(1)
+  resource_level            Int?      @default(1)
+  development_level         Int?      @default(1)
+  buildings_count           Int?      @default(0)
+  hero_id                   String?   @db.Uuid
+  // MVP2: Province skills
+  passive_buffs             Json?     @default("[]")
+  active_skill_level        Int?      @default(0)
+  active_skill_last_used    DateTime? @db.Timestamp(6)
+  active_skill_cooldown_ends DateTime? @db.Timestamp(6)
+  created_at                DateTime? @default(now()) @db.Timestamp(6)
+  updated_at                DateTime? @default(now()) @updatedAt @db.Timestamp(6)
+  hero                      Hero?     @relation(fields: [hero_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  player                    Player    @relation(fields: [player_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  province                  Province  @relation(fields: [province_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([player_id, province_id])
   @@index([player_id], map: "idx_player_provinces_player")
@@ -209,6 +224,9 @@ model PlayerStats {
   quizzes_taken      Int?      @default(0)
   quizzes_passed     Int?      @default(0)
   perfect_quizzes    Int?      @default(0)
+  // MVP2: Quiz streaks
+  quiz_perfect_streak Int?     @default(0)
+  quiz_best_streak   Int?      @default(0)
   total_gold_earned  Int?      @default(0)
   total_rice_earned  Int?      @default(0)
   total_wood_earned  Int?      @default(0)
@@ -570,17 +588,27 @@ model user_achievements {
 // ============================================================================
 
 model PlayerHero {
-  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  player_id    String    @db.Uuid
-  hero_id      String    @db.Uuid
-  level        Int?      @default(1)
-  experience   Int?      @default(0)
-  deployed_to  Int?      @db.SmallInt
-  acquired_at  DateTime? @default(now()) @db.Timestamp(6)
-  created_at   DateTime? @default(now()) @db.Timestamp(6)
-  updated_at   DateTime? @default(now()) @updatedAt @db.Timestamp(6)
-  player       Player    @relation(fields: [player_id], references: [id], onDelete: Cascade)
-  hero         Hero      @relation("PlayerHeroToHero", fields: [hero_id], references: [id], onDelete: Cascade)
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  player_id           String    @db.Uuid
+  hero_id             String    @db.Uuid
+  level               Int?      @default(1)
+  experience          Int?      @default(0)
+  deployed_to         Int?      @db.SmallInt
+  // MVP2: Hero leveling system (1-5)
+  level_up_cost       Json?     @default("{\"gold\": 0, \"gems\": 0}")
+  current_hp          Int?
+  current_attack      Int?
+  current_defense     Int?
+  current_speed       Int?
+  // MVP2: Pet system
+  pet_level           Int?      @default(1)
+  pet_bonus_active    Boolean?  @default(true)
+  pet_evolution_stage Int?      @default(1)
+  acquired_at         DateTime? @default(now()) @db.Timestamp(6)
+  created_at          DateTime? @default(now()) @db.Timestamp(6)
+  updated_at          DateTime? @default(now()) @updatedAt @db.Timestamp(6)
+  player              Player    @relation(fields: [player_id], references: [id], onDelete: Cascade)
+  hero                Hero      @relation("PlayerHeroToHero", fields: [hero_id], references: [id], onDelete: Cascade)
 
   @@unique([player_id, hero_id])
   @@index([player_id], map: "idx_player_heroes_player")

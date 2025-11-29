@@ -1,7 +1,12 @@
 import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { ProvinceService } from './province.service';
-import { Province, PlayerProvince } from '../graphql/models/province.model';
+import { 
+  Province, 
+  PlayerProvince,
+  PlayerProvinceWithSkills,
+  UseActiveSkillResult,
+} from '../graphql/models/province.model';
 import {
   ProvinceWhereInput,
   PlayerProvinceWhereInput,
@@ -105,5 +110,52 @@ export class ProvinceResolver {
   ): Promise<PlayerProvince> {
     const province = await this.provinceService.upgradeProvince(user.id, input);
     return this.transformPlayerProvince(province);
+  }
+
+  // ========================================
+  // MVP2 SPRINT 2: PROVINCE SKILLS QUERIES & MUTATIONS
+  // ========================================
+
+  /**
+   * Get province with skills info (passive buffs + active skill + cooldown)
+   */
+  @Query(() => PlayerProvinceWithSkills, { nullable: true })
+  @UseGuards(JwtAuthGuard)
+  async provinceWithSkills(
+    @CurrentUser() user: any,
+    @Args('provinceId', { type: () => Int }) provinceId: number,
+  ): Promise<PlayerProvinceWithSkills | null> {
+    const result = await this.provinceService.getProvinceWithSkills(user.id, provinceId);
+    
+    if (!result) {
+      return null;
+    }
+
+    return {
+      ...this.transformPlayerProvince(result),
+      passiveBuffs: result.passiveBuffs || [],
+      activeSkill: result.activeSkill || undefined,
+      skillCooldown: result.skillCooldown || undefined,
+    };
+  }
+
+  /**
+   * Use active skill mutation
+   * Activates the province's active skill and sets 24h cooldown
+   */
+  @Mutation(() => UseActiveSkillResult)
+  @UseGuards(JwtAuthGuard)
+  async useProvinceSkill(
+    @CurrentUser() user: any,
+    @Args('provinceId', { type: () => Int }) provinceId: number,
+  ): Promise<UseActiveSkillResult> {
+    const result = await this.provinceService.useActiveSkill(user.id, provinceId);
+    
+    return {
+      playerProvince: this.transformPlayerProvince(result.playerProvince),
+      skill: result.skill,
+      cooldownEnds: result.cooldownEnds,
+      effectEnds: result.effectEnds,
+    };
   }
 }

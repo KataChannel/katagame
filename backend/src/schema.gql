@@ -221,6 +221,7 @@ input ProvinceWhereInput {
 }
 
 type Query {
+  availableStories: [StoryWithUnlockStatus!]!
   hero(id: String!): Hero!
   heroes(pagination: PaginationInput, where: HeroWhereInput): [Hero!]!
   me: Player
@@ -262,14 +263,19 @@ type QuizQuestion {
 
 type QuizSubmission {
   answers: JSON
+  correctCount: Int
   id: ID!
+  isPerfect: Boolean
   maxScore: Int!
+  multiplier: Float
+  perfectStreak: Int
   playerId: ID!
   rewards: JSON
   score: Int!
   storyId: ID!
   submittedAt: DateTime!
   timeTaken: Int
+  totalQuestions: Int
 }
 
 input RecruitHeroInput {
@@ -319,6 +325,31 @@ input StoryWhereInput {
   isAvailable: BooleanFilter
   isPremium: BooleanFilter
   provinceId: IntFilter
+}
+
+type StoryWithUnlockStatus {
+  baseGoldReward: Int
+  baseRiceReward: Int
+  baseWoodReward: Int
+  category: String!
+  content: String!
+  createdAt: DateTime!
+  day: Int!
+  daysSinceRegistration: Int!
+  daysUntilUnlock: Int!
+  era: String
+  heroId: ID
+  id: ID!
+  isAvailable: Boolean
+  isCompleted: Boolean!
+  isPremium: Boolean
+  isUnlocked: Boolean!
+  provinceId: Int
+  readingTimeMinutes: Int
+  titleEnglish: String!
+  titleVietnamese: String!
+  updatedAt: DateTime!
+  wordCount: Int
 }
 
 input StringFilter {

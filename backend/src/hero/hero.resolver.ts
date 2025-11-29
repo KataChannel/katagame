@@ -1,7 +1,12 @@
-import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { HeroService } from './hero.service';
-import { Hero, PlayerHero } from '../graphql/models/hero.model';
+import { 
+  Hero, 
+  PlayerHero,
+  PlayerHeroWithStats,
+  GrantExpResult,
+} from '../graphql/models/hero.model';
 import {
   HeroWhereInput,
   PlayerHeroWhereInput,
@@ -129,5 +134,70 @@ export class HeroResolver {
   ): Promise<PlayerHero> {
     const hero = await this.heroService.levelUpHero(user.id, input);
     return this.transformPlayerHero(hero);
+  }
+
+  // ========================================
+  // MVP2 SPRINT 3: HERO STATS QUERIES & MUTATIONS
+  // ========================================
+
+  /**
+   * Get hero with calculated stats
+   */
+  @Query(() => PlayerHeroWithStats, { nullable: true })
+  @UseGuards(JwtAuthGuard)
+  async myHeroWithStats(
+    @CurrentUser() user: any,
+    @Args('heroId') heroId: string,
+  ): Promise<PlayerHeroWithStats | null> {
+    const result = await this.heroService.getPlayerHeroWithStats(user.id, heroId);
+    
+    if (!result) {
+      return null;
+    }
+
+    return {
+      ...this.transformPlayerHero(result),
+      stats: result.stats,
+      expForNextLevel: result.expForNextLevel,
+      expProgress: result.expProgress,
+    };
+  }
+
+  /**
+   * Get all player heroes with stats
+   */
+  @Query(() => [PlayerHeroWithStats])
+  @UseGuards(JwtAuthGuard)
+  async myHeroesWithStats(
+    @CurrentUser() user: any,
+  ): Promise<PlayerHeroWithStats[]> {
+    const heroes = await this.heroService.getPlayerHeroesWithStats(user.id);
+    
+    return heroes.map(hero => ({
+      ...this.transformPlayerHero(hero),
+      stats: hero.stats,
+      expForNextLevel: hero.expForNextLevel,
+      expProgress: hero.expProgress,
+    }));
+  }
+
+  /**
+   * Grant experience to hero
+   * Auto-levels up if threshold reached
+   */
+  @Mutation(() => GrantExpResult)
+  @UseGuards(JwtAuthGuard)
+  async grantExpToHero(
+    @CurrentUser() user: any,
+    @Args('heroId') heroId: string,
+    @Args('expAmount', { type: () => Int }) expAmount: number,
+  ): Promise<GrantExpResult> {
+    const result = await this.heroService.grantExpToHero(user.id, heroId, expAmount);
+    
+    return {
+      playerHero: this.transformPlayerHero(result),
+      leveledUp: result.leveledUp || false,
+      levelsGained: result.levelsGained || 0,
+    };
   }
 }

@@ -1,7 +1,7 @@
 import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { StoryService } from './story.service';
-import { Story, QuizQuestion, QuizSubmission } from '../graphql/models/story.model';
+import { Story, QuizQuestion, QuizSubmission, StoryWithUnlockStatus } from '../graphql/models/story.model';
 import { StoryWhereInput, SubmitQuizInput, MarkStoryReadInput } from '../graphql/inputs/story.input';
 import { PaginationInput } from '../graphql/common/filters.input';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -52,6 +52,21 @@ export class StoryResolver {
       maxScore: s.max_score,
       timeTaken: s.time_taken ?? undefined,
       submittedAt: s.submitted_at ?? new Date(),
+      multiplier: s.multiplier ? parseFloat(s.multiplier.toString()) : undefined,
+      isPerfect: s.isPerfect ?? undefined,
+      correctCount: s.correctCount ?? undefined,
+      totalQuestions: s.totalQuestions ?? undefined,
+      perfectStreak: s.perfectStreak ?? undefined,
+    };
+  }
+
+  private transformStoryWithUnlock(s: any): StoryWithUnlockStatus {
+    return {
+      ...this.transformStory(s),
+      isUnlocked: s.isUnlocked,
+      daysUntilUnlock: s.daysUntilUnlock,
+      isCompleted: s.isCompleted,
+      daysSinceRegistration: s.daysSinceRegistration,
     };
   }
 
@@ -84,6 +99,14 @@ export class StoryResolver {
   async quizQuestions(@Args('storyId') storyId: string): Promise<QuizQuestion[]> {
     const story = await this.storyService.findById(storyId);
     return (story.quiz_questions || []).map(q => this.transformQuizQuestion(q));
+  }
+
+  // MVP2: Get stories with daily unlock status (authenticated)
+  @Query(() => [StoryWithUnlockStatus])
+  @UseGuards(JwtAuthGuard)
+  async availableStories(@CurrentUser() user: any): Promise<StoryWithUnlockStatus[]> {
+    const stories = await this.storyService.getAvailableStories(user.id);
+    return stories.map(s => this.transformStoryWithUnlock(s));
   }
 
   // Mark story as read (authenticated)

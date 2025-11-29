@@ -59,6 +59,64 @@ export class StoryService {
     return story;
   }
 
+  // MVP2 Feature: Get stories with daily unlock status
+  async getAvailableStories(playerId: string) {
+    // Get player registration date
+    const player = await this.prisma.player.findUnique({
+      where: { id: playerId },
+      select: { registration_date: true, created_at: true },
+    });
+
+    if (!player) {
+      throw new NotFoundException('Player not found');
+    }
+
+    // Calculate days since registration
+    const registrationDate = player.registration_date || player.created_at || new Date();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const regDate = new Date(registrationDate);
+    regDate.setHours(0, 0, 0, 0);
+    const daysSinceRegistration = Math.floor((today.getTime() - regDate.getTime()) / (1000 * 60 * 60 * 24));
+
+    // Get all stories
+    const allStories = await this.prisma.story.findMany({
+      orderBy: { day: 'asc' },
+      include: {
+        quiz_questions: {
+          select: { id: true, question_number: true },
+        },
+      },
+    });
+
+    // Check which stories player has completed
+    const completedStoryIds = await this.prisma.quizSubmission.findMany({
+      where: { player_id: playerId },
+      select: { story_id: true },
+      distinct: ['story_id'],
+    });
+
+    const completedSet = new Set(completedStoryIds.map(s => s.story_id));
+
+    // Map stories with unlock status
+    const storiesWithUnlock = allStories.map(story => {
+      const requiredDays = story.day - 1; // Day 1 story unlocks on day 0 (registration day)
+      const isUnlocked = daysSinceRegistration >= requiredDays;
+      const daysUntilUnlock = isUnlocked ? 0 : requiredDays - daysSinceRegistration;
+      const isCompleted = completedSet.has(story.id);
+
+      return {
+        ...story,
+        isUnlocked,
+        daysUntilUnlock,
+        isCompleted,
+        daysSinceRegistration,
+      };
+    });
+
+    return storiesWithUnlock;
+  }
+
   // Mark story as read
   async markStoryRead(playerId: string, input: MarkStoryReadInput) {
     const story = await this.findById(input.storyId);
@@ -125,13 +183,17 @@ export class StoryService {
     const score = correctAnswers;
     const maxScore = questions.length;
     const percentage = (score / maxScore) * 100;
+    const isPerfect = score === maxScore;
 
-    // Calculate rewards (higher score = more rewards)
-    const rewardMultiplier = percentage >= 100 ? 1.5 : percentage >= 66 ? 1.2 : percentage >= 33 ? 1 : 0.5;
+    // MVP2 Feature: x5 multiplier for perfect quiz (all correct answers)
+    const rewardMultiplier = isPerfect ? 5.0 : 1.0;
     
     const goldReward = Math.floor((story.base_gold_reward || 100) * rewardMultiplier);
     const riceReward = Math.floor((story.base_rice_reward || 100) * rewardMultiplier);
     const woodReward = Math.floor((story.base_wood_reward || 50) * rewardMultiplier);
+
+    // MVP2 Feature: Track perfect quiz streak
+    await this.updatePerfectQuizStreak(playerId, isPerfect);
 
     // Create quiz submission
     const submission = await this.prisma.quizSubmission.create({
@@ -142,6 +204,7 @@ export class StoryService {
         max_score: maxScore,
         answers: input.answers as any,
         time_taken: input.timeTaken,
+        multiplier: rewardMultiplier, // MVP2: Store x5 multiplier
         rewards: {
           gold: goldReward,
           rice: riceReward,
@@ -191,9 +254,22 @@ export class StoryService {
     });
 
     // Update player stats
-    await this.updatePlayerStats(playerId, score === maxScore);
+    await this.updatePlayerStats(playerId, isPerfect);
 
-    return submission;
+    // Get updated streak info for response
+    const updatedStats = await this.prisma.playerStats.findUnique({
+      where: { player_id: playerId },
+      select: { quiz_perfect_streak: true },
+    });
+
+    // Return enhanced submission with MVP2 info
+    return {
+      ...submission,
+      isPerfect,
+      correctCount: score,
+      totalQuestions: maxScore,
+      perfectStreak: updatedStats?.quiz_perfect_streak || 0,
+    };
   }
 
   // Get player quiz submissions
@@ -264,6 +340,39 @@ export class StoryService {
     }
   }
 
+  // MVP2 Feature: Update perfect quiz streak
+  private async updatePerfectQuizStreak(playerId: string, isPerfect: boolean) {
+    const playerStats = await this.prisma.playerStats.findUnique({
+      where: { player_id: playerId },
+      select: { quiz_perfect_streak: true, quiz_best_streak: true },
+    });
+
+    const currentStreak = playerStats?.quiz_perfect_streak || 0;
+    const bestStreak = playerStats?.quiz_best_streak || 0;
+
+    if (isPerfect) {
+      // Increment streak
+      const newStreak = currentStreak + 1;
+      const newBestStreak = Math.max(newStreak, bestStreak);
+
+      await this.prisma.playerStats.update({
+        where: { player_id: playerId },
+        data: {
+          quiz_perfect_streak: newStreak,
+          quiz_best_streak: newBestStreak,
+        },
+      });
+    } else {
+      // Reset streak on non-perfect quiz
+      await this.prisma.playerStats.update({
+        where: { player_id: playerId },
+        data: {
+          quiz_perfect_streak: 0,
+        },
+      });
+    }
+  }
+
   // Helper: Update player stats
   private async updatePlayerStats(playerId: string, isPerfect: boolean) {
     await this.prisma.playerStats.upsert({
@@ -275,6 +384,8 @@ export class StoryService {
         quizzes_taken: 1,
         quizzes_passed: isPerfect ? 1 : 0,
         perfect_quizzes: isPerfect ? 1 : 0,
+        quiz_perfect_streak: isPerfect ? 1 : 0, // MVP2: Initialize streak
+        quiz_best_streak: isPerfect ? 1 : 0,     // MVP2: Initialize best streak
       },
       update: {
         stories_read: { increment: 1 },

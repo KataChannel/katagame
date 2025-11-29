@@ -9,6 +9,12 @@ import { Hero, ElementType } from '@/lib/types';
 import { getElementData, getElementColor, getElementEmoji } from '@/lib/elementSystem';
 import { ElementBadge } from './ElementBadge';
 import { 
+  checkResourceAvailability,
+  calculateHeroLevelUpCost,
+  formatResourceWithIcon,
+  getResourceNameVN
+} from '@/lib/resourceChecker';
+import { 
   Swords, 
   Shield, 
   Zap, 
@@ -297,11 +303,21 @@ function StatBadge({
 
 // Hero Details Modal
 function HeroDetailsModal({ hero, onClose }: { hero: Hero; onClose: () => void }) {
-  const { upgradeHero } = useGameStore();
+  const { upgradeHero, player } = useGameStore();
   const power = calculateHeroPower(hero);
 
+  // Calculate upgrade cost
+  const upgradeCost = calculateHeroLevelUpCost(hero.level);
+  
+  // Check if player can afford upgrade
+  const canAfford = player?.resources 
+    ? checkResourceAvailability(player.resources, upgradeCost)
+    : { canAfford: false, missingResources: [] };
+
   const handleLevelUp = () => {
-    upgradeHero(hero.id);
+    if (canAfford.canAfford) {
+      upgradeHero(hero.id);
+    }
   };
 
   return (
@@ -459,11 +475,69 @@ function HeroDetailsModal({ hero, onClose }: { hero: Hero; onClose: () => void }
                 </div>
               </div>
 
+              <div className="bg-white p-4 rounded-lg mb-4">
+                <p className="text-sm text-gray-700 font-medium mb-2">Chi phí nâng cấp:</p>
+                <div className="grid grid-cols-5 gap-2 text-xs">
+                  {upgradeCost.gold && (
+                    <div className="bg-yellow-50 p-2 rounded text-center">
+                      <div className="text-yellow-600 font-bold">{formatResourceWithIcon('gold', upgradeCost.gold)}</div>
+                      <div className="text-gray-600">Vàng</div>
+                    </div>
+                  )}
+                  {upgradeCost.rice && (
+                    <div className="bg-amber-50 p-2 rounded text-center">
+                      <div className="text-amber-600 font-bold">{formatResourceWithIcon('rice', upgradeCost.rice)}</div>
+                      <div className="text-gray-600">Gạo</div>
+                    </div>
+                  )}
+                  {upgradeCost.lumber && (
+                    <div className="bg-orange-50 p-2 rounded text-center">
+                      <div className="text-orange-600 font-bold">{formatResourceWithIcon('lumber', upgradeCost.lumber)}</div>
+                      <div className="text-gray-600">Gỗ</div>
+                    </div>
+                  )}
+                  {upgradeCost.stone && (
+                    <div className="bg-gray-50 p-2 rounded text-center border border-gray-200">
+                      <div className="text-gray-600 font-bold">{formatResourceWithIcon('stone', upgradeCost.stone)}</div>
+                      <div className="text-gray-500">Đá</div>
+                    </div>
+                  )}
+                  {upgradeCost.bazan && (
+                    <div className="bg-purple-50 p-2 rounded text-center">
+                      <div className="text-purple-600 font-bold">{formatResourceWithIcon('bazan', upgradeCost.bazan)}</div>
+                      <div className="text-gray-600">Bazan</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <button
                 onClick={handleLevelUp}
-                className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold py-3 rounded-lg hover:from-yellow-600 hover:to-orange-600 transition-all duration-200 shadow-lg hover:shadow-xl"
+                disabled={!canAfford.canAfford || hero.level >= 5}
+                className={`w-full font-bold py-3 rounded-lg transition-all duration-200 shadow-lg ${
+                  !canAfford.canAfford || hero.level >= 5
+                    ? 'bg-gray-400 cursor-not-allowed opacity-60 text-white'
+                    : 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:from-yellow-600 hover:to-orange-600 hover:shadow-xl'
+                }`}
               >
-                ⬆️ Nâng Cấp Lên Cấp {hero.level + 1}
+                <div className="flex flex-col items-center gap-1">
+                  <div className="flex items-center gap-2">
+                    {!canAfford.canAfford && <Lock className="w-4 h-4" />}
+                    <span>
+                      {hero.level >= 5 
+                        ? '🏆 Đã Đạt Cấp Tối Đa' 
+                        : `⬆️ Nâng Cấp Lên Cấp ${hero.level + 1}`
+                      }
+                    </span>
+                  </div>
+                  {!canAfford.canAfford && hero.level < 5 && (
+                    <span className="text-xs text-red-200 font-bold">
+                      ⚠️ Thiếu: {canAfford.missingResources.map(r => 
+                        `${getResourceNameVN(r.resource)} (-${r.deficit})`
+                      ).join(', ')}
+                    </span>
+                  )}
+                </div>
               </button>
             </div>
           )}

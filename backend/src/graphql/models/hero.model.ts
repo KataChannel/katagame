@@ -1,4 +1,234 @@
-import { ObjectType, Field, ID, Int } from '@nestjs/graphql';
+import { ObjectType, Field, ID, Int, Float } from '@nestjs/graphql';
+
+// ============================================================================
+// Province Data Types (Sprint 5)
+// ============================================================================
+
+@ObjectType()
+export class ProvinceData {
+  @Field(() => Int)
+  id: number;
+
+  @Field()
+  name: string;
+
+  @Field({ nullable: true })
+  nameEnglish?: string;
+
+  @Field()
+  region: string;
+
+  @Field({ nullable: true })
+  description?: string;
+
+  @Field(() => Boolean, { nullable: true })
+  isCapital?: boolean;
+
+  @Field(() => Float, { nullable: true })
+  baseGoldRate?: number;
+
+  @Field(() => Float, { nullable: true })
+  baseRiceRate?: number;
+
+  @Field(() => Float, { nullable: true })
+  baseWoodRate?: number;
+
+  @Field(() => Float, { nullable: true })
+  baseStoneRate?: number;
+
+  @Field(() => Float, { nullable: true })
+  baseBazanRate?: number;
+
+  @Field(() => [String], { nullable: true })
+  historicalEras?: string[];
+
+  @Field(() => Int, { nullable: true })
+  unlockOrder?: number;
+
+  @Field(() => Int, { nullable: true })
+  unlockStoryDay?: number;
+
+  @Field(() => Boolean)
+  isOwned: boolean;
+
+  @Field()
+  ownershipStatus: string; // 'owned' | 'available' | 'locked'
+}
+
+@ObjectType()
+export class ProvincePlayerData {
+  @Field(() => Int)
+  farmerLevel: number;
+
+  @Field(() => Int)
+  resourceLevel: number;
+
+  @Field(() => Int)
+  developmentLevel: number;
+
+  @Field(() => Int)
+  buildingsCount: number;
+
+  @Field(() => [String])
+  passiveBuffs: string[];
+
+  @Field(() => Int)
+  activeSkillLevel: number;
+
+  @Field(() => Hero, { nullable: true })
+  deployedHero?: Hero;
+}
+
+@ObjectType()
+export class ProvinceProductionRates {
+  @Field(() => Int)
+  gold: number;
+
+  @Field(() => Int)
+  rice: number;
+
+  @Field(() => Int)
+  wood: number;
+
+  @Field(() => Int)
+  stone: number;
+
+  @Field(() => Int)
+  bazan: number;
+}
+
+@ObjectType()
+export class StoryInfo {
+  @Field(() => ID)
+  id: string;
+
+  @Field()
+  titleVietnamese: string;
+
+  @Field(() => Int)
+  day: number;
+
+  @Field(() => Boolean)
+  isAvailable: boolean;
+}
+
+@ObjectType()
+export class ProvinceDetails {
+  @Field(() => Int)
+  id: number;
+
+  @Field()
+  name: string;
+
+  @Field({ nullable: true })
+  nameEnglish?: string;
+
+  @Field()
+  region: string;
+
+  @Field({ nullable: true })
+  description?: string;
+
+  @Field(() => Boolean, { nullable: true })
+  isCapital?: boolean;
+
+  @Field(() => Float, { nullable: true })
+  baseGoldRate?: number;
+
+  @Field(() => Float, { nullable: true })
+  baseRiceRate?: number;
+
+  @Field(() => Float, { nullable: true })
+  baseWoodRate?: number;
+
+  @Field(() => Float, { nullable: true })
+  baseStoneRate?: number;
+
+  @Field(() => Float, { nullable: true })
+  baseBazanRate?: number;
+
+  @Field(() => [String], { nullable: true })
+  historicalEras?: string[];
+
+  @Field(() => Int, { nullable: true })
+  unlockOrder?: number;
+
+  @Field(() => Int, { nullable: true })
+  unlockStoryDay?: number;
+
+  @Field(() => Boolean)
+  isOwned: boolean;
+
+  @Field()
+  ownershipStatus: string;
+
+  @Field(() => ProvincePlayerData, { nullable: true })
+  playerData?: ProvincePlayerData;
+
+  @Field(() => ProvinceProductionRates)
+  productionRates: ProvinceProductionRates;
+
+  @Field(() => [StoryInfo])
+  stories: StoryInfo[];
+}
+
+@ObjectType()
+export class RegionStatistic {
+  @Field(() => Int)
+  total: number;
+
+  @Field(() => Int)
+  owned: number;
+
+  @Field(() => Int)
+  available: number;
+
+  @Field(() => Int)
+  locked: number;
+}
+
+@ObjectType()
+export class RegionStatistics {
+  @Field(() => RegionStatistic)
+  north: RegionStatistic;
+
+  @Field(() => RegionStatistic)
+  central: RegionStatistic;
+
+  @Field(() => RegionStatistic)
+  south: RegionStatistic;
+
+  @Field(() => RegionStatistic)
+  overall: RegionStatistic;
+}
+
+@ObjectType()
+export class ProvinceUnlockInfo {
+  @Field(() => Int)
+  provinceId: number;
+
+  @Field()
+  provinceName: string;
+
+  @Field(() => Int, { nullable: true })
+  unlockOrder?: number;
+
+  @Field(() => Int, { nullable: true })
+  unlockStoryDay?: number;
+
+  @Field(() => StoryInfo, { nullable: true })
+  requiredStory?: StoryInfo;
+
+  @Field(() => Boolean)
+  isStartingProvince: boolean;
+
+  @Field(() => String)
+  requirementsDescription: string;
+}
+
+// ============================================================================
+// Hero Types (Existing)
+// ============================================================================
 
 @ObjectType()
 export class Hero {
@@ -97,4 +327,391 @@ export class PlayerHero {
 
   @Field(() => Date)
   updatedAt: Date;
+}
+
+// ========================================
+// MVP2 SPRINT 3: HERO STATS & PET TYPES
+// ========================================
+
+@ObjectType()
+export class HeroStats {
+  @Field(() => Int)
+  hp: number;
+
+  @Field(() => Int)
+  attack: number;
+
+  @Field(() => Int)
+  defense: number;
+
+  @Field(() => Int)
+  speed: number;
+
+  @Field(() => Int)
+  level: number;
+
+  @Field(() => Int, { nullable: true })
+  baseHP?: number;
+
+  @Field(() => Int, { nullable: true })
+  baseAttack?: number;
+
+  @Field(() => Int, { nullable: true })
+  baseDefense?: number;
+
+  @Field(() => Int, { nullable: true })
+  baseSpeed?: number;
+}
+
+@ObjectType()
+export class PlayerHeroWithStats extends PlayerHero {
+  @Field(() => HeroStats)
+  stats: HeroStats;
+
+  @Field(() => Int)
+  expForNextLevel: number;
+
+  @Field(() => Int)
+  expProgress: number;
+}
+
+@ObjectType()
+export class GrantExpResult {
+  @Field(() => PlayerHero)
+  playerHero: PlayerHero;
+
+  @Field(() => Boolean)
+  leveledUp: boolean;
+
+  @Field(() => Int)
+  levelsGained: number;
+}
+
+@ObjectType()
+export class Pet {
+  @Field(() => ID)
+  id: string;
+
+  @Field(() => ID)
+  playerId: string;
+
+  @Field()
+  name: string;
+
+  @Field({ nullable: true })
+  petType?: string;
+
+  @Field({ nullable: true })
+  rarity?: string;
+
+  @Field(() => Int, { nullable: true })
+  level?: number;
+
+  @Field(() => Int, { nullable: true })
+  experience?: number;
+
+  @Field(() => Date)
+  acquiredAt: Date;
+}
+
+@ObjectType()
+export class PetBonuses {
+  @Field(() => Int, { nullable: true })
+  attack?: number;
+
+  @Field(() => Int, { nullable: true })
+  defense?: number;
+
+  @Field(() => Int, { nullable: true })
+  hp?: number;
+
+  @Field(() => Int, { nullable: true })
+  goldBonus?: number;
+
+  @Field(() => Int, { nullable: true })
+  riceBonus?: number;
+
+  @Field(() => Int, { nullable: true })
+  productionSpeed?: number;
+
+  @Field(() => Int, { nullable: true })
+  expBonus?: number;
+
+  @Field(() => Int, { nullable: true })
+  learningSpeed?: number;
+
+  @Field(() => Int, { nullable: true })
+  luckBonus?: number;
+
+  @Field(() => Int, { nullable: true })
+  criticalChance?: number;
+
+  @Field(() => Int, { nullable: true })
+  speed?: number;
+
+  @Field(() => Int, { nullable: true })
+  buildingSpeed?: number;
+
+  @Field(() => Int, { nullable: true })
+  allStats?: number;
+
+  @Field()
+  icon: string;
+
+  @Field()
+  description: string;
+}
+
+@ObjectType()
+export class PetWithBonuses extends Pet {
+  @Field(() => PetBonuses)
+  bonuses: PetBonuses;
+
+  @Field(() => Int)
+  expForNextLevel: number;
+
+  @Field(() => Int)
+  expProgress: number;
+}
+
+@ObjectType()
+export class AssignPetResult {
+  @Field(() => PlayerHero)
+  playerHero: PlayerHero;
+
+  @Field(() => Pet)
+  pet: Pet;
+
+  @Field(() => PetBonuses)
+  bonuses: PetBonuses;
+}
+
+// ==================== MVP2 SPRINT 4: RESOURCE SYNERGY & ERA PROGRESSION ====================
+
+/**
+ * Wu Xing (Five Elements) synergy information
+ */
+@ObjectType()
+export class ResourceSynergy {
+  @Field(() => String)
+  sourceResource: string;
+
+  @Field(() => String)
+  targetResource: string;
+
+  @Field(() => String)
+  sourceElement: string;
+
+  @Field(() => String)
+  targetElement: string;
+
+  @Field(() => Int)
+  bonusPercentage: number;
+
+  @Field(() => Int)
+  affectedProvinces: number;
+
+  @Field(() => String)
+  description: string;
+
+  @Field(() => String)
+  icon: string;
+}
+
+/**
+ * Player's synergy status
+ */
+@ObjectType()
+export class PlayerSynergies {
+  @Field(() => String)
+  playerId: string;
+
+  @Field(() => Int)
+  totalProvinces: number;
+
+  @Field(() => [ResourceSynergy])
+  activeSynergies: ResourceSynergy[];
+
+  @Field(() => Int)
+  totalBonusPercentage: number;
+
+  @Field(() => Float)
+  cycleCompletion: number;
+}
+
+/**
+ * Wu Xing cycle node
+ */
+@ObjectType()
+export class WuXingNode {
+  @Field(() => String)
+  element: string;
+
+  @Field(() => String)
+  elementName: string;
+
+  @Field(() => String)
+  emoji: string;
+
+  @Field(() => String)
+  resource: string;
+
+  @Field(() => String)
+  resourceNameVN: string;
+
+  @Field(() => String)
+  nextElement: string;
+
+  @Field(() => String)
+  nextResource: string;
+
+  @Field(() => Boolean)
+  isActive: boolean;
+
+  @Field(() => Int)
+  bonusPercentage: number;
+}
+
+/**
+ * Wu Xing cycle data
+ */
+@ObjectType()
+export class WuXingCycleData {
+  @Field(() => String)
+  playerId: string;
+
+  @Field(() => [WuXingNode])
+  cycleNodes: WuXingNode[];
+
+  @Field(() => [ResourceSynergy])
+  activeSynergies: ResourceSynergy[];
+
+  @Field(() => Float)
+  cycleCompletion: number;
+
+  @Field(() => Int)
+  totalBonus: number;
+
+  @Field(() => String)
+  description: string;
+}
+
+/**
+ * Era benefits
+ */
+@ObjectType()
+export class EraBenefits {
+  @Field(() => Int)
+  goldBonus: number;
+
+  @Field(() => Int)
+  riceBonus: number;
+
+  @Field(() => Int)
+  woodBonus: number;
+
+  @Field(() => Int)
+  stoneBonus: number;
+
+  @Field(() => Int)
+  expBonus: number;
+
+  @Field(() => [String])
+  unlockHeroes: string[];
+}
+
+/**
+ * Era information
+ */
+@ObjectType()
+export class EraInfo {
+  @Field(() => String)
+  id: string;
+
+  @Field(() => String)
+  name: string;
+
+  @Field(() => String)
+  nameEnglish: string;
+
+  @Field(() => String)
+  description: string;
+
+  @Field(() => String)
+  emoji: string;
+
+  @Field(() => String)
+  color: string;
+
+  @Field(() => Int)
+  minStories: number;
+
+  @Field(() => Int)
+  maxStories: number;
+
+  @Field(() => EraBenefits)
+  benefits: EraBenefits;
+
+  @Field(() => [String])
+  landmarks: string[];
+
+  @Field(() => Boolean)
+  isUnlocked: boolean;
+
+  @Field(() => Boolean)
+  isCurrent: boolean;
+
+  @Field(() => Float)
+  progressPercentage: number;
+
+  @Field(() => Int)
+  requiredStories: number;
+
+  @Field(() => Int)
+  remainingStories: number;
+}
+
+/**
+ * Player's current era
+ */
+@ObjectType()
+export class PlayerCurrentEra {
+  @Field(() => String)
+  playerId: string;
+
+  @Field(() => String)
+  currentEra: string;
+
+  @Field(() => String)
+  eraName: string;
+
+  @Field(() => String)
+  eraEmoji: string;
+
+  @Field(() => Int)
+  completedStories: number;
+
+  @Field(() => EraBenefits)
+  benefits: EraBenefits;
+
+  @Field(() => Boolean)
+  isMaxEra: boolean;
+}
+
+/**
+ * Era timeline
+ */
+@ObjectType()
+export class EraTimeline {
+  @Field(() => String)
+  playerId: string;
+
+  @Field(() => Int)
+  completedStories: number;
+
+  @Field(() => [EraInfo])
+  timeline: EraInfo[];
+
+  @Field(() => Int)
+  currentEraIndex: number;
 }

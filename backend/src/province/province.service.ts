@@ -366,4 +366,278 @@ export class ProvinceService {
     
     this.logger.log(`✅ Resources deducted successfully`);
   }
+
+  // ========================================
+  // MVP2 SPRINT 2: PROVINCE SKILLS SYSTEM
+  // ========================================
+
+  /**
+   * Calculate passive buffs based on province levels
+   * Passive buffs unlock at levels 5, 10, 15
+   * Each milestone provides cumulative bonuses
+   */
+  calculatePassiveBuffs(playerProvince: any) {
+    const buffs: any[] = [];
+    
+    const farmerLevel = playerProvince.farmer_level || 1;
+    const resourceLevel = playerProvince.resource_level || 1;
+    const developmentLevel = playerProvince.development_level || 1;
+
+    // Farmer Level Buffs
+    if (farmerLevel >= 5) {
+      buffs.push({
+        type: 'GOLD_PRODUCTION',
+        value: 10,
+        description: 'Tăng 10% sản xuất vàng',
+        source: 'FARMER_LEVEL_5',
+        icon: '💰',
+      });
+    }
+    if (farmerLevel >= 10) {
+      buffs.push({
+        type: 'RICE_PRODUCTION',
+        value: 15,
+        description: 'Tăng 15% sản xuất lúa',
+        source: 'FARMER_LEVEL_10',
+        icon: '🌾',
+      });
+    }
+    if (farmerLevel >= 15) {
+      buffs.push({
+        type: 'ALL_PRODUCTION',
+        value: 20,
+        description: 'Tăng 20% tất cả sản xuất',
+        source: 'FARMER_LEVEL_15',
+        icon: '⭐',
+      });
+    }
+
+    // Resource Level Buffs
+    if (resourceLevel >= 5) {
+      buffs.push({
+        type: 'WOOD_PRODUCTION',
+        value: 10,
+        description: 'Tăng 10% sản xuất gỗ',
+        source: 'RESOURCE_LEVEL_5',
+        icon: '🪵',
+      });
+    }
+    if (resourceLevel >= 10) {
+      buffs.push({
+        type: 'STONE_PRODUCTION',
+        value: 15,
+        description: 'Tăng 15% sản xuất đá',
+        source: 'RESOURCE_LEVEL_10',
+        icon: '🪨',
+      });
+    }
+    if (resourceLevel >= 15) {
+      buffs.push({
+        type: 'RESOURCE_EFFICIENCY',
+        value: 25,
+        description: 'Tăng 25% hiệu quả tài nguyên',
+        source: 'RESOURCE_LEVEL_15',
+        icon: '💎',
+      });
+    }
+
+    // Development Level Buffs
+    if (developmentLevel >= 5) {
+      buffs.push({
+        type: 'BUILDING_SPEED',
+        value: 10,
+        description: 'Tăng 10% tốc độ xây dựng',
+        source: 'DEVELOPMENT_LEVEL_5',
+        icon: '🏗️',
+      });
+    }
+    if (developmentLevel >= 10) {
+      buffs.push({
+        type: 'HERO_EXP',
+        value: 15,
+        description: 'Tăng 15% kinh nghiệm hero',
+        source: 'DEVELOPMENT_LEVEL_10',
+        icon: '⚔️',
+      });
+    }
+    if (developmentLevel >= 15) {
+      buffs.push({
+        type: 'CULTURE_GAIN',
+        value: 30,
+        description: 'Tăng 30% văn hóa',
+        source: 'DEVELOPMENT_LEVEL_15',
+        icon: '🎭',
+      });
+    }
+
+    return buffs;
+  }
+
+  /**
+   * Get active skill for a province based on its development level
+   * Active skills have 24-hour cooldown
+   */
+  getActiveSkill(playerProvince: any) {
+    const developmentLevel = playerProvince.development_level || 1;
+    
+    // Active skill unlocks at development level 10
+    if (developmentLevel < 10) {
+      return null;
+    }
+
+    // Determine skill tier based on level
+    let skillTier = 1;
+    if (developmentLevel >= 20) skillTier = 3;
+    else if (developmentLevel >= 15) skillTier = 2;
+
+    const skills = {
+      1: {
+        id: 'RESOURCE_BOOST_1',
+        name: 'Tăng Sản Xuất I',
+        description: 'x2 sản xuất tất cả tài nguyên trong 1 giờ',
+        multiplier: 2,
+        duration_hours: 1,
+        cooldown_hours: 24,
+        icon: '🚀',
+      },
+      2: {
+        id: 'RESOURCE_BOOST_2',
+        name: 'Tăng Sản Xuất II',
+        description: 'x3 sản xuất tất cả tài nguyên trong 2 giờ',
+        multiplier: 3,
+        duration_hours: 2,
+        cooldown_hours: 24,
+        icon: '⚡',
+      },
+      3: {
+        id: 'RESOURCE_BOOST_3',
+        name: 'Tăng Sản Xuất III',
+        description: 'x5 sản xuất tất cả tài nguyên trong 3 giờ',
+        multiplier: 5,
+        duration_hours: 3,
+        cooldown_hours: 24,
+        icon: '💥',
+      },
+    };
+
+    return skills[skillTier];
+  }
+
+  /**
+   * Check if active skill is on cooldown
+   */
+  getSkillCooldownStatus(playerProvince: any) {
+    const cooldownEnds = playerProvince.active_skill_cooldown_ends;
+    
+    if (!cooldownEnds) {
+      return {
+        isOnCooldown: false,
+        remainingSeconds: 0,
+        canUse: true,
+      };
+    }
+
+    const now = new Date();
+    const cooldownDate = new Date(cooldownEnds);
+    const remainingMs = cooldownDate.getTime() - now.getTime();
+    
+    if (remainingMs <= 0) {
+      return {
+        isOnCooldown: false,
+        remainingSeconds: 0,
+        canUse: true,
+      };
+    }
+
+    return {
+      isOnCooldown: true,
+      remainingSeconds: Math.ceil(remainingMs / 1000),
+      remainingHours: Math.ceil(remainingMs / (1000 * 60 * 60)),
+      canUse: false,
+    };
+  }
+
+  /**
+   * Use active skill
+   * Sets 24-hour cooldown
+   */
+  async useActiveSkill(playerId: string, provinceId: number) {
+    this.logger.log(`🔥 Use active skill: Player=${playerId}, Province=${provinceId}`);
+    
+    // Get player province
+    const playerProvince = await this.getPlayerProvince(playerId, provinceId);
+    if (!playerProvince) {
+      throw new NotFoundException('Province not unlocked');
+    }
+
+    // Check if skill is available
+    const skill = this.getActiveSkill(playerProvince);
+    if (!skill) {
+      throw new BadRequestException('Active skill not unlocked (requires development level 10)');
+    }
+
+    // Check cooldown
+    const cooldownStatus = this.getSkillCooldownStatus(playerProvince);
+    if (cooldownStatus.isOnCooldown) {
+      throw new BadRequestException(
+        `Skill is on cooldown. ${cooldownStatus.remainingHours} hours remaining`,
+      );
+    }
+
+    // Set cooldown (24 hours from now)
+    const now = new Date();
+    const cooldownEnds = new Date(now.getTime() + skill.cooldown_hours * 60 * 60 * 1000);
+
+    const updated = await this.prisma.playerProvince.update({
+      where: {
+        player_id_province_id: {
+          player_id: playerId,
+          province_id: provinceId,
+        },
+      },
+      data: {
+        active_skill_last_used: now,
+        active_skill_cooldown_ends: cooldownEnds,
+        active_skill_level: skill.multiplier, // Store multiplier for active effect
+      },
+      include: {
+        province: true,
+        hero: true,
+      },
+    });
+
+    this.logger.log(`✅ Active skill used! Effect: x${skill.multiplier} for ${skill.duration_hours}h`);
+    
+    return {
+      playerProvince: updated,
+      skill,
+      cooldownEnds,
+      effectEnds: new Date(now.getTime() + skill.duration_hours * 60 * 60 * 1000),
+    };
+  }
+
+  /**
+   * Get province with all skills info
+   */
+  async getProvinceWithSkills(playerId: string, provinceId: number) {
+    const playerProvince = await this.getPlayerProvince(playerId, provinceId);
+    
+    if (!playerProvince) {
+      throw new NotFoundException('Province not unlocked');
+    }
+
+    // Calculate passive buffs
+    const passiveBuffs = this.calculatePassiveBuffs(playerProvince);
+
+    // Get active skill
+    const activeSkill = this.getActiveSkill(playerProvince);
+    const cooldownStatus = activeSkill ? this.getSkillCooldownStatus(playerProvince) : null;
+
+    return {
+      ...playerProvince,
+      passiveBuffs,
+      activeSkill,
+      skillCooldown: cooldownStatus,
+    };
+  }
 }

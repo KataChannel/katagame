@@ -116,4 +116,36 @@ export class QuizSubmission {
 
   @Field(() => Date)
   submittedAt: Date;
+
+  // MVP2: Quiz x5 multiplier fields
+  @Field(() => Number, { nullable: true })
+  multiplier?: number;
+
+  @Field(() => Boolean, { nullable: true })
+  isPerfect?: boolean;
+
+  @Field(() => Int, { nullable: true })
+  correctCount?: number;
+
+  @Field(() => Int, { nullable: true })
+  totalQuestions?: number;
+
+  @Field(() => Int, { nullable: true })
+  perfectStreak?: number;
+}
+
+// MVP2: Story with unlock status
+@ObjectType()
+export class StoryWithUnlockStatus extends Story {
+  @Field(() => Boolean)
+  isUnlocked: boolean;
+
+  @Field(() => Int)
+  daysUntilUnlock: number;
+
+  @Field(() => Boolean)
+  isCompleted: boolean;
+
+  @Field(() => Int)
+  daysSinceRegistration: number;
 }

@@ -552,6 +552,11 @@ export const SUBMIT_QUIZ = gql`
       timeTaken
       rewards
       submittedAt
+      multiplier
+      isPerfect
+      correctCount
+      totalQuestions
+      perfectStreak
     }
   }
 `;
@@ -568,6 +573,37 @@ export const GET_MY_QUIZ_SUBMISSIONS = gql`
       timeTaken
       rewards
       submittedAt
+      multiplier
+      isPerfect
+      correctCount
+      perfectStreak
+    }
+  }
+`;
+
+// ==================== MVP2: DAILY STORY UNLOCK ====================
+
+export const GET_AVAILABLE_STORIES = gql`
+  query GetAvailableStories {
+    availableStories {
+      id
+      day
+      titleVietnamese
+      titleEnglish
+      content
+      category
+      era
+      provinceId
+      heroId
+      baseGoldReward
+      baseRiceReward
+      baseWoodReward
+      isUnlocked
+      daysUntilUnlock
+      isCompleted
+      daysSinceRegistration
+      createdAt
+      updatedAt
     }
   }
 `;
@@ -580,5 +616,611 @@ export const RESET_PLAYER_DATA = gql`
       success
       message
     }
+  }
+`;
+
+// ========================================
+// MVP2 SPRINT 2: PROVINCE SKILLS QUERIES
+// ========================================
+
+export const GET_PROVINCE_WITH_SKILLS = gql`
+  query GetProvinceWithSkills($provinceId: Int!) {
+    provinceWithSkills(provinceId: $provinceId) {
+      id
+      playerId
+      provinceId
+      farmerLevel
+      resourceLevel
+      developmentLevel
+      buildingsCount
+      province {
+        id
+        name
+        nameEnglish
+        region
+        isCapital
+      }
+      passiveBuffs {
+        type
+        value
+        description
+        source
+        icon
+      }
+      activeSkill {
+        id
+        name
+        description
+        multiplier
+        duration_hours
+        cooldown_hours
+        icon
+      }
+      skillCooldown {
+        isOnCooldown
+        remainingSeconds
+        remainingHours
+        canUse
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const USE_PROVINCE_SKILL = gql`
+  mutation UseProvinceSkill($provinceId: Int!) {
+    useProvinceSkill(provinceId: $provinceId) {
+      playerProvince {
+        id
+        playerId
+        provinceId
+        farmerLevel
+        resourceLevel
+        developmentLevel
+      }
+      skill {
+        id
+        name
+        description
+        multiplier
+        duration_hours
+        cooldown_hours
+        icon
+      }
+      cooldownEnds
+      effectEnds
+    }
+  }
+`;
+
+// ==================== MVP2 SPRINT 3: HERO LEVELS & PET SYSTEM ====================
+
+export const MY_HERO_WITH_STATS = gql`
+  query MyHeroWithStats($heroId: ID!) {
+    myHeroWithStats(heroId: $heroId) {
+      id
+      playerId
+      heroId
+      level
+      experience
+      deployedTo
+      acquiredAt
+      createdAt
+      updatedAt
+      stats {
+        hp
+        attack
+        defense
+        speed
+        level
+        baseHP
+        baseAttack
+        baseDefense
+        baseSpeed
+      }
+      expForNextLevel
+      expProgress
+      hero {
+        id
+        nameVietnamese
+        nameEnglish
+        era
+        rarity
+        role
+        baseHp
+        baseAttack
+        baseDefense
+        baseSpeed
+      }
+    }
+  }
+`;
+
+export const MY_HEROES_WITH_STATS = gql`
+  query MyHeroesWithStats {
+    myHeroesWithStats {
+      id
+      playerId
+      heroId
+      level
+      experience
+      deployedTo
+      stats {
+        hp
+        attack
+        defense
+        speed
+        level
+      }
+      expForNextLevel
+      expProgress
+      hero {
+        id
+        nameVietnamese
+        rarity
+      }
+    }
+  }
+`;
+
+export const GRANT_EXP_TO_HERO = gql`
+  mutation GrantExpToHero($heroId: ID!, $expAmount: Int!) {
+    grantExpToHero(heroId: $heroId, expAmount: $expAmount) {
+      playerHero {
+        id
+        level
+        experience
+      }
+      leveledUp
+      levelsGained
+    }
+  }
+`;
+
+export const MY_PETS = gql`
+  query MyPets {
+    myPets {
+      id
+      playerId
+      name
+      petType
+      rarity
+      level
+      experience
+      acquiredAt
+    }
+  }
+`;
+
+export const MY_PET_WITH_BONUSES = gql`
+  query MyPetWithBonuses($petId: ID!) {
+    myPetWithBonuses(petId: $petId) {
+      id
+      playerId
+      name
+      petType
+      rarity
+      level
+      experience
+      acquiredAt
+      bonuses {
+        attack
+        defense
+        hp
+        goldBonus
+        riceBonus
+        woodBonus
+        stoneBonus
+        expBonus
+        learningSpeed
+        luckBonus
+        criticalChance
+        speed
+        buildingSpeed
+        harvestSpeed
+        allStats
+        icon
+        description
+      }
+    }
+  }
+`;
+
+export const ASSIGN_PET_TO_HERO = gql`
+  mutation AssignPetToHero($petId: ID!, $heroId: ID!) {
+    assignPetToHero(petId: $petId, heroId: $heroId) {
+      playerHero {
+        id
+        heroId
+        level
+      }
+      pet {
+        id
+        name
+        petType
+      }
+      bonuses {
+        attack
+        defense
+        hp
+        goldBonus
+        expBonus
+        icon
+        description
+      }
+    }
+  }
+`;
+
+export const UNASSIGN_PET_FROM_HERO = gql`
+  mutation UnassignPetFromHero($heroId: ID!) {
+    unassignPetFromHero(heroId: $heroId)
+  }
+`;
+
+export const LEVEL_UP_PET = gql`
+  mutation LevelUpPet($petId: ID!) {
+    levelUpPet(petId: $petId) {
+      id
+      level
+      experience
+    }
+  }
+`;
+
+export const GRANT_EXP_TO_PET = gql`
+  mutation GrantExpToPet($petId: ID!, $expAmount: Int!) {
+    grantExpToPet(petId: $petId, expAmount: $expAmount) {
+      id
+      level
+      experience
+    }
+  }
+`;
+
+// ==================== MVP2 SPRINT 4: RESOURCE SYNERGY & ERA PROGRESSION ====================
+
+export const MY_RESOURCE_SYNERGIES = gql`
+  query MyResourceSynergies {
+    myResourceSynergies {
+      playerId
+      totalProvinces
+      activeSynergies {
+        sourceResource
+        targetResource
+        sourceElement
+        targetElement
+        bonusPercentage
+        affectedProvinces
+        description
+        icon
+      }
+      totalBonusPercentage
+      cycleCompletion
+    }
+  }
+`;
+
+export const WU_XING_CYCLE = gql`
+  query WuXingCycle {
+    wuXingCycle {
+      playerId
+      cycleNodes {
+        element
+        elementName
+        emoji
+        resource
+        resourceNameVN
+        nextElement
+        nextResource
+        isActive
+        bonusPercentage
+      }
+      activeSynergies {
+        sourceResource
+        targetResource
+        description
+        icon
+        bonusPercentage
+      }
+      cycleCompletion
+      totalBonus
+      description
+    }
+  }
+`;
+
+export const PROVINCE_SYNERGY = gql`
+  query ProvinceSynergy($provinceId: Int!) {
+    provinceSynergy(provinceId: $provinceId) {
+      provinceId
+      provinceName
+      primaryResources
+      applicableSynergies {
+        sourceResource
+        targetResource
+        bonusPercentage
+        description
+        icon
+      }
+      totalBonus
+      hasSynergy
+    }
+  }
+`;
+
+export const MY_CURRENT_ERA = gql`
+  query MyCurrentEra {
+    myCurrentEra {
+      playerId
+      currentEra
+      eraName
+      eraEmoji
+      completedStories
+      benefits {
+        goldBonus
+        riceBonus
+        woodBonus
+        stoneBonus
+        expBonus
+        unlockHeroes
+      }
+      isMaxEra
+    }
+  }
+`;
+
+export const ERA_TIMELINE = gql`
+  query EraTimeline {
+    eraTimeline {
+      playerId
+      completedStories
+      timeline {
+        id
+        name
+        nameEnglish
+        description
+        emoji
+        color
+        minStories
+        maxStories
+        benefits {
+          goldBonus
+          riceBonus
+          woodBonus
+          stoneBonus
+          expBonus
+          unlockHeroes
+        }
+        landmarks
+        isUnlocked
+        isCurrent
+        progressPercentage
+        requiredStories
+        remainingStories
+      }
+      currentEraIndex
+    }
+  }
+`;
+
+export const MY_ERA_BONUSES = gql`
+  query MyEraBonuses {
+    myEraBonuses {
+      playerId
+      era
+      eraName
+      bonuses {
+        goldProduction
+        riceProduction
+        woodProduction
+        stoneProduction
+        experienceGain
+      }
+      description
+    }
+  }
+`;
+
+export const UNLOCKABLE_HEROES = gql`
+  query UnlockableHeroes {
+    unlockableHeroes {
+      playerId
+      currentEra
+      unlockableHeroes {
+        id
+        name_vietnamese
+        era
+        rarity
+      }
+      totalUnlocked
+    }
+  }
+`;
+
+// ==================== PROVINCE DATA (Sprint 5) ====================
+
+export const ALL_PROVINCES = gql`
+  query AllProvinces {
+    allProvinces {
+      id
+      name
+      nameEnglish
+      region
+      description
+      isCapital
+      baseGoldRate
+      baseRiceRate
+      baseWoodRate
+      baseStoneRate
+      baseBazanRate
+      historicalEras
+      unlockOrder
+      unlockStoryDay
+      isOwned
+      ownershipStatus
+    }
+  }
+`;
+
+export const PROVINCES_BY_REGION = gql`
+  query ProvincesByRegion($region: String!) {
+    provincesByRegion(region: $region) {
+      id
+      name
+      nameEnglish
+      region
+      description
+      isCapital
+      baseGoldRate
+      baseRiceRate
+      baseWoodRate
+      baseStoneRate
+      baseBazanRate
+      historicalEras
+      unlockOrder
+      unlockStoryDay
+      isOwned
+      ownershipStatus
+    }
+  }
+`;
+
+export const SEARCH_PROVINCES = gql`
+  query SearchProvinces($keyword: String!) {
+    searchProvinces(keyword: $keyword) {
+      id
+      name
+      nameEnglish
+      region
+      description
+      isCapital
+      baseGoldRate
+      baseRiceRate
+      baseWoodRate
+      baseStoneRate
+      baseBazanRate
+      historicalEras
+      unlockOrder
+      unlockStoryDay
+      isOwned
+      ownershipStatus
+    }
+  }
+`;
+
+export const PROVINCE_DETAIL = gql`
+  query ProvinceDetail($provinceId: Int!) {
+    provinceDetail(provinceId: $provinceId) {
+      id
+      name
+      nameEnglish
+      region
+      description
+      isCapital
+      baseGoldRate
+      baseRiceRate
+      baseWoodRate
+      baseStoneRate
+      baseBazanRate
+      historicalEras
+      unlockOrder
+      unlockStoryDay
+      isOwned
+      ownershipStatus
+      playerData {
+        farmerLevel
+        resourceLevel
+        developmentLevel
+        buildingsCount
+        passiveBuffs
+        activeSkillLevel
+        deployedHero {
+          id
+          nameVietnamese
+          era
+          rarity
+          role
+          bonusType
+          bonusValue
+        }
+      }
+      productionRates {
+        gold
+        rice
+        wood
+        stone
+        bazan
+      }
+      stories {
+        id
+        titleVietnamese
+        day
+        isAvailable
+      }
+    }
+  }
+`;
+
+export const REGION_STATISTICS = gql`
+  query RegionStatistics {
+    regionStatistics {
+      north {
+        total
+        owned
+        available
+        locked
+      }
+      central {
+        total
+        owned
+        available
+        locked
+      }
+      south {
+        total
+        owned
+        available
+        locked
+      }
+      overall {
+        total
+        owned
+        available
+        locked
+      }
+    }
+  }
+`;
+
+export const PROVINCE_UNLOCK_INFO = gql`
+  query ProvinceUnlockInfo($provinceId: Int!) {
+    provinceUnlockInfo(provinceId: $provinceId) {
+      provinceId
+      provinceName
+      unlockOrder
+      unlockStoryDay
+      requiredStory {
+        id
+        titleVietnamese
+        day
+        isAvailable
+      }
+      isStartingProvince
+      requirementsDescription
+    }
+  }
+`;
+
+export const TOTAL_PROVINCE_COUNT = gql`
+  query TotalProvinceCount {
+    totalProvinceCount
+  }
+`;
+
+export const MY_PROVINCE_COUNT = gql`
+  query MyProvinceCount {
+    myProvinceCount
   }
 `;

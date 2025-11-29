@@ -8,9 +8,13 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { PlayerModule } from './player/player.module';
 import { ProvinceModule } from './province/province.module';
+import { ProvinceDataModule } from './province/province-data.module';
 import { HeroModule } from './hero/hero.module';
+import { PetModule } from './pet/pet.module';
 import { StoryModule } from './story/story.module';
 import { ResourceModule } from './resource/resource.module';
+import { ResourceSynergyModule } from './resource/resource-synergy.module';
+import { EraProgressionModule } from './era/era-progression.module';
 import { GraphQLLoggingPlugin } from './graphql/plugins/logging.plugin';
 
 @Module({
@@ -27,14 +31,26 @@ import { GraphQLLoggingPlugin } from './graphql/plugins/logging.plugin';
     // Province Module
     ProvinceModule,
     
+    // Province Data Module (MVP2 Sprint 5 - 63 Provinces)
+    ProvinceDataModule,
+    
     // Hero Module
     HeroModule,
+    
+    // Pet Module (MVP2 Sprint 3)
+    PetModule,
     
     // Story & Quiz Module
     StoryModule,
     
     // Resource Module
     ResourceModule,
+    
+    // Resource Synergy Module (MVP2 Sprint 4)
+    ResourceSynergyModule,
+    
+    // Era Progression Module (MVP2 Sprint 4)
+    EraProgressionModule,
     
     // GraphQL Module with Code-First approach
     GraphQLModule.forRoot<ApolloDriverConfig>({

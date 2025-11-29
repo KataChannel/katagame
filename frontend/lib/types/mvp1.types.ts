@@ -168,6 +168,7 @@ export interface Province {
   id: number;
   name: string;
   nameVietnamese?: string;
+  nameEnglish?: string;
   region?: string;
   level?: number;
   maxLevel?: number;
@@ -220,17 +221,26 @@ export interface PlayerResources {
 export interface Story {
   id: string;
   day: number;
-  title: string;
-  titleVietnamese?: string;
+  title?: string;
+  titleVietnamese: string;
+  titleEnglish?: string;
   content: string;
   category: string;
+  era?: string;
   dynasty?: string;
   historicalFigure?: string;
-  culturePoints: number;
-  experienceReward: number;
+  provinceId?: number;
+  heroId?: string;
+  baseGoldReward?: number;
+  baseRiceReward?: number;
+  baseWoodReward?: number;
+  culturePoints?: number;
+  experienceReward?: number;
   iconUrl?: string;
   read?: boolean;
   quiz?: Quiz;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface Quiz {
@@ -358,4 +368,405 @@ export interface MVP1GameData {
   // Meta
   isLoading: boolean;
   error: string | null;
+}
+
+// ==================== MVP2: SPRINT 1 TYPES ====================
+
+/**
+ * Story with daily unlock status
+ */
+export interface StoryWithUnlockStatus extends Story {
+  isUnlocked: boolean;
+  daysUntilUnlock: number;
+  isCompleted: boolean;
+  daysSinceRegistration: number;
+}
+
+/**
+ * Enhanced quiz submission with x5 multiplier
+ */
+export interface QuizSubmissionResult {
+  id: string;
+  playerId: string;
+  storyId: string;
+  score: number;
+  maxScore: number;
+  answers: any;
+  timeTaken?: number;
+  rewards: {
+    gold: number;
+    rice: number;
+    wood?: number;
+    lumber?: number;
+  };
+  submittedAt: Date;
+  // MVP2 Fields
+  multiplier?: number;
+  isPerfect?: boolean;
+  correctCount?: number;
+  totalQuestions?: number;
+  perfectStreak?: number;
+}
+
+/**
+ * Quiz stats with perfect streak tracking
+ */
+export interface QuizStats {
+  totalQuizzes: number;
+  perfectQuizzes: number;
+  currentPerfectStreak: number;
+  bestPerfectStreak: number;
+  averageScore: number;
+}
+
+// ========================================
+// MVP2 SPRINT 2: PROVINCE SKILLS TYPES
+// ========================================
+
+/**
+ * Passive buff granted by province levels
+ * Unlocks at levels 5, 10, 15
+ */
+export interface PassiveBuff {
+  type: string; // e.g., 'GOLD_PRODUCTION', 'RICE_PRODUCTION'
+  value: number; // Percentage bonus
+  description: string; // Vietnamese description
+  source: string; // e.g., 'FARMER_LEVEL_5'
+  icon: string; // Emoji icon
+}
+
+/**
+ * Active skill for province
+ * Unlocks at development level 10
+ * Has 24-hour cooldown
+ */
+export interface ActiveSkill {
+  id: string; // e.g., 'RESOURCE_BOOST_1'
+  name: string; // Vietnamese name
+  description: string; // Vietnamese description
+  multiplier: number; // Resource production multiplier (2x, 3x, 5x)
+  duration_hours: number; // Effect duration in hours
+  cooldown_hours: number; // Cooldown duration (24h)
+  icon: string; // Emoji icon
+}
+
+/**
+ * Cooldown status for active skill
+ */
+export interface SkillCooldownStatus {
+  isOnCooldown: boolean;
+  remainingSeconds: number;
+  remainingHours?: number;
+  canUse: boolean;
+}
+
+/**
+ * Province with skills information
+ * Extends Province with passive buffs and active skill
+ */
+export interface ProvinceWithSkills extends Province {
+  provinceId: number;
+  province?: Province;
+  passiveBuffs: PassiveBuff[];
+  activeSkill?: ActiveSkill;
+  skillCooldown?: SkillCooldownStatus;
+}
+
+/**
+ * Result of using active skill
+ */
+export interface UseActiveSkillResult {
+  playerProvince: Province;
+  skill: ActiveSkill;
+}
+
+// ==================== MVP2 SPRINT 3: HERO LEVELS & PET SYSTEM ====================
+
+/**
+ * Hero stats based on level (1-5)
+ * Each level increases stats by 20%
+ */
+export interface HeroStats {
+  hp: number;
+  attack: number;
+  defense: number;
+  speed: number;
+  level: number;
+  baseHP?: number;
+  baseAttack?: number;
+  baseDefense?: number;
+  baseSpeed?: number;
+}
+
+/**
+ * Player hero with calculated stats
+ */
+export interface PlayerHeroWithStats extends Hero {
+  stats: HeroStats;
+  expForNextLevel: number;
+  expProgress: number; // Current exp towards next level
+}
+
+/**
+ * Result of granting experience to hero
+ */
+export interface GrantExpResult {
+  playerHero: Hero;
+  leveledUp: boolean;
+  levelsGained: number;
+}
+
+/**
+ * Pet bonuses based on pet type
+ * 6 types: combat, resource, experience, luck, speed, generic
+ */
+export interface PetBonuses {
+  // Combat bonuses
+  attack?: number;
+  defense?: number;
+  hp?: number;
+  
+  // Resource bonuses
+  goldBonus?: number;
+  riceBonus?: number;
+  woodBonus?: number;
+  stoneBonus?: number;
+  
+  // Special bonuses
+  expBonus?: number;
+  learningSpeed?: number;
+  luckBonus?: number;
+  criticalChance?: number;
+  
+  // Speed bonuses
+  speed?: number;
+  buildingSpeed?: number;
+  harvestSpeed?: number;
+  
+  // Generic bonuses
+  allStats?: number;
+  
+  // Display
+  icon: string;
+  description: string;
+}
+
+/**
+ * Pet with calculated bonuses
+ */
+export interface PetWithBonuses extends Pet {
+  bonuses: PetBonuses;
+}
+
+/**
+ * Result of assigning pet to hero
+ */
+export interface AssignPetResult {
+  playerHero: Hero;
+  pet: Pet;
+  bonuses: PetBonuses;
+  cooldownEnds: Date;
+  effectEnds: Date;
+}
+
+// ==================== MVP2 SPRINT 4: RESOURCE SYNERGY & ERA PROGRESSION ====================
+
+/**
+ * Wu Xing (Five Elements) synergy information
+ */
+export interface ResourceSynergy {
+  sourceResource: string;
+  targetResource: string;
+  sourceElement: string;
+  targetElement: string;
+  bonusPercentage: number;
+  affectedProvinces: number;
+  description: string;
+  icon: string;
+}
+
+/**
+ * Player's synergy status
+ */
+export interface PlayerSynergies {
+  playerId: string;
+  totalProvinces: number;
+  activeSynergies: ResourceSynergy[];
+  totalBonusPercentage: number;
+  cycleCompletion: number;
+}
+
+/**
+ * Wu Xing cycle node
+ */
+export interface WuXingNode {
+  element: string;
+  elementName: string;
+  emoji: string;
+  resource: string;
+  resourceNameVN: string;
+  nextElement: string;
+  nextResource: string;
+  isActive: boolean;
+  bonusPercentage: number;
+}
+
+/**
+ * Wu Xing cycle data
+ */
+export interface WuXingCycleData {
+  playerId: string;
+  cycleNodes: WuXingNode[];
+  activeSynergies: ResourceSynergy[];
+  cycleCompletion: number;
+  totalBonus: number;
+  description: string;
+}
+
+/**
+ * Era benefits
+ */
+export interface EraBenefits {
+  goldBonus: number;
+  riceBonus: number;
+  woodBonus: number;
+  stoneBonus: number;
+  expBonus: number;
+  unlockHeroes: string[];
+}
+
+/**
+ * Era information
+ */
+export interface EraInfo {
+  id: string;
+  name: string;
+  nameEnglish: string;
+  description: string;
+  emoji: string;
+  color: string;
+  minStories: number;
+  maxStories: number;
+  benefits: EraBenefits;
+  landmarks: string[];
+  isUnlocked: boolean;
+  isCurrent: boolean;
+  progressPercentage: number;
+  requiredStories: number;
+  remainingStories: number;
+}
+
+/**
+ * Player's current era
+ */
+export interface PlayerCurrentEra {
+  playerId: string;
+  currentEra: string;
+  eraName: string;
+  eraEmoji: string;
+  completedStories: number;
+  benefits: EraBenefits;
+  isMaxEra: boolean;
+}
+
+/**
+ * Era timeline
+ */
+export interface EraTimeline {
+  playerId: string;
+  completedStories: number;
+  timeline: EraInfo[];
+  currentEraIndex: number;
+}
+
+// ==================== PROVINCE DATA (Sprint 5) ====================
+
+export interface ProvinceData {
+  id: number;
+  name: string;
+  nameEnglish?: string;
+  region: string; // 'Miền Bắc' | 'Miền Trung' | 'Miền Nam'
+  description?: string;
+  isCapital?: boolean;
+  baseGoldRate?: number;
+  baseRiceRate?: number;
+  baseWoodRate?: number;
+  baseStoneRate?: number;
+  baseBazanRate?: number;
+  historicalEras?: string[];
+  unlockOrder?: number;
+  unlockStoryDay?: number;
+  isOwned: boolean;
+  ownershipStatus: 'owned' | 'available' | 'locked';
+}
+
+export interface ProvincePlayerData {
+  farmerLevel: number;
+  resourceLevel: number;
+  developmentLevel: number;
+  buildingsCount: number;
+  passiveBuffs: string[];
+  activeSkillLevel: number;
+  deployedHero?: Hero;
+}
+
+export interface ProvinceProductionRates {
+  gold: number;
+  rice: number;
+  wood: number;
+  stone: number;
+  bazan: number;
+}
+
+export interface StoryInfo {
+  id: string;
+  titleVietnamese: string;
+  day: number;
+  isAvailable: boolean;
+}
+
+export interface ProvinceDetails {
+  id: number;
+  name: string;
+  nameEnglish?: string;
+  region: string;
+  description?: string;
+  isCapital?: boolean;
+  baseGoldRate?: number;
+  baseRiceRate?: number;
+  baseWoodRate?: number;
+  baseStoneRate?: number;
+  baseBazanRate?: number;
+  historicalEras?: string[];
+  unlockOrder?: number;
+  unlockStoryDay?: number;
+  isOwned: boolean;
+  ownershipStatus: 'owned' | 'available' | 'locked';
+  playerData?: ProvincePlayerData;
+  productionRates: ProvinceProductionRates;
+  stories: StoryInfo[];
+}
+
+export interface RegionStatistic {
+  total: number;
+  owned: number;
+  available: number;
+  locked: number;
+}
+
+export interface RegionStatistics {
+  north: RegionStatistic;
+  central: RegionStatistic;
+  south: RegionStatistic;
+  overall: RegionStatistic;
+}
+
+export interface ProvinceUnlockInfo {
+  provinceId: number;
+  provinceName: string;
+  unlockOrder?: number;
+  unlockStoryDay?: number;
+  requiredStory?: StoryInfo;
+  isStartingProvince: boolean;
+  requirementsDescription: string;
 }
