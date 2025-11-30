@@ -1,6 +1,6 @@
 'use client';
 
-import { FileText, Sparkles, Sword, Users, Crown, Map, Gift, Trophy, Coins } from 'lucide-react';
+import { FileText, Sparkles, Sword, Users, Crown, Map, Gift, Trophy, Coins, Gamepad2, ShoppingCart, Palette, BarChart3, Globe, UserPlus, Store, Zap } from 'lucide-react';
 
 interface ChangelogEntry {
   version: string;
@@ -15,6 +15,114 @@ interface ChangelogEntry {
 }
 
 const changelogs: ChangelogEntry[] = [
+  {
+    version: '0.1.1',
+    date: '2024-11-30',
+    title: 'MVP1.1 - Hoàn Thiện Trải Nghiệm Game',
+    description: 'Bản cập nhật lớn với hơn 22+ tính năng mới, bao gồm hệ thống Gacha, Arena PvP, Guild, Marketplace và nhiều cải tiến UX!',
+    sections: [
+      {
+        title: 'Trang Chủ & Click Farming',
+        icon: <Gamepad2 className="w-5 h-5 text-green-500" />,
+        items: [
+          'Click Farming: Click vào tài nguyên để thu thập (1-3 tài nguyên/click)',
+          'Quản lý Tỉnh Thành: Xem, mở khóa (200 vàng), nâng cấp các tỉnh Việt Nam',
+          'Thuê Nông Dân: Tự động thu thập tài nguyên',
+          'Điều chỉnh tốc độ game: 0.5x, 1x, 2x, 5x',
+        ],
+      },
+      {
+        title: 'Hệ Thống Chiến Đấu',
+        icon: <Sword className="w-5 h-5 text-red-500" />,
+        items: [
+          'Combat Tab: Tham gia các trận chiến PvE',
+          'Arena PvP: Đấu trường với người chơi khác, xếp hạng',
+          'Sử dụng tướng và pet trong combat',
+          'Hệ thống tính toán sát thương dựa trên chỉ số',
+        ],
+      },
+      {
+        title: 'Hệ Thống Tướng & Pet',
+        icon: <Crown className="w-5 h-5 text-purple-500" />,
+        items: [
+          'Heroes Tab: Danh sách tướng với trang chi tiết riêng (/heroes/[id])',
+          'Pets Tab: Quản lý linh thú đồng hành',
+          'Gacha System: Quay gacha để nhận tướng/pet ngẫu nhiên',
+          'Synergy System: Hệ thống tương hỗ giữa các tướng',
+        ],
+      },
+      {
+        title: 'Guild & Social',
+        icon: <Users className="w-5 h-5 text-teal-500" />,
+        items: [
+          'Guild Tab: Tham gia hoặc tạo bang hội',
+          'Friends Tab: Kết bạn với người chơi khác',
+          'Gửi/Nhận quà từ bạn bè (reset hàng ngày)',
+          'Multiplayer: Chế độ chơi nhiều người',
+        ],
+      },
+      {
+        title: 'World Map & Provinces',
+        icon: <Globe className="w-5 h-5 text-blue-500" />,
+        items: [
+          'World Map Tab: Khám phá bản đồ thế giới game',
+          'Provinces Page: Danh sách và chi tiết từng tỉnh (/provinces/[id])',
+          'Era Page: Thông tin các thời kỳ lịch sử Việt Nam',
+          'Stories Page: Câu chuyện lịch sử với trang chi tiết (/stories/[id])',
+        ],
+      },
+      {
+        title: 'Nhiệm Vụ & Battle Pass',
+        icon: <Gift className="w-5 h-5 text-indigo-500" />,
+        items: [
+          'Daily Missions: Nhiệm vụ hàng ngày với phần thưởng, reset tự động',
+          'Battle Pass Tab: 50 cấp độ phần thưởng Free và Premium',
+          'Achievements: 15+ thành tựu với cấp Bronze, Silver, Gold, Platinum',
+          'Tích lũy EXP qua mọi hoạt động chơi game',
+        ],
+      },
+      {
+        title: 'Shop & Marketplace',
+        icon: <Store className="w-5 h-5 text-yellow-500" />,
+        items: [
+          'Shop: Cửa hàng vật phẩm cơ bản',
+          'Enhanced Shop: Cửa hàng nâng cao với refresh shop',
+          'Marketplace: Mua bán vật phẩm P2P với người chơi khác',
+          'Premium Pass: Đặc quyền VIP tăng tốc phát triển',
+        ],
+      },
+      {
+        title: 'Customization & Analytics',
+        icon: <Palette className="w-5 h-5 text-pink-500" />,
+        items: [
+          'Customization Tab: Tùy chỉnh giao diện nhân vật',
+          'Analytics Tab: Thống kê tiến độ và phân tích dữ liệu chơi',
+          'Settings Panel: Cài đặt âm thanh, thông báo',
+          'Changelog: Xem lịch sử cập nhật game',
+        ],
+      },
+      {
+        title: 'Văn Hóa & Giáo Dục',
+        icon: <FileText className="w-5 h-5 text-orange-500" />,
+        items: [
+          'Culture Center: Trung tâm văn hóa Việt Nam',
+          'Quiz kiến thức với 3 cấp độ: Dễ, Trung Bình, Khó',
+          'Nội dung giáo dục về lịch sử Việt Nam',
+          'Tutorial hướng dẫn cho người chơi mới',
+        ],
+      },
+      {
+        title: 'Hệ Thống Tài Khoản & UX',
+        icon: <Zap className="w-5 h-5 text-cyan-500" />,
+        items: [
+          'Đăng ký/Đăng nhập với Email + Google Sign-In',
+          'Lưu tiến độ tự động (Sync với Backend)',
+          'Responsive Design: Mobile Bottom Nav + Desktop Top Nav',
+          'Mobile: Swipeable Cards, Desktop: Grid Layout',
+        ],
+      },
+    ],
+  },
   {
     version: '0.1.0',
     date: '2024-01-15',

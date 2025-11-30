@@ -12,7 +12,12 @@
     "frontend": "cd frontend && npm run dev",
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose down",
-    "db:reset": "docker compose down -v && docker compose up -d postgres"
+    "db:reset": "docker compose down -v && docker compose up -d postgres",
+    "ssh": "bash ./1sshauto.sh",
+    "git": "bash ./2autogit.sh",
+    "deploy": "bash ./3deploy.sh",
+    "clean": "bash ./4docsclean.sh",
+    "killport": "bash ./5killport.sh"
   },
   "devDependencies": {
     "bun-types": "latest"

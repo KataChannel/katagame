@@ -34,6 +34,11 @@ const menuOptions = [
   { key: "3", label: "Frontend only (Next.js)", value: "frontend" },
   { key: "4", label: "Database only (PostgreSQL Docker)", value: "database" },
   { key: "5", label: "Backend + Frontend (No DB)", value: "services" },
+  { key: "6", label: "SSH Auto Manager", value: "ssh" },
+  { key: "7", label: "Auto Git Manager", value: "git" },
+  { key: "8", label: "Deploy Manager", value: "deploy" },
+  { key: "9", label: "Clean Project", value: "clean" },
+  { key: "10", label: "Kill Port Manager", value: "killport" },
   { key: "0", label: "Exit", value: "exit" },
 ];
 
@@ -59,29 +64,49 @@ ${c.cyan}╔══════════════════════�
 }
 
 function printMenu() {
-  console.log(`${c.bright}${c.white}┌─────────────────────────────────────┐${c.reset}`);
-  console.log(`${c.bright}${c.white}│     ${c.cyan}🚀 Development Menu${c.white}            │${c.reset}`);
-  console.log(`${c.bright}${c.white}├─────────────────────────────────────┤${c.reset}`);
+  console.log(`${c.bright}${c.white}┌─────────────────────────────────────────────┐${c.reset}`);
+  console.log(`${c.bright}${c.white}│        ${c.cyan}🚀 Development Menu${c.white}                │${c.reset}`);
+  console.log(`${c.bright}${c.white}├─────────────────────────────────────────────┤${c.reset}`);
+  console.log(`${c.bright}${c.white}│  ${c.yellow}📦 Services${c.white}                                │${c.reset}`);
   
-  for (const opt of menuOptions) {
+  for (const opt of menuOptions.slice(0, 5)) {
     const icon = opt.value === "all" ? "🌐" :
                  opt.value === "backend" ? "⚙️ " :
                  opt.value === "frontend" ? "🎨" :
                  opt.value === "database" ? "🗄️ " :
-                 opt.value === "services" ? "🔧" :
-                 opt.value === "exit" ? "❌" : "•";
+                 opt.value === "services" ? "🔧" : "•";
     
     const color = opt.value === "all" ? c.green :
                   opt.value === "backend" ? c.blue :
                   opt.value === "frontend" ? c.magenta :
                   opt.value === "database" ? c.yellow :
-                  opt.value === "services" ? c.cyan :
-                  c.red;
+                  c.cyan;
     
-    console.log(`${c.bright}${c.white}│  ${color}[${opt.key}]${c.white} ${icon} ${opt.label.padEnd(26)}│${c.reset}`);
+    console.log(`${c.bright}${c.white}│  ${color}[${opt.key}]${c.white} ${icon} ${opt.label.padEnd(32)}│${c.reset}`);
   }
   
-  console.log(`${c.bright}${c.white}└─────────────────────────────────────┘${c.reset}`);
+  console.log(`${c.bright}${c.white}├─────────────────────────────────────────────┤${c.reset}`);
+  console.log(`${c.bright}${c.white}│  ${c.yellow}🛠️  Tools${c.white}                                  │${c.reset}`);
+  
+  for (const opt of menuOptions.slice(5, 10)) {
+    const icon = opt.value === "ssh" ? "🔐" :
+                 opt.value === "git" ? "📝" :
+                 opt.value === "deploy" ? "🚀" :
+                 opt.value === "clean" ? "🧹" :
+                 opt.value === "killport" ? "💀" : "•";
+    
+    const color = opt.value === "ssh" ? c.cyan :
+                  opt.value === "git" ? c.magenta :
+                  opt.value === "deploy" ? c.green :
+                  opt.value === "clean" ? c.blue :
+                  c.red;
+    
+    console.log(`${c.bright}${c.white}│  ${color}[${opt.key.padStart(2)}]${c.white} ${icon} ${opt.label.padEnd(31)}│${c.reset}`);
+  }
+  
+  console.log(`${c.bright}${c.white}├─────────────────────────────────────────────┤${c.reset}`);
+  console.log(`${c.bright}${c.white}│  ${c.red}[0]${c.white} ❌ Exit                                 │${c.reset}`);
+  console.log(`${c.bright}${c.white}└─────────────────────────────────────────────┘${c.reset}`);
   console.log();
 }
 
@@ -164,6 +189,22 @@ async function startFrontend(): Promise<Subprocess | null> {
   return proc;
 }
 
+async function runScript(scriptName: string, label: string): Promise<void> {
+  console.log();
+  console.log(`${c.bright}${c.bgBlue}${c.white} 🛠️  Running ${label} ${c.reset}`);
+  console.log();
+  
+  const proc = spawn({
+    cmd: ["bash", `./${scriptName}`],
+    cwd: process.cwd(),
+    stdout: "inherit",
+    stderr: "inherit",
+    stdin: "inherit",
+  });
+  
+  await proc.exited;
+}
+
 async function runOption(option: string) {
   console.log();
   console.log(`${c.bright}${c.bgBlue}${c.white} 🚀 Starting Services ${c.reset}`);
@@ -195,6 +236,26 @@ async function runOption(option: string) {
       console.log();
       await startFrontend();
       break;
+    
+    case "ssh":
+      await runScript("1sshauto.sh", "SSH Auto Manager");
+      return;
+      
+    case "git":
+      await runScript("2autogit.sh", "Auto Git Manager");
+      return;
+      
+    case "deploy":
+      await runScript("3deploy.sh", "Deploy Manager");
+      return;
+      
+    case "clean":
+      await runScript("4docsclean.sh", "Clean Project");
+      return;
+      
+    case "killport":
+      await runScript("5killport.sh", "Kill Port Manager");
+      return;
       
     case "exit":
       console.log(`${c.yellow}👋 Goodbye!${c.reset}`);
@@ -224,7 +285,7 @@ async function promptUser(): Promise<string> {
   });
   
   return new Promise((resolve) => {
-    rl.question(`${c.bright}${c.cyan}Enter your choice [1-5, 0 to exit]: ${c.reset}`, (answer) => {
+    rl.question(`${c.bright}${c.cyan}Enter your choice [1-10, 0 to exit]: ${c.reset}`, (answer) => {
       rl.close();
       resolve(answer.trim());
     });
