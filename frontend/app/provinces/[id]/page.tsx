@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery } from '@apollo/client';
+import { useQuery } from '@apollo/client/react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
@@ -217,7 +217,7 @@ export default function ProvinceDetailPage() {
             </div>
 
             {/* Deployed Hero */}
-            {province.playerData.deployedHero && (
+            {province.playerData.deployedHeroId && (
               <div className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg p-4 border-2 border-purple-300">
                 <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
                   <Crown className="w-5 h-5 text-purple-600" />
@@ -228,16 +228,10 @@ export default function ProvinceDetailPage() {
                     👑
                   </div>
                   <div className="flex-1">
-                    <div className="font-bold text-xl">{province.playerData.deployedHero.nameVietnamese}</div>
+                    <div className="font-bold text-xl">{province.playerData.deployedHeroName}</div>
                     <div className="text-sm text-gray-600 mb-2">
-                      {province.playerData.deployedHero.era} · {province.playerData.deployedHero.rarity}
+                      {province.playerData.deployedHeroEra} · {province.playerData.deployedHeroRarity}
                     </div>
-                    {province.playerData.deployedHero.bonusType && (
-                      <div className="text-sm bg-white rounded-lg px-3 py-1 inline-block">
-                        <span className="font-medium">{province.playerData.deployedHero.bonusType}</span>
-                        <span className="text-green-600 ml-2">+{province.playerData.deployedHero.bonusValue}</span>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>

@@ -6,6 +6,8 @@ import { EraProgressionService } from './era-progression.service';
 import {
   PlayerCurrentEra,
   EraTimeline,
+  PlayerEraBonuses,
+  UnlockableHeroesResult,
 } from '../graphql/models/hero.model';
 
 /**
@@ -46,20 +48,20 @@ export class EraProgressionResolver {
   /**
    * Get era bonuses
    */
-  @Query(() => Object, { name: 'myEraBonuses' })
+  @Query(() => PlayerEraBonuses, { name: 'myEraBonuses' })
   async getMyEraBonuses(
     @CurrentUser() user: any,
-  ) {
+  ): Promise<PlayerEraBonuses> {
     return this.eraService.calculateEraBonuses(user.sub);
   }
 
   /**
    * Get unlockable heroes from current era
    */
-  @Query(() => Object, { name: 'unlockableHeroes' })
+  @Query(() => UnlockableHeroesResult, { name: 'unlockableHeroes' })
   async getUnlockableHeroes(
     @CurrentUser() user: any,
-  ) {
+  ): Promise<UnlockableHeroesResult> {
     return this.eraService.getUnlockableHeroes(user.sub);
   }
 }

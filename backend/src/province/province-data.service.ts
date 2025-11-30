@@ -310,7 +310,10 @@ export class ProvinceDataService {
             buildingsCount: playerProvince.buildings_count,
             passiveBuffs: playerProvince.passive_buffs || [],
             activeSkillLevel: playerProvince.active_skill_level || 0,
-            deployedHero: deployedHero,
+            deployedHeroId: deployedHero?.id || null,
+            deployedHeroName: deployedHero?.name_vietnamese || null,
+            deployedHeroEra: deployedHero?.era || null,
+            deployedHeroRarity: deployedHero?.rarity || null,
           }
         : null,
       productionRates: {

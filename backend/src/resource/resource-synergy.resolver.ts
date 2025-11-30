@@ -1,4 +1,4 @@
-import { Resolver, Query, Args } from '@nestjs/graphql';
+import { Resolver, Query, Args, Int } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
@@ -6,6 +6,7 @@ import { ResourceSynergyService } from './resource-synergy.service';
 import {
   PlayerSynergies,
   WuXingCycleData,
+  ProvinceSynergyInfo,
 } from '../graphql/models/hero.model';
 
 /**
@@ -46,11 +47,11 @@ export class ResourceSynergyResolver {
   /**
    * Check synergy for specific province
    */
-  @Query(() => Object, { name: 'provinceSynergy' })
+  @Query(() => ProvinceSynergyInfo, { name: 'provinceSynergy' })
   async getProvinceSynergy(
     @CurrentUser() user: any,
-    @Args('provinceId', { type: () => Number }) provinceId: number,
-  ) {
+    @Args('provinceId', { type: () => Int }) provinceId: number,
+  ): Promise<ProvinceSynergyInfo> {
     return this.synergyService.checkProvinceSynergy(user.sub, provinceId);
   }
 }

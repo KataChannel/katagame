@@ -1136,15 +1136,10 @@ export const PROVINCE_DETAIL = gql`
         buildingsCount
         passiveBuffs
         activeSkillLevel
-        deployedHero {
-          id
-          nameVietnamese
-          era
-          rarity
-          role
-          bonusType
-          bonusValue
-        }
+        deployedHeroId
+        deployedHeroName
+        deployedHeroEra
+        deployedHeroRarity
       }
       productionRates {
         gold

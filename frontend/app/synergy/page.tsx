@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery } from '@apollo/client';
+import { useQuery } from '@apollo/client/react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';

@@ -1,0 +1,20 @@
+{
+  "name": "katagame",
+  "version": "1.0.0",
+  "description": "Vietnamese History Gaming Platform - MVP2",
+  "scripts": {
+    "dev": "bun run dev.ts",
+    "dev:all": "bun run dev.ts all",
+    "dev:backend": "bun run dev.ts backend",
+    "dev:frontend": "bun run dev.ts frontend",
+    "dev:db": "bun run dev.ts database",
+    "backend": "cd backend && npm run dev",
+    "frontend": "cd frontend && npm run dev",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v && docker compose up -d postgres"
+  },
+  "devDependencies": {
+    "bun-types": "latest"
+  }
+}

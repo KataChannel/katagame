@@ -1,9 +1,10 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Home, Crown, ShoppingCart, Book, Trophy, Settings, Swords, Users as UsersIcon, Sparkles, Gem, Shield, Map, Target, UserPlus, Palette, BarChart3, Radio, Store } from 'lucide-react';
+import { Home, Crown, ShoppingCart, Book, Trophy, Settings, Swords, Users as UsersIcon, Sparkles, Gem, Shield, Map, Target, UserPlus, Palette, BarChart3, Radio, Store, Heart, Clock } from 'lucide-react';
 import { touchTargets, colors, zIndex, animations } from '@/lib/mobileDesignSystem';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { getPlayerNavigation, DEFAULT_NAVIGATION, type NavigationItem } from '@/lib/navigationService';
 
 interface MobileBottomNavProps {
@@ -13,7 +14,7 @@ interface MobileBottomNavProps {
   token?: string; // JWT token for authentication
 }
 
-// Icon mapping
+// Icon mapping - includes new icons for pets, era, synergy
 const iconMap: Record<string, any> = {
   Home,
   Crown,
@@ -33,9 +34,15 @@ const iconMap: Record<string, any> = {
   BarChart3,
   Radio,
   Store,
+  Heart,
+  Clock,
 };
 
+// Standalone pages that use Next.js routing
+const STANDALONE_PAGES = ['heroes', 'pets', 'era', 'synergy'];
+
 export default function MobileBottomNav({ activeTab, onTabChange, className = '', token }: MobileBottomNavProps) {
+  const router = useRouter();
   const [navItems, setNavItems] = useState<NavigationItem[]>(DEFAULT_NAVIGATION);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -66,6 +73,13 @@ export default function MobileBottomNav({ activeTab, onTabChange, className = ''
     if ('vibrate' in navigator) {
       navigator.vibrate(10);
     }
+    
+    // For standalone pages, use Next.js router
+    if (STANDALONE_PAGES.includes(tab)) {
+      router.push(`/${tab}`);
+      return;
+    }
+    
     onTabChange(tab);
   };
 
@@ -201,6 +215,7 @@ export default function MobileBottomNav({ activeTab, onTabChange, className = ''
 
 // Desktop Navigation (Horizontal tabs) - Hidden on mobile
 export function DesktopNav({ activeTab, onTabChange, className = '', token }: MobileBottomNavProps) {
+  const router = useRouter();
   const [navItems, setNavItems] = useState<NavigationItem[]>(DEFAULT_NAVIGATION);
 
   // Fetch navigation items from API
@@ -218,6 +233,15 @@ export function DesktopNav({ activeTab, onTabChange, className = '', token }: Mo
     }
   }, [token]);
 
+  const handleNavClick = (tab: string) => {
+    // For standalone pages, use Next.js router
+    if (STANDALONE_PAGES.includes(tab)) {
+      router.push(`/${tab}`);
+      return;
+    }
+    onTabChange(tab);
+  };
+
   const regularNavItems = navItems.filter(item => item.key !== 'settings');
   const settingsItem = navItems.find(item => item.key === 'settings');
 
@@ -232,7 +256,7 @@ export function DesktopNav({ activeTab, onTabChange, className = '', token }: Mo
             return (
               <button
                 key={item.key}
-                onClick={() => onTabChange(item.key)}
+                onClick={() => handleNavClick(item.key)}
                 className={`
                   flex items-center gap-2 py-4 px-2 border-b-2 transition-colors whitespace-nowrap
                   ${isActive 

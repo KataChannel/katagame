@@ -1,7 +1,7 @@
 'use client';
 
 import { use } from 'react';
-import { useQuery, useMutation } from '@apollo/client';
+import { useQuery, useMutation } from '@apollo/client/react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { 

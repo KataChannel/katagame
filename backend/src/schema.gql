@@ -2,6 +2,22 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type ActiveSkill {
+  cooldown_hours: Int!
+  description: String!
+  duration_hours: Int!
+  icon: String!
+  id: String!
+  multiplier: Int!
+  name: String!
+}
+
+type AssignPetResult {
+  bonuses: PetBonuses!
+  pet: Pet!
+  playerHero: PlayerHero!
+}
+
 type AuthResponse {
   level: Int
   message: String
@@ -23,6 +39,54 @@ scalar DateTime
 input DeployHeroInput {
   heroId: String!
   provinceId: Int!
+}
+
+type EraBenefits {
+  expBonus: Int!
+  goldBonus: Int!
+  riceBonus: Int!
+  stoneBonus: Int!
+  unlockHeroes: [String!]!
+  woodBonus: Int!
+}
+
+type EraInfo {
+  benefits: EraBenefits!
+  color: String!
+  description: String!
+  emoji: String!
+  id: String!
+  isCurrent: Boolean!
+  isUnlocked: Boolean!
+  landmarks: [String!]!
+  maxStories: Int!
+  minStories: Int!
+  name: String!
+  nameEnglish: String!
+  progressPercentage: Float!
+  remainingStories: Int!
+  requiredStories: Int!
+}
+
+type EraProductionBonuses {
+  experienceGain: Int!
+  goldProduction: Int!
+  riceProduction: Int!
+  stoneProduction: Int!
+  woodProduction: Int!
+}
+
+type EraTimeline {
+  completedStories: Int!
+  currentEraIndex: Int!
+  playerId: String!
+  timeline: [EraInfo!]!
+}
+
+type GrantExpResult {
+  leveledUp: Boolean!
+  levelsGained: Int!
+  playerHero: PlayerHero!
 }
 
 type Hero {
@@ -47,6 +111,18 @@ type Hero {
   storyDay: Int
   unlockRequirement: String
   updatedAt: DateTime!
+}
+
+type HeroStats {
+  attack: Int!
+  baseAttack: Int
+  baseDefense: Int
+  baseHP: Int
+  baseSpeed: Int
+  defense: Int!
+  hp: Int!
+  level: Int!
+  speed: Int!
 }
 
 input HeroWhereInput {
@@ -85,18 +161,24 @@ input MarkStoryReadInput {
 
 type Mutation {
   addResources(bazan: Float = 0, gold: Float = 0, lumber: Float = 0, rice: Float = 0, stone: Float = 0): MutationResponse!
+  assignPetToHero(heroId: String!, petId: String!): AssignPetResult!
   deployHero(input: DeployHeroInput!): PlayerHero!
   googleAuth(credential: String!): AuthResponse!
+  grantExpToHero(expAmount: Int!, heroId: String!): GrantExpResult!
+  grantExpToPet(expAmount: Int!, petId: String!): Pet!
   levelUpHero(input: LevelUpHeroInput!): PlayerHero!
+  levelUpPet(petId: String!): Pet!
   login(email: String!, password: String!): AuthResponse!
   markStoryRead(input: MarkStoryReadInput!): String!
   recruitHero(input: RecruitHeroInput!): PlayerHero!
   register(email: String!, password: String!, username: String!): AuthResponse!
   resetPlayerData: MutationResponse!
   submitQuiz(input: SubmitQuizInput!): QuizSubmission!
+  unassignPetFromHero(heroId: String!): Boolean!
   unlockProvince(input: UnlockProvinceInput!): PlayerProvince!
   updatePlayer(data: PlayerUpdateInput!): Player!
   upgradeProvince(input: UpgradeProvinceInput!): PlayerProvince!
+  useProvinceSkill(provinceId: Int!): UseActiveSkillResult!
 }
 
 type MutationResponse {
@@ -107,6 +189,57 @@ type MutationResponse {
 input PaginationInput {
   skip: Int = 0
   take: Int = 10
+}
+
+type PassiveBuff {
+  description: String!
+  icon: String!
+  source: String!
+  type: String!
+  value: Int!
+}
+
+type Pet {
+  acquiredAt: DateTime!
+  experience: Int
+  id: ID!
+  level: Int
+  name: String!
+  petType: String
+  playerId: ID!
+  rarity: String
+}
+
+type PetBonuses {
+  allStats: Int
+  attack: Int
+  buildingSpeed: Int
+  criticalChance: Int
+  defense: Int
+  description: String!
+  expBonus: Int
+  goldBonus: Int
+  hp: Int
+  icon: String!
+  learningSpeed: Int
+  luckBonus: Int
+  productionSpeed: Int
+  riceBonus: Int
+  speed: Int
+}
+
+type PetWithBonuses {
+  acquiredAt: DateTime!
+  bonuses: PetBonuses!
+  expForNextLevel: Int!
+  expProgress: Int!
+  experience: Int
+  id: ID!
+  level: Int
+  name: String!
+  petType: String
+  playerId: ID!
+  rarity: String
 }
 
 type Player {
@@ -123,6 +256,24 @@ type Player {
   status: String
   updatedAt: DateTime
   username: String!
+}
+
+type PlayerCurrentEra {
+  benefits: EraBenefits!
+  completedStories: Int!
+  currentEra: String!
+  eraEmoji: String!
+  eraName: String!
+  isMaxEra: Boolean!
+  playerId: String!
+}
+
+type PlayerEraBonuses {
+  bonuses: EraProductionBonuses!
+  description: String!
+  era: String!
+  eraName: String!
+  playerId: String!
 }
 
 type PlayerHero {
@@ -143,6 +294,22 @@ input PlayerHeroWhereInput {
   heroId: StringFilter
   level: IntFilter
   playerId: StringFilter
+}
+
+type PlayerHeroWithStats {
+  acquiredAt: DateTime!
+  createdAt: DateTime!
+  deployedTo: Int
+  expForNextLevel: Int!
+  expProgress: Int!
+  experience: Int
+  hero: Hero!
+  heroId: ID!
+  id: ID!
+  level: Int
+  playerId: ID!
+  stats: HeroStats!
+  updatedAt: DateTime!
 }
 
 type PlayerProvince {
@@ -167,6 +334,23 @@ input PlayerProvinceWhereInput {
   resource_level: IntFilter
 }
 
+type PlayerProvinceWithSkills {
+  activeSkill: ActiveSkill
+  buildingsCount: Int
+  createdAt: DateTime!
+  developmentLevel: Int
+  farmerLevel: Int
+  heroId: ID
+  id: ID!
+  passiveBuffs: [PassiveBuff!]!
+  playerId: ID!
+  province: Province!
+  provinceId: Int!
+  resourceLevel: Int
+  skillCooldown: SkillCooldownStatus
+  updatedAt: DateTime!
+}
+
 type PlayerResource {
   amount: Int!
   createdAt: DateTime!
@@ -175,6 +359,14 @@ type PlayerResource {
   playerId: ID!
   resourceType: String!
   updatedAt: DateTime!
+}
+
+type PlayerSynergies {
+  activeSynergies: [ResourceSynergy!]!
+  cycleCompletion: Float!
+  playerId: String!
+  totalBonusPercentage: Int!
+  totalProvinces: Int!
 }
 
 input PlayerUpdateInput {
@@ -211,6 +403,87 @@ type Province {
   updatedAt: DateTime!
 }
 
+type ProvinceData {
+  baseBazanRate: Float
+  baseGoldRate: Float
+  baseRiceRate: Float
+  baseStoneRate: Float
+  baseWoodRate: Float
+  description: String
+  historicalEras: [String!]
+  id: Int!
+  isCapital: Boolean
+  isOwned: Boolean!
+  name: String!
+  nameEnglish: String
+  ownershipStatus: String!
+  region: String!
+  unlockOrder: Int
+  unlockStoryDay: Int
+}
+
+type ProvinceDetails {
+  baseBazanRate: Float
+  baseGoldRate: Float
+  baseRiceRate: Float
+  baseStoneRate: Float
+  baseWoodRate: Float
+  description: String
+  historicalEras: [String!]
+  id: Int!
+  isCapital: Boolean
+  isOwned: Boolean!
+  name: String!
+  nameEnglish: String
+  ownershipStatus: String!
+  playerData: ProvincePlayerData
+  productionRates: ProvinceProductionRates!
+  region: String!
+  stories: [StoryInfo!]!
+  unlockOrder: Int
+  unlockStoryDay: Int
+}
+
+type ProvincePlayerData {
+  activeSkillLevel: Int!
+  buildingsCount: Int!
+  deployedHeroEra: String
+  deployedHeroId: String
+  deployedHeroName: String
+  deployedHeroRarity: String
+  developmentLevel: Int!
+  farmerLevel: Int!
+  passiveBuffs: [String!]!
+  resourceLevel: Int!
+}
+
+type ProvinceProductionRates {
+  bazan: Int!
+  gold: Int!
+  rice: Int!
+  stone: Int!
+  wood: Int!
+}
+
+type ProvinceSynergyInfo {
+  applicableSynergies: [ResourceSynergy!]!
+  hasSynergy: Boolean!
+  primaryResources: [String!]!
+  provinceId: Int!
+  provinceName: String!
+  totalBonus: Int!
+}
+
+type ProvinceUnlockInfo {
+  isStartingProvince: Boolean!
+  provinceId: Int!
+  provinceName: String!
+  requiredStory: StoryInfo
+  requirementsDescription: String!
+  unlockOrder: Int
+  unlockStoryDay: Int
+}
+
 input ProvinceWhereInput {
   id: IntFilter
   is_capital: BooleanFilter
@@ -221,27 +494,63 @@ input ProvinceWhereInput {
 }
 
 type Query {
+  """Get all 63 provinces with ownership status"""
+  allProvinces: [ProvinceData!]!
   availableStories: [StoryWithUnlockStatus!]!
+  eraTimeline: EraTimeline!
   hero(id: String!): Hero!
   heroes(pagination: PaginationInput, where: HeroWhereInput): [Hero!]!
   me: Player
+  myCurrentEra: PlayerCurrentEra!
+  myEraBonuses: PlayerEraBonuses!
   myHero(heroId: String!): PlayerHero
+  myHeroWithStats(heroId: String!): PlayerHeroWithStats
   myHeroes(where: PlayerHeroWhereInput): [PlayerHero!]!
+  myHeroesWithStats: [PlayerHeroWithStats!]!
+  myPet(petId: String!): Pet
+  myPetWithBonuses(petId: String!): PetWithBonuses
+  myPets: [Pet!]!
   myProvince(provinceId: Int!): PlayerProvince
+
+  """Get player's owned province count"""
+  myProvinceCount: Int!
   myProvinces(where: PlayerProvinceWhereInput): [PlayerProvince!]!
   myQuizSubmissions: [QuizSubmission!]!
   myResource(resourceType: String!): PlayerResource
+  myResourceSynergies: PlayerSynergies!
   myResources: [PlayerResource!]!
   player(id: String!): Player
   players(pagination: PaginationInput, where: PlayerWhereInput): [Player!]!
   province(id: Int!): Province!
+
+  """Get full details for a specific province"""
+  provinceDetail(provinceId: Int!): ProvinceDetails!
+  provinceSynergy(provinceId: Int!): ProvinceSynergyInfo!
+
+  """Get unlock requirements for a province"""
+  provinceUnlockInfo(provinceId: Int!): ProvinceUnlockInfo!
+  provinceWithSkills(provinceId: Int!): PlayerProvinceWithSkills
   provinces(pagination: PaginationInput, where: ProvinceWhereInput): [Province!]!
+
+  """Get provinces filtered by region"""
+  provincesByRegion(region: String!): [ProvinceData!]!
   quizQuestions(storyId: String!): [QuizQuestion!]!
+
+  """Get statistics for each region"""
+  regionStatistics: RegionStatistics!
   resource(id: String!): Resource!
   resources: [Resource!]!
+
+  """Search provinces by name or description"""
+  searchProvinces(keyword: String!): [ProvinceData!]!
   stories(pagination: PaginationInput, where: StoryWhereInput): [Story!]!
   story(id: String!): Story!
   storyByDay(day: Int!): Story!
+
+  """Get total number of provinces"""
+  totalProvinceCount: Int!
+  unlockableHeroes: UnlockableHeroesResult!
+  wuXingCycle: WuXingCycleData!
 }
 
 input QuizAnswerInput {
@@ -282,6 +591,20 @@ input RecruitHeroInput {
   heroId: String!
 }
 
+type RegionStatistic {
+  available: Int!
+  locked: Int!
+  owned: Int!
+  total: Int!
+}
+
+type RegionStatistics {
+  central: RegionStatistic!
+  north: RegionStatistic!
+  overall: RegionStatistic!
+  south: RegionStatistic!
+}
+
 type Resource {
   baseGenerationRate: Float!
   baseStorageCapacity: Int!
@@ -295,6 +618,24 @@ type Resource {
   updatedAt: DateTime!
   uses: JSON
   valuePoints: Int
+}
+
+type ResourceSynergy {
+  affectedProvinces: Int!
+  bonusPercentage: Int!
+  description: String!
+  icon: String!
+  sourceElement: String!
+  sourceResource: String!
+  targetElement: String!
+  targetResource: String!
+}
+
+type SkillCooldownStatus {
+  canUse: Boolean!
+  isOnCooldown: Boolean!
+  remainingHours: Int
+  remainingSeconds: Int!
 }
 
 type Story {
@@ -316,6 +657,13 @@ type Story {
   titleVietnamese: String!
   updatedAt: DateTime!
   wordCount: Int
+}
+
+type StoryInfo {
+  day: Int!
+  id: ID!
+  isAvailable: Boolean!
+  titleVietnamese: String!
 }
 
 input StoryWhereInput {
@@ -376,7 +724,49 @@ input UnlockProvinceInput {
   provinceId: Int!
 }
 
+type UnlockableHeroInfo {
+  era: String
+  id: ID!
+  name_vietnamese: String!
+  rarity: String
+}
+
+type UnlockableHeroesResult {
+  currentEra: String!
+  playerId: String!
+  totalUnlocked: Int!
+  unlockableHeroes: [UnlockableHeroInfo!]!
+}
+
 input UpgradeProvinceInput {
   provinceId: Int!
   upgradeType: String!
+}
+
+type UseActiveSkillResult {
+  cooldownEnds: DateTime!
+  effectEnds: DateTime!
+  playerProvince: PlayerProvince!
+  skill: ActiveSkill!
+}
+
+type WuXingCycleData {
+  activeSynergies: [ResourceSynergy!]!
+  cycleCompletion: Float!
+  cycleNodes: [WuXingNode!]!
+  description: String!
+  playerId: String!
+  totalBonus: Int!
+}
+
+type WuXingNode {
+  bonusPercentage: Int!
+  element: String!
+  elementName: String!
+  emoji: String!
+  isActive: Boolean!
+  nextElement: String!
+  nextResource: String!
+  resource: String!
+  resourceNameVN: String!
 }

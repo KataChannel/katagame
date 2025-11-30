@@ -707,7 +707,10 @@ export interface ProvincePlayerData {
   buildingsCount: number;
   passiveBuffs: string[];
   activeSkillLevel: number;
-  deployedHero?: Hero;
+  deployedHeroId?: string;
+  deployedHeroName?: string;
+  deployedHeroEra?: string;
+  deployedHeroRarity?: string;
 }
 
 export interface ProvinceProductionRates {

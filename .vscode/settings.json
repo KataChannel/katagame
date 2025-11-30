@@ -1,0 +1,39 @@
+{
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/dist/**": true,
+    "**/.next/**": true,
+    "**/.motia/**": true,
+    "**/backend/dist/**": true,
+    "**/motia/logs/**": true,
+    "**/*.log": true
+  },
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/.git": true,
+    "**/dist": false,
+    "**/.next": true,
+    "**/.motia": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.next": true,
+    "**/.git": true,
+    "**/*.log": true,
+    "**/motia/logs": true
+  },
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 2000,
+  "editor.formatOnSave": false,
+  "git.autorefresh": false,
+  "git.detectSubmodules": false,
+  "git.detectSubmodulesLimit": 0,
+  "extensions.autoCheckUpdates": false,
+  "extensions.autoUpdate": false,
+  "telemetry.telemetryLevel": "off"
+}

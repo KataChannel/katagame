@@ -75,8 +75,18 @@ export class ProvincePlayerData {
   @Field(() => Int)
   activeSkillLevel: number;
 
-  @Field(() => Hero, { nullable: true })
-  deployedHero?: Hero;
+  // Note: Use forwardRef pattern - deployedHero is simplified to avoid circular ref
+  @Field({ nullable: true })
+  deployedHeroId?: string;
+
+  @Field({ nullable: true })
+  deployedHeroName?: string;
+
+  @Field({ nullable: true })
+  deployedHeroEra?: string;
+
+  @Field({ nullable: true })
+  deployedHeroRarity?: string;
 }
 
 @ObjectType()
@@ -597,6 +607,30 @@ export class WuXingCycleData {
 }
 
 /**
+ * Province synergy info - for checkProvinceSynergy query
+ */
+@ObjectType()
+export class ProvinceSynergyInfo {
+  @Field(() => Int)
+  provinceId: number;
+
+  @Field(() => String)
+  provinceName: string;
+
+  @Field(() => [String])
+  primaryResources: string[];
+
+  @Field(() => [ResourceSynergy])
+  applicableSynergies: ResourceSynergy[];
+
+  @Field(() => Int)
+  totalBonus: number;
+
+  @Field(() => Boolean)
+  hasSynergy: boolean;
+}
+
+/**
  * Era benefits
  */
 @ObjectType()
@@ -714,4 +748,82 @@ export class EraTimeline {
 
   @Field(() => Int)
   currentEraIndex: number;
+}
+
+/**
+ * Era production bonuses
+ */
+@ObjectType()
+export class EraProductionBonuses {
+  @Field(() => Int)
+  goldProduction: number;
+
+  @Field(() => Int)
+  riceProduction: number;
+
+  @Field(() => Int)
+  woodProduction: number;
+
+  @Field(() => Int)
+  stoneProduction: number;
+
+  @Field(() => Int)
+  experienceGain: number;
+}
+
+/**
+ * Player era bonuses result
+ */
+@ObjectType()
+export class PlayerEraBonuses {
+  @Field(() => String)
+  playerId: string;
+
+  @Field(() => String)
+  era: string;
+
+  @Field(() => String)
+  eraName: string;
+
+  @Field(() => EraProductionBonuses)
+  bonuses: EraProductionBonuses;
+
+  @Field(() => String)
+  description: string;
+}
+
+/**
+ * Unlockable hero info
+ */
+@ObjectType()
+export class UnlockableHeroInfo {
+  @Field(() => ID)
+  id: string;
+
+  @Field(() => String)
+  name_vietnamese: string;
+
+  @Field(() => String, { nullable: true })
+  era?: string | null;
+
+  @Field(() => String, { nullable: true })
+  rarity?: string | null;
+}
+
+/**
+ * Unlockable heroes result
+ */
+@ObjectType()
+export class UnlockableHeroesResult {
+  @Field(() => String)
+  playerId: string;
+
+  @Field(() => String)
+  currentEra: string;
+
+  @Field(() => [UnlockableHeroInfo])
+  unlockableHeroes: UnlockableHeroInfo[];
+
+  @Field(() => Int)
+  totalUnlocked: number;
 }
