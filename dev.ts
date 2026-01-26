@@ -34,11 +34,14 @@ const menuOptions = [
   { key: "3", label: "Frontend only (Next.js)", value: "frontend" },
   { key: "4", label: "Database only (PostgreSQL Docker)", value: "database" },
   { key: "5", label: "Backend + Frontend (No DB)", value: "services" },
-  { key: "6", label: "SSH Auto Manager", value: "ssh" },
-  { key: "7", label: "Auto Git Manager", value: "git" },
-  { key: "8", label: "Deploy Manager", value: "deploy" },
-  { key: "9", label: "Clean Project", value: "clean" },
-  { key: "10", label: "Kill Port Manager", value: "killport" },
+  { key: "6", label: "1sshauto.sh - SSH Manager", value: "ssh" },
+  { key: "7", label: "2autogit.sh - Git Manager", value: "git" },
+  { key: "8", label: "3deploy.sh - Deploy Manager", value: "deploy" },
+  { key: "9", label: "4docsclean.sh - Clean Project", value: "clean" },
+  { key: "10", label: "5killport.sh - Kill Port", value: "killport" },
+  { key: "11", label: "6backupdocker.sh - Backup", value: "backup" },
+  { key: "12", label: "7restoredocker.sh - Restore", value: "restore" },
+  { key: "13", label: "8manage-backups.sh - Backups", value: "manage_backups" },
   { key: "0", label: "Exit", value: "exit" },
 ];
 
@@ -88,24 +91,31 @@ function printMenu() {
   console.log(`${c.bright}${c.white}├─────────────────────────────────────────────┤${c.reset}`);
   console.log(`${c.bright}${c.white}│  ${c.yellow}🛠️  Tools${c.white}                                  │${c.reset}`);
   
-  for (const opt of menuOptions.slice(5, 10)) {
+  const tools = menuOptions.filter(o => parseInt(o.key) >= 6);
+  for (const opt of tools) {
     const icon = opt.value === "ssh" ? "🔐" :
                  opt.value === "git" ? "📝" :
                  opt.value === "deploy" ? "🚀" :
                  opt.value === "clean" ? "🧹" :
-                 opt.value === "killport" ? "💀" : "•";
+                 opt.value === "killport" ? "💀" :
+                 opt.value === "backup" ? "💾" :
+                 opt.value === "restore" ? "🔄" :
+                 opt.value === "manage_backups" ? "📊" : "•";
     
     const color = opt.value === "ssh" ? c.cyan :
                   opt.value === "git" ? c.magenta :
                   opt.value === "deploy" ? c.green :
                   opt.value === "clean" ? c.blue :
-                  c.red;
+                  opt.value === "killport" ? c.red :
+                  opt.value === "backup" ? c.yellow :
+                  opt.value === "restore" ? c.magenta :
+                  c.cyan;
     
     console.log(`${c.bright}${c.white}│  ${color}[${opt.key.padStart(2)}]${c.white} ${icon} ${opt.label.padEnd(31)}│${c.reset}`);
   }
   
   console.log(`${c.bright}${c.white}├─────────────────────────────────────────────┤${c.reset}`);
-  console.log(`${c.bright}${c.white}│  ${c.red}[0]${c.white} ❌ Exit                                 │${c.reset}`);
+  console.log(`${c.bright}${c.white}│  ${c.red}[ 0]${c.white} ❌ Exit                                 │${c.reset}`);
   console.log(`${c.bright}${c.white}└─────────────────────────────────────────────┘${c.reset}`);
   console.log();
 }
@@ -256,6 +266,18 @@ async function runOption(option: string) {
     case "killport":
       await runScript("5killport.sh", "Kill Port Manager");
       return;
+
+    case "backup":
+      await runScript("scripts/6backupdocker.sh", "Backup Docker");
+      return;
+
+    case "restore":
+      await runScript("scripts/7restoredocker.sh", "Restore Docker");
+      return;
+
+    case "manage_backups":
+      await runScript("scripts/8manage-backups.sh", "Manage Backups");
+      return;
       
     case "exit":
       console.log(`${c.yellow}👋 Goodbye!${c.reset}`);
@@ -266,16 +288,15 @@ async function runOption(option: string) {
       return;
   }
   
-  if (option !== "database") {
-    console.log();
-    console.log(`${c.bright}${c.bgGreen}${c.white} ✅ All Services Started ${c.reset}`);
-    console.log();
-    console.log(`${c.cyan}Press Ctrl+C to stop all services${c.reset}`);
-    console.log();
-    
-    // Keep process alive
-    await new Promise(() => {});
-  }
+  // No need to check for "database" here as it already returned
+  console.log();
+  console.log(`${c.bright}${c.bgGreen}${c.white} ✅ All Services Started ${c.reset}`);
+  console.log();
+  console.log(`${c.cyan}Press Ctrl+C to stop all services${c.reset}`);
+  console.log();
+  
+  // Keep process alive
+  await new Promise(() => {});
 }
 
 async function promptUser(): Promise<string> {
@@ -285,7 +306,7 @@ async function promptUser(): Promise<string> {
   });
   
   return new Promise((resolve) => {
-    rl.question(`${c.bright}${c.cyan}Enter your choice [1-10, 0 to exit]: ${c.reset}`, (answer) => {
+    rl.question(`${c.bright}${c.cyan}Enter your choice [1-13, 0 to exit]: ${c.reset}`, (answer) => {
       rl.close();
       resolve(answer.trim());
     });
@@ -336,7 +357,7 @@ async function main() {
     }
     
     console.log(`${c.red}Unknown option: ${option}${c.reset}`);
-    console.log(`${c.yellow}Valid options: all, backend, frontend, database, services${c.reset}`);
+    console.log(`${c.yellow}Valid options: all, backend, frontend, database, services, ssh, git, deploy, clean, killport, backup, restore, manage_backups${c.reset}`);
     process.exit(1);
   }
   
@@ -355,7 +376,7 @@ async function main() {
   if (selected) {
     await runOption(selected.value);
   } else {
-    console.log(`${c.red}Invalid choice. Please enter 1-5 or 0.${c.reset}`);
+    console.log(`${c.red}Invalid choice. Please enter 1-13 or 0.${c.reset}`);
     process.exit(1);
   }
 }
