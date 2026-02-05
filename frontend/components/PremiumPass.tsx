@@ -1,34 +1,55 @@
+import { useState } from 'react';
 import { useGameStore } from '@/lib/gameStore';
 import { Crown, Gift, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
+import PaymentModal from './PaymentModal';
+import VIPStatus from './VIPStatus';
 
 const PremiumPass = () => {
   const { player, purchasePremiumPass } = useGameStore();
+  const [showPayment, setShowPayment] = useState(false);
+  const [selectedPass, setSelectedPass] = useState<{ type: 'basic' | 'premium' | 'royal', name: string, price: number } | null>(null);
+
+  const handlePurchaseClick = (pass: { type: 'basic' | 'premium' | 'royal', name: string, price: number }) => {
+    setSelectedPass(pass);
+    setShowPayment(true);
+  };
+
+  const handlePaymentSuccess = () => {
+    if (selectedPass) {
+      purchasePremiumPass(selectedPass.type);
+      setShowPayment(false);
+      setSelectedPass(null);
+    }
+  };
 
   if (player.premiumPass?.active) {
     return (
-      <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-6 text-white shadow-lg">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Crown className="h-8 w-8 text-yellow-300" />
-            <div>
-              <h3 className="text-xl font-bold">{player.premiumPass.name}</h3>
-              <p className="text-purple-100">Đã Kích Hoạt</p>
+      <div className="space-y-6">
+        <VIPStatus />
+        <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-6 text-white shadow-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Crown className="h-8 w-8 text-yellow-300" />
+              <div>
+                <h3 className="text-xl font-bold">{player.premiumPass.name}</h3>
+                <p className="text-purple-100">Đã Kích Hoạt</p>
+              </div>
             </div>
+            <Zap className="h-8 w-8 text-yellow-300 animate-pulse" />
           </div>
-          <Zap className="h-8 w-8 text-yellow-300 animate-pulse" />
-        </div>
-        
-        <div className="mt-4">
-          <h4 className="font-semibold mb-2">Đặc Quyền:</h4>
-          <ul className="space-y-1 text-purple-100">
-            {player.premiumPass.benefits.map((benefit, index) => (
-              <li key={index} className="flex items-center gap-2">
-                <Gift className="h-4 w-4" />
-                {benefit}
-              </li>
-            ))}
-          </ul>
+          
+          <div className="mt-4">
+            <h4 className="font-semibold mb-2">Đặc Quyền:</h4>
+            <ul className="space-y-1 text-purple-100">
+              {player.premiumPass.benefits.map((benefit, index) => (
+                <li key={index} className="flex items-center gap-2">
+                  <Gift className="h-4 w-4" />
+                  {benefit}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
     );
@@ -59,7 +80,8 @@ const PremiumPass = () => {
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      <VIPStatus />
       <h2 className="text-2xl font-bold text-red-800 text-center mb-6">
         🎁 Premium Pass - Đặc Quyền VIP
       </h2>
@@ -92,7 +114,7 @@ const PremiumPass = () => {
             </div>
 
             <button
-              onClick={() => purchasePremiumPass(pass.type)}
+              onClick={() => handlePurchaseClick(pass)}
               className="w-full bg-white/20 hover:bg-white/30 rounded-lg py-3 font-semibold transition-colors"
             >
               Mua Ngay
@@ -102,8 +124,16 @@ const PremiumPass = () => {
       </div>
 
       <div className="text-center text-sm text-gray-600 mt-4">
-        * Premium Pass giúp bạn phát triển nhanh hơn và có trải nghiệm tốt hơn
+        * Premium Pass giúp bạn phát triển nhanh hơn và có trải nghiệm tốt hơn (Thanh toán qua MoMo/ZaloPay/VNPAY)
       </div>
+
+      <PaymentModal
+        isOpen={showPayment}
+        onClose={() => setShowPayment(false)}
+        onSuccess={handlePaymentSuccess}
+        itemName={selectedPass?.name || ''}
+        amount={selectedPass?.price || 0}
+      />
     </div>
   );
 };

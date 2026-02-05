@@ -439,9 +439,9 @@ function MapTab({
           63 Tỉnh Thành Việt Nam
         </h3>
 
-        {/* Simplified province list (real implementation would have actual map SVG) */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-          {provinces.slice(0, 20).map((province) => (
+        {/* scrollable province list showing all 63 provinces */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+          {provinces.slice(0, 63).map((province) => (
             <motion.button
               key={province.id}
               onClick={() => onProvinceClick(province)}
@@ -471,8 +471,8 @@ function MapTab({
 
         <div className="mt-6 p-4 bg-gray-700/50 rounded-lg">
           <p className="text-gray-300 text-sm text-center">
-            <AlertCircle className="w-4 h-4 inline mr-2" />
-            Hiển thị 20/63 tỉnh. Bản đồ đầy đủ sẽ có SVG tương tác.
+            <CheckCircle className="w-4 h-4 inline mr-2 text-green-400" />
+            Đã hiển thị đầy đủ 63 tỉnh thành Việt Nam.
           </p>
         </div>
       </div>

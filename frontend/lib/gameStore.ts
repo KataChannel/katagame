@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Resource, Province, Farmer, Player, GameState, PremiumPass, Achievement, Hero, Pet, CombatResult, BattlePassProgress } from './types';
+import { Resource, Province, Farmer, Player, GameState, PremiumPass, Achievement, Hero, Pet, CombatResult, BattlePassProgress, GlobalAnnouncement } from './types';
 import { v4 as uuidv4 } from 'uuid';
 import { SoundManager } from './soundManager';
 import { calculateTotalProduction, getProductionBonus } from './elementSystem';
@@ -111,6 +111,7 @@ import {
   purchaseBundle,
   startFlashSale,
   updateFlashSales,
+  addVIPPoints,
   EnhancedShopState,
 } from './enhancedShopSystem';
 import {
@@ -130,6 +131,7 @@ import {
   endPreview,
   CustomizationState,
 } from './customizationSystem';
+import { getAnalyticsSystem } from './analyticsSystem';
 
 // Helper functions - Updated for MVP1 mechanics
 const createEmptyResource = (): Resource => ({
@@ -331,12 +333,13 @@ interface GameStore extends GameState {
   updateFriendLeaderboardAction: () => void;
   checkAndResetFriendGifts: () => void;
   // Enhanced Shop System
-  enhancedShopState?: EnhancedShopState;
+  enhancedShopState?: EnhancedShopState; // Shop Actions
   initializeEnhancedShop: () => void;
   purchaseShopItemAction: (itemId: string, shopType: 'daily' | 'weekly' | 'flash') => void;
   purchaseBundleAction: (bundleId: string) => void;
   checkAndRefreshShops: () => void;
   startFlashSaleAction: () => void;
+  purchaseGems: (amount: number, cost: number) => void;
   // Customization System
   customizationState?: CustomizationState;
   initializeCustomization: () => void;
@@ -353,6 +356,10 @@ interface GameStore extends GameState {
   equipAvatarFrameAction: (frameId: string) => void;
   startPreviewAction: (type: 'skin' | 'variant' | 'theme' | 'frame', itemId: string) => void;
   endPreviewAction: () => void;
+  // Global Announcement System
+  globalAnnouncements: GlobalAnnouncement[];
+  addGlobalAnnouncement: (message: string, type: 'purchase' | 'achievement' | 'system' | 'event') => void;
+  removeGlobalAnnouncement: (id: string) => void;
 }
 
 export const useGameStore = create<GameStore>()(
@@ -380,6 +387,7 @@ export const useGameStore = create<GameStore>()(
       enhancedShopState: undefined,
       customizationState: undefined,
       notifications: [],
+      globalAnnouncements: [],
 
       addNotification: (notification) => {
         const fullNotification: Notification = {
@@ -408,6 +416,31 @@ export const useGameStore = create<GameStore>()(
         console.log('➖ Removing notification:', id);
         set((state) => ({
           notifications: state.notifications.filter(n => n.id !== id),
+        }));
+      },
+
+      addGlobalAnnouncement: (message, type) => {
+        const id = `announcement-${Date.now()}`;
+        const newAnnouncement: GlobalAnnouncement = {
+          id,
+          message,
+          type,
+          timestamp: Date.now(),
+        };
+        
+        set((state) => ({
+          globalAnnouncements: [...state.globalAnnouncements, newAnnouncement],
+        }));
+        
+        // Auto remove after 10 seconds
+        setTimeout(() => {
+          get().removeGlobalAnnouncement(id);
+        }, 10000);
+      },
+
+      removeGlobalAnnouncement: (id) => {
+        set((state) => ({
+          globalAnnouncements: state.globalAnnouncements.filter(a => a.id !== id),
         }));
       },
 
@@ -672,10 +705,91 @@ export const useGameStore = create<GameStore>()(
         }));
         
         SoundManager.getInstance().playSound('purchase');
+        
+        // Track analytics
+        getAnalyticsSystem().trackPurchase(get().player.id, passPrices[passType], `premium_pass_${passType}`);
+        
+        // Add VIP points
+        const state = get();
+        if (state.enhancedShopState) {
+          const pointsToAdd = Math.floor(passPrices[passType] / 1000);
+          const newVipSystem = addVIPPoints(state.enhancedShopState.vipSystem, pointsToAdd);
+          
+          set({
+            enhancedShopState: {
+              ...state.enhancedShopState,
+              vipSystem: newVipSystem
+            }
+          });
+
+          if (newVipSystem.level > state.enhancedShopState.vipSystem.level) {
+             get().addNotification({
+              type: 'success',
+              title: '🆙 VIP Level Up!',
+              message: `Chúc mừng bạn đạt VIP ${newVipSystem.level}!`
+            });
+          }
+        }
+
+        // Global Announcement for big purchases
+        if (passType === 'royal') {
+          get().addGlobalAnnouncement(`Chúc mừng người chơi ${state.player.name} đã kích hoạt Royal Pass danh dự! 👑`, 'purchase');
+        }
+
         get().addNotification({
           type: 'success',
           title: '👑 Premium Pass Kích Hoạt!',
           message: `Chúc mừng! Bạn đã kích hoạt ${newPass.name}`
+        });
+      },
+
+      purchaseGems: (amount, cost) => {
+        set((state) => ({
+          player: {
+            ...state.player,
+            totalResources: {
+              ...state.player.totalResources,
+              gems: (state.player.totalResources.gems || 0) + amount,
+            },
+          },
+        }));
+
+        SoundManager.getInstance().playSound('purchase');
+        
+        // Track analytics
+        getAnalyticsSystem().trackPurchase(get().player.id, cost, 'gem_pack');
+
+        // Add VIP points
+        const state = get();
+        if (state.enhancedShopState) {
+          const pointsToAdd = Math.floor(cost / 1000);
+          const newVipSystem = addVIPPoints(state.enhancedShopState.vipSystem, pointsToAdd);
+          
+          set({
+            enhancedShopState: {
+              ...state.enhancedShopState,
+              vipSystem: newVipSystem
+            }
+          });
+          
+          if (newVipSystem.level > state.enhancedShopState.vipSystem.level) {
+             get().addNotification({
+              type: 'success',
+              title: '🆙 VIP Level Up!',
+              message: `Chúc mừng bạn đạt VIP ${newVipSystem.level}!`
+            });
+          }
+        }
+
+        // Global Announcement for big gem packs
+        if (amount >= 5000) {
+          get().addGlobalAnnouncement(`Người chơi ${get().player.name} vừa nạp gói Đá Quý siêu cấp! 💎💎💎`, 'purchase');
+        }
+
+        get().addNotification({
+          type: 'success',
+          title: '💎 Mua Đá Quý Thành Công!',
+          message: `Đã nhận được ${amount.toLocaleString()} đá quý!`
         });
       },
 

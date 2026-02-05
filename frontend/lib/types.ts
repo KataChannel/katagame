@@ -268,3 +268,11 @@ export interface GachaPull {
   result: GachaItem;
   isPity: boolean;
 }
+
+// MVP 4: Global Announcement System
+export interface GlobalAnnouncement {
+  id: string;
+  message: string;
+  type: 'purchase' | 'achievement' | 'system' | 'event';
+  timestamp: number;
+}

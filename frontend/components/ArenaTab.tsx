@@ -75,24 +75,41 @@ export default function ArenaTab() {
   const winRate = calculateWinRate(arenaPlayer.wins, arenaPlayer.losses);
   const battlesRemaining = getBattlesRemaining(arenaState);
 
+  const [selectedAttackHeroes, setSelectedAttackHeroes] = useState<string[]>([]);
+
+  // Initialize selected attack heroes with current defense team or first 3 heroes
+  useEffect(() => {
+    if (heroes && heroes.length > 0 && selectedAttackHeroes.length === 0) {
+      const initialSelection = arenaState?.player.defenseTeam.heroIds.length ? 
+        arenaState.player.defenseTeam.heroIds : 
+        heroes.slice(0, 3).map(h => h.id);
+      setSelectedAttackHeroes(initialSelection);
+    }
+  }, [heroes, arenaState]);
+
+  const toggleAttackHero = (heroId: string) => {
+    if (selectedAttackHeroes.includes(heroId)) {
+      setSelectedAttackHeroes(selectedAttackHeroes.filter(id => id !== heroId));
+    } else if (selectedAttackHeroes.length < 3) {
+      setSelectedAttackHeroes([...selectedAttackHeroes, heroId]);
+    }
+  };
+
   const handleAttack = (opponent: ArenaPlayer) => {
     setSelectedOpponent(opponent);
     setShowBattleModal(true);
   };
 
   const handleConfirmBattle = () => {
-    if (!selectedOpponent) return;
+    if (!selectedOpponent || selectedAttackHeroes.length === 0) return;
     
-    // Get player's heroes for battle
-    const attackHeroes = (heroes || []).slice(0, 3); // Use first 3 heroes
-    const result = attackArenaOpponent(selectedOpponent.playerId, attackHeroes);
+    // Get player's selected heroes for battle
+    const attackHeroObjects = (heroes || []).filter(h => selectedAttackHeroes.includes(h.id));
+    const result = attackArenaOpponent(selectedOpponent.playerId, attackHeroObjects);
     
     if (result.success && result.battle) {
       setBattleResult(result.battle);
-      setTimeout(() => {
-        setShowBattleModal(false);
-        setBattleResult(null);
-      }, 3000);
+      // Don't auto-close result so user can read log
     }
   };
 
@@ -248,18 +265,41 @@ export default function ArenaTab() {
                     </div>
 
                     <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                      <div className="grid grid-cols-2 gap-4 text-center">
+                      <div className="grid grid-cols-2 gap-4 text-center mb-4">
                         <div>
-                          <div className="text-sm text-gray-600 mb-1">Sức Mạnh Đội</div>
+                          <div className="text-sm text-gray-600 mb-1">Sức Mạnh Đối Thủ</div>
                           <div className="text-xl font-bold text-gray-900">
                             ⚡ {selectedOpponent.defenseTeam.teamPower}
                           </div>
                         </div>
                         <div>
-                          <div className="text-sm text-gray-600 mb-1">W - L</div>
+                          <div className="text-sm text-gray-600 mb-1">Thắng - Thua</div>
                           <div className="text-xl font-bold text-gray-900">
                             {selectedOpponent.wins} - {selectedOpponent.losses}
                           </div>
+                        </div>
+                      </div>
+
+                      <div className="border-t border-gray-200 pt-4">
+                        <div className="text-sm font-semibold text-gray-700 mb-3">Chọn đội hình tấn công (Tối đa 3):</div>
+                        <div className="grid grid-cols-3 gap-2">
+                          {(heroes || []).slice(0, 9).map((hero) => (
+                            <button
+                              key={hero.id}
+                              onClick={() => toggleAttackHero(hero.id)}
+                              className={`p-2 rounded-lg border-2 transition-all flex flex-col items-center ${
+                                selectedAttackHeroes.includes(hero.id)
+                                  ? 'border-red-500 bg-red-50'
+                                  : 'border-gray-200 hover:border-gray-300'
+                              }`}
+                            >
+                              <div className="text-2xl mb-1">
+                                {hero.element === 'fire' ? '🔥' : hero.element === 'water' ? '💧' : hero.element === 'earth' ? '⛰️' : hero.element === 'metal' ? '⚔️' : '🌲'}
+                              </div>
+                              <span className="text-[10px] font-bold truncate w-full text-center">{hero.name}</span>
+                              <span className="text-[10px] text-gray-500">Lv.{hero.level}</span>
+                            </button>
+                          ))}
                         </div>
                       </div>
                     </div>

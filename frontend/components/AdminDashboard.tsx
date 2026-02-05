@@ -8,6 +8,7 @@ import {
   CheckCircle, XCircle, Flag, MessageSquare, Activity
 } from 'lucide-react';
 import { getAnalyticsSystem, PlayerModeration, ABTest, ModActionType } from '@/lib/analyticsSystem';
+import { getMockPaymentServer, TransactionRecord } from '@/lib/mockPaymentServer';
 
 type AdminTab = 'overview' | 'players' | 'economy' | 'monetization' | 'abtests' | 'moderation';
 
@@ -30,6 +31,7 @@ export default function AdminDashboard() {
   
   // Monetization state
   const [monetizationData, setMonetizationData] = useState<any>(null);
+  const [transactions, setTransactions] = useState<TransactionRecord[]>([]);
   
   // A/B Tests state
   const [abTests, setAbTests] = useState<ABTest[]>([]);
@@ -62,6 +64,7 @@ export default function AdminDashboard() {
       setEconomyMetrics(system.getEconomyMetrics(today));
       setMonetizationData(system.getMonetizationMetrics(today));
       setAbTests(system.getAllABTests());
+      setTransactions(getMockPaymentServer().getTransactions());
     };
     
     updateData();
@@ -239,15 +242,57 @@ export default function AdminDashboard() {
               </div>
             </div>
             
-            <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
-              <h3 className="text-lg font-bold text-white mb-4">Top Features</h3>
-              <div className="space-y-2">
-                {engagement.mostUsedFeatures.slice(0, 5).map((f: any, i: number) => (
-                  <div key={i} className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
-                    <span className="text-sm text-gray-200">{f.feature}</span>
-                    <span className="text-sm font-medium text-white">{f.count} users</span>
-                  </div>
-                ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-purple-400" />
+                  Live Activity
+                </h3>
+                <div className="space-y-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                  {[...Array(5)].map((_, i) => (
+                    <motion.div 
+                      key={i}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                      className="flex items-center justify-between p-3 bg-gray-700/50 rounded-lg border border-gray-600/30"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-2 h-2 rounded-full ${i === 0 ? 'bg-green-500 animate-ping' : 'bg-gray-500'}`} />
+                        <div>
+                          <p className="text-sm text-white font-medium">
+                            {['Player_882 nạp 500k gems', 'Chiến trường Arena vừa kết thúc', 'Guild "Đại Việt" thăng cấp', 'Player_102 mở Gacha Epic', 'New Player đăng ký'][i]}
+                          </p>
+                          <p className="text-[10px] text-gray-400">{i + 1} phút trước</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                  <Flag className="w-5 h-5 text-orange-400" />
+                  Top Features
+                </h3>
+                <div className="space-y-2">
+                  {engagement.mostUsedFeatures.length > 0 ? (
+                    engagement.mostUsedFeatures.slice(0, 5).map((f: any, i: number) => (
+                      <div key={i} className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
+                        <span className="text-sm text-gray-200">{f.feature}</span>
+                        <div className="flex items-center gap-3">
+                          <div className="w-24 bg-gray-600 rounded-full h-1.5 overflow-hidden">
+                            <div className="bg-orange-500 h-full" style={{ width: `${Math.random() * 80 + 20}%` }} />
+                          </div>
+                          <span className="text-sm font-medium text-white">{f.count}</span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-gray-400 italic">Chưa có dữ liệu tính năng...</p>
+                  )}
+                </div>
               </div>
             </div>
           </motion.div>
@@ -475,17 +520,80 @@ export default function AdminDashboard() {
                 </div>
                 
                 <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
+                  <h3 className="text-lg font-bold text-white mb-4 flex items-center justify-between">
+                    <span>Revenue History (Last 7 Days)</span>
+                    <span className="text-xs text-green-400 font-normal">Total: ${monetizationData.totalRevenue.toLocaleString()}</span>
+                  </h3>
+                  <div className="flex items-end justify-between gap-2 h-40 pt-4">
+                    {[65, 45, 78, 52, 90, 30, 85].map((height, i) => (
+                      <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
+                        <div className="w-full relative">
+                          <motion.div 
+                            initial={{ height: 0 }}
+                            animate={{ height: `${height}%` }}
+                            className="w-full bg-gradient-to-t from-green-600 to-green-400 rounded-t-sm group-hover:from-green-500 group-hover:to-green-300 transition-all cursor-pointer relative"
+                          >
+                            <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-white text-gray-900 text-[10px] font-bold px-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                              ${(height * 100).toLocaleString()}
+                            </div>
+                          </motion.div>
+                        </div>
+                        <span className="text-[10px] text-gray-400">0{i+1}/02</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
                   <h3 className="text-lg font-bold text-white mb-4">Revenue by Source</h3>
-                <div className="space-y-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {(Array.from(monetizationData.revenueBySource.entries()) as [string, number][]).map(([source, revenue]) => (
-                      <div key={source} className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
-                        <span className="text-sm text-gray-200 capitalize">{source.replace(/_/g, ' ')}</span>
+                      <div key={source} className="flex items-center justify-between p-3 bg-gray-700/50 rounded-lg border border-gray-600/30">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-3 h-3 rounded-full ${
+                            source.includes('gem') ? 'bg-blue-500' : 
+                            source.includes('pass') ? 'bg-purple-500' : 'bg-green-500'
+                          }`} />
+                          <span className="text-sm text-gray-200 capitalize">{source.replace(/_/g, ' ')}</span>
+                        </div>
                         <span className="text-sm font-medium text-white">${revenue.toLocaleString()}</span>
                       </div>
                     ))}
                   </div>
                 </div>
                 
+                <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
+                  <h3 className="text-lg font-bold text-white mb-4">Transaction Logs (Real-time)</h3>
+                  <div className="space-y-2 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
+                    {transactions.length > 0 ? (
+                      transactions.map(t => (
+                        <div key={t.id} className="p-3 bg-gray-700/50 rounded-lg border border-gray-600/30 flex items-center justify-between text-xs">
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-white">{t.playerName}</span>
+                              <span className="text-[10px] text-gray-500">{t.id}</span>
+                            </div>
+                            <div className="text-gray-400">
+                              Mua: <span className="text-blue-300">{t.itemName}</span> ({t.gateway.toUpperCase()})
+                            </div>
+                          </div>
+                          <div className="text-right flex flex-col gap-1">
+                            <span className="font-bold text-yellow-400">{t.amount.toLocaleString()} ₫</span>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-black ${
+                              t.status === 'completed' ? 'bg-green-500/20 text-green-400' : 
+                              t.status === 'failed' ? 'bg-red-500/20 text-red-400' : 'bg-yellow-500/20 text-yellow-400'
+                            }`}>
+                              {t.status}
+                            </span>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-center text-gray-500 py-4 italic">Chưa có giao dịch nào...</p>
+                    )}
+                  </div>
+                </div>
+
                 <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
                   <h3 className="text-lg font-bold text-white mb-4">Top Spenders</h3>
                   <div className="space-y-2">

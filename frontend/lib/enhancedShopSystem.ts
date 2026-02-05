@@ -759,7 +759,7 @@ export function purchaseBundle(
 }
 
 // Add VIP points and level up
-function addVIPPoints(vipSystem: VIPSystem, points: number): VIPSystem {
+export function addVIPPoints(vipSystem: VIPSystem, points: number): VIPSystem {
   const newPoints = vipSystem.points + points;
   let newLevel = vipSystem.level;
   

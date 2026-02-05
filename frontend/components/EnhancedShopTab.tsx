@@ -18,9 +18,12 @@ import {
   History,
   Sparkles,
   Tag,
-  Flame
+  Flame,
+  Gem
 } from 'lucide-react';
 import { useGameStore } from '../lib/gameStore';
+import VIPStatus from './VIPStatus';
+import GemShop from './GemShop';
 import {
   formatCountdown,
   getRarityColor,
@@ -31,7 +34,7 @@ import {
   PurchaseHistory as PurchaseHistoryType
 } from '../lib/enhancedShopSystem';
 
-type ShopSubTab = 'daily' | 'weekly' | 'flash' | 'bundles' | 'vip' | 'history';
+type ShopSubTab = 'daily' | 'weekly' | 'flash' | 'bundles' | 'gems' | 'vip' | 'history';
 
 export default function EnhancedShopTab() {
   const [activeSubTab, setActiveSubTab] = useState<ShopSubTab>('daily');
@@ -163,6 +166,7 @@ export default function EnhancedShopTab() {
           { key: 'weekly' as ShopSubTab, label: 'Hàng Tuần', icon: TrendingUp, count: enhancedShopState.weeklyShop.items.length },
           { key: 'flash' as ShopSubTab, label: 'Flash Sale', icon: Zap, badge: activeSale ? '🔥' : null },
           { key: 'bundles' as ShopSubTab, label: 'Gói Giá Trị', icon: Package, count: enhancedShopState.bundles.filter(b => !b.purchased || !b.oneTime).length },
+          { key: 'gems' as ShopSubTab, label: 'Đá Quý', icon: Gem },
           { key: 'vip' as ShopSubTab, label: 'VIP', icon: Crown },
           { key: 'history' as ShopSubTab, label: 'Lịch Sử', icon: History, count: enhancedShopState.purchaseHistory.length },
         ].map(tab => {
@@ -228,8 +232,11 @@ export default function EnhancedShopTab() {
             onPurchase={(bundle) => handlePurchase(bundle, 'bundle')}
           />
         )}
+        {activeSubTab === 'gems' && (
+          <GemShop />
+        )}
         {activeSubTab === 'vip' && (
-          <VIPSubTab vipSystem={enhancedShopState.vipSystem} />
+          <VIPStatus />
         )}
         {activeSubTab === 'history' && (
           <PurchaseHistorySubTab history={enhancedShopState.purchaseHistory} />

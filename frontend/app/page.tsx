@@ -37,6 +37,7 @@ import AnalyticsTab from '@/components/AnalyticsTab';
 import MultiplayerTab from '@/components/MultiplayerTab';
 import MarketplaceTab from '@/components/MarketplaceTab';
 import ChangelogPage from './changelog/page';
+import GlobalAnnouncements from '@/components/GlobalAnnouncements';
 import { ErrorBoundary as AppErrorBoundary } from '@/components/ErrorBoundary';
 import { initializeStorageOptimization } from '@/lib/storageOptimization';
 import { DataSyncInitializer } from './DataSyncInitializer';
@@ -344,6 +345,7 @@ export default function Game() {
       )}
       
       {/* Notifications */}
+      <GlobalAnnouncements />
       <NotificationComponent />
       </div>
       </DataSyncInitializer>
