@@ -1,307 +1,380 @@
 #!/bin/bash
 
-# =====================================================
-# Docs Clean - Dọn dẹp và quản lý tài liệu
-# =====================================================
+# Script to organize markdown files by moving them to docs/ directory with numbering
+# Enhanced version with batch processing and categorization
+#
+# Usage: 
+#   ./docsclean.sh [options]
+#
+# Options:
+#   --dry-run          Show what would be done without making changes
+#   --archive          Archive old docs to docs/archive/
+#   --category PREFIX  Only process files starting with PREFIX
+#   --help             Show this help message
+#
+# Examples:
+#   ./docsclean.sh                    # Normal operation
+#   ./docsclean.sh --dry-run          # Preview changes
+#   ./docsclean.sh --archive          # Archive old docs
+#   ./docsclean.sh --category FIX     # Only process FIX-*.md files
 
-set -e
+set -e  # Exit on any error
 
-# Colors
+# Parse command line arguments
+DRY_RUN=false
+ARCHIVE_OLD=false
+CATEGORY=""
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --dry-run)
+            DRY_RUN=true
+            shift
+            ;;
+        --archive)
+            ARCHIVE_OLD=true
+            shift
+            ;;
+        --category)
+            CATEGORY="$2"
+            shift 2
+            ;;
+        --help)
+            head -n 20 "$0" | tail -n +3
+            exit 0
+            ;;
+        *)
+            echo "❌ Unknown option: $1"
+            echo "Use --help for usage information"
+            exit 1
+            ;;
+    esac
+done
+
+echo "🧹 Starting docs cleanup and organization..."
+if [ "$DRY_RUN" = true ]; then
+    echo "🔍 DRY RUN MODE - No changes will be made"
+fi
+if [ "$ARCHIVE_OLD" = true ]; then
+    echo "📦 Archive mode enabled"
+fi
+if [ -n "$CATEGORY" ]; then
+    echo "🏷️  Category filter: $CATEGORY"
+fi
+echo ""
+
+# Tạo thư mục docs nếu chưa tồn tại
+if [ "$DRY_RUN" = false ]; then
+    mkdir -p docs
+    if [ "$ARCHIVE_OLD" = true ]; then
+        mkdir -p docs/archive
+    fi
+fi
+
+# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-print_banner() {
-    echo -e "${BLUE}"
-    echo "╔═══════════════════════════════════════════╗"
-    echo "║           🧹 DOCS CLEAN MANAGER           ║"
-    echo "║              KataGame Dev                 ║"
-    echo "╚═══════════════════════════════════════════╝"
-    echo -e "${NC}"
+# Function to print colored output
+print_status() {
+    local color=$1
+    local message=$2
+    echo -e "${color}${message}${NC}"
 }
 
-print_menu() {
-    echo -e "${YELLOW}Chọn một tùy chọn:${NC}"
-    echo ""
-    echo -e "  ${GREEN}1)${NC} Xóa node_modules (tất cả)"
-    echo -e "  ${GREEN}2)${NC} Xóa build artifacts (.next, dist)"
-    echo -e "  ${GREEN}3)${NC} Xóa cache (npm, bun, turbo)"
-    echo -e "  ${GREEN}4)${NC} Xóa log files"
-    echo -e "  ${GREEN}5)${NC} Xóa tất cả (node_modules + build + cache + logs)"
-    echo -e "  ${GREEN}6)${NC} Reinstall dependencies"
-    echo -e "  ${GREEN}7)${NC} Tính kích thước thư mục"
-    echo -e "  ${GREEN}8)${NC} Tìm file lớn (>10MB)"
-    echo -e "  ${GREEN}9)${NC} Xóa .DS_Store và Thumbs.db"
-    echo -e "  ${GREEN}10)${NC} Tạo/Cập nhật .gitignore"
-    echo -e "  ${GREEN}0)${NC} Thoát"
-    echo ""
+# Function to show progress
+show_progress() {
+    local current=$1
+    local total=$2
+    local percentage=$((current * 100 / total))
+    local bar_length=50
+    local filled=$((percentage * bar_length / 100))
+    
+    printf "\r["
+    printf "%${filled}s" | tr ' ' '='
+    printf "%$((bar_length - filled))s" | tr ' ' ' '
+    printf "] %3d%% (%d/%d)" "$percentage" "$current" "$total"
 }
 
-delete_node_modules() {
-    echo -e "${CYAN}🗑️  Đang tìm và xóa node_modules...${NC}"
-    
-    # Count first
-    count=$(find "$SCRIPT_DIR" -type d -name "node_modules" 2>/dev/null | wc -l)
-    echo -e "${YELLOW}Tìm thấy $count thư mục node_modules${NC}"
-    
-    if [ "$count" -gt 0 ]; then
-        echo -e "${YELLOW}⚠️  Xác nhận xóa? (y/n):${NC}"
-        read -r confirm
-        
-        if [ "$confirm" = "y" ]; then
-            find "$SCRIPT_DIR" -type d -name "node_modules" -exec rm -rf {} + 2>/dev/null || true
-            echo -e "${GREEN}✅ Đã xóa tất cả node_modules!${NC}"
-        else
-            echo -e "${YELLOW}Đã hủy.${NC}"
-        fi
-    else
-        echo -e "${GREEN}Không tìm thấy node_modules nào.${NC}"
-    fi
-}
-
-delete_build() {
-    echo -e "${CYAN}🗑️  Đang xóa build artifacts...${NC}"
-    
-    # List of build directories
-    build_dirs=(".next" "dist" ".turbo" ".motia" "build" "out")
-    
-    for dir in "${build_dirs[@]}"; do
-        count=$(find "$SCRIPT_DIR" -type d -name "$dir" 2>/dev/null | wc -l)
-        if [ "$count" -gt 0 ]; then
-            echo -e "${YELLOW}Đang xóa $dir ($count thư mục)...${NC}"
-            find "$SCRIPT_DIR" -type d -name "$dir" -exec rm -rf {} + 2>/dev/null || true
+# Lấy số thứ tự cao nhất hiện có trong thư mục docs
+max_number=0
+if ls docs/*.md 1> /dev/null 2>&1; then
+    for file in docs/*.md; do
+        if [ -f "$file" ]; then
+            # Trích xuất số từ tên file (format: số-tên.md)
+            filename=$(basename "$file")
+            if [[ "$filename" =~ ^([0-9]+)- ]]; then
+                number="${BASH_REMATCH[1]}"
+                if [ "$number" -gt "$max_number" ]; then
+                    max_number=$number
+                fi
+            fi
         fi
     done
-    
-    echo -e "${GREEN}✅ Đã xóa build artifacts!${NC}"
-}
+fi
 
-delete_cache() {
-    echo -e "${CYAN}🗑️  Đang xóa cache...${NC}"
-    
-    # NPM cache
-    if [ -d "$HOME/.npm" ]; then
-        echo -e "${YELLOW}Xóa npm cache...${NC}"
-        npm cache clean --force 2>/dev/null || true
-    fi
-    
-    # Bun cache
-    if [ -d "$HOME/.bun" ]; then
-        echo -e "${YELLOW}Xóa bun cache...${NC}"
-        rm -rf "$HOME/.bun/install/cache" 2>/dev/null || true
-    fi
-    
-    # Turbo cache
-    if [ -d "$SCRIPT_DIR/.turbo" ]; then
-        echo -e "${YELLOW}Xóa turbo cache...${NC}"
-        rm -rf "$SCRIPT_DIR/.turbo" 2>/dev/null || true
-    fi
-    
-    # Next.js cache
-    find "$SCRIPT_DIR" -type d -name ".next" -exec rm -rf {}/cache \; 2>/dev/null || true
-    
-    # ESLint cache
-    find "$SCRIPT_DIR" -name ".eslintcache" -delete 2>/dev/null || true
-    
-    # TypeScript cache
-    find "$SCRIPT_DIR" -name "*.tsbuildinfo" -delete 2>/dev/null || true
-    
-    echo -e "${GREEN}✅ Đã xóa cache!${NC}"
-}
+# Bắt đầu từ số tiếp theo
+next_number=$((max_number + 1))
+moved_count=0
+skipped_count=0
+archived_count=0
+error_count=0
 
-delete_logs() {
-    echo -e "${CYAN}🗑️  Đang xóa log files...${NC}"
-    
-    # Log files
-    find "$SCRIPT_DIR" -name "*.log" -delete 2>/dev/null || true
-    find "$SCRIPT_DIR" -type d -name "logs" -exec rm -rf {} + 2>/dev/null || true
-    
-    # NPM debug logs
-    find "$SCRIPT_DIR" -name "npm-debug.log*" -delete 2>/dev/null || true
-    find "$SCRIPT_DIR" -name "yarn-debug.log*" -delete 2>/dev/null || true
-    find "$SCRIPT_DIR" -name "yarn-error.log*" -delete 2>/dev/null || true
-    
-    echo -e "${GREEN}✅ Đã xóa log files!${NC}"
-}
+print_status "$BLUE" "📁 Next available number: $next_number"
+echo ""
 
-delete_all() {
-    echo -e "${YELLOW}⚠️  Xóa TẤT CẢ (node_modules + build + cache + logs)? (y/n):${NC}"
-    read -r confirm
-    
-    if [ "$confirm" = "y" ]; then
-        delete_node_modules
-        delete_build
-        delete_cache
-        delete_logs
-        echo -e "${GREEN}✅ Đã xóa tất cả!${NC}"
-    else
-        echo -e "${YELLOW}Đã hủy.${NC}"
-    fi
-}
+# Statistics arrays
+declare -a moved_files
+declare -a skipped_files
+declare -a archived_files
+declare -a error_files
 
-reinstall_deps() {
-    echo -e "${CYAN}📦 Reinstalling dependencies...${NC}"
-    
-    # Detect package manager
-    if [ -f "$SCRIPT_DIR/bun.lockb" ]; then
-        pkg_manager="bun"
-    elif [ -f "$SCRIPT_DIR/yarn.lock" ]; then
-        pkg_manager="yarn"
-    elif [ -f "$SCRIPT_DIR/pnpm-lock.yaml" ]; then
-        pkg_manager="pnpm"
-    else
-        pkg_manager="npm"
-    fi
-    
-    echo -e "${BLUE}Package manager: $pkg_manager${NC}"
-    
-    # Install in each directory with package.json
-    for dir in "$SCRIPT_DIR" "$SCRIPT_DIR/frontend" "$SCRIPT_DIR/backend"; do
-        if [ -f "$dir/package.json" ]; then
-            echo -e "${CYAN}📁 Installing in $dir...${NC}"
-            cd "$dir"
-            
-            case $pkg_manager in
-                bun) bun install ;;
-                yarn) yarn install ;;
-                pnpm) pnpm install ;;
-                *) npm install ;;
-            esac
+# Tìm tất cả file .md ở root level, trừ README.md
+shopt -s nullglob  # Prevent glob expansion if no matches
+md_files=(*.md)
+shopt -u nullglob
+
+# Apply category filter if specified
+if [ -n "$CATEGORY" ]; then
+    filtered_files=()
+    for file in "${md_files[@]}"; do
+        if [[ "$file" =~ ^${CATEGORY} ]]; then
+            filtered_files+=("$file")
         fi
     done
+    md_files=("${filtered_files[@]}")
+    print_status "$YELLOW" "🏷️  Filtered to ${#md_files[@]} files matching category: $CATEGORY"
+fi
+
+if [ ${#md_files[@]} -eq 0 ]; then
+    print_status "$YELLOW" "📄 No .md files found in root directory"
+    exit 0
+fi
+
+total_files=${#md_files[@]}
+print_status "$GREEN" "📊 Found $total_files .md files to process"
+echo ""
+
+# Sắp xếp file theo thời gian sửa đổi (mtime)
+declare -A file_times
+for file in "${md_files[@]}"; do
+    # Skip README.md (case insensitive)
+    if [[ "${file,,}" == "readme.md" ]]; then
+        continue
+    fi
     
-    echo -e "${GREEN}✅ Reinstall hoàn tất!${NC}"
-}
-
-calculate_size() {
-    echo -e "${CYAN}📊 Tính kích thước thư mục...${NC}"
-    echo ""
+    # Skip if already in docs/
+    if [ ! -f "$file" ]; then
+        continue
+    fi
     
-    echo -e "${BLUE}Tổng dung lượng dự án:${NC}"
-    du -sh "$SCRIPT_DIR" 2>/dev/null
-    echo ""
-    
-    echo -e "${BLUE}Chi tiết các thư mục lớn:${NC}"
-    du -sh "$SCRIPT_DIR"/*/ 2>/dev/null | sort -hr | head -20
-    echo ""
-    
-    echo -e "${BLUE}node_modules:${NC}"
-    find "$SCRIPT_DIR" -type d -name "node_modules" -exec du -sh {} \; 2>/dev/null | sort -hr
-}
-
-find_large_files() {
-    echo -e "${CYAN}🔍 Tìm file lớn (>10MB)...${NC}"
-    echo ""
-    
-    find "$SCRIPT_DIR" -type f -size +10M -exec ls -lh {} \; 2>/dev/null | awk '{print $5, $9}' | sort -hr
-}
-
-delete_system_files() {
-    echo -e "${CYAN}🗑️  Đang xóa .DS_Store và Thumbs.db...${NC}"
-    
-    find "$SCRIPT_DIR" -name ".DS_Store" -delete 2>/dev/null || true
-    find "$SCRIPT_DIR" -name "Thumbs.db" -delete 2>/dev/null || true
-    find "$SCRIPT_DIR" -name "desktop.ini" -delete 2>/dev/null || true
-    
-    echo -e "${GREEN}✅ Đã xóa system files!${NC}"
-}
-
-update_gitignore() {
-    echo -e "${CYAN}📝 Tạo/Cập nhật .gitignore...${NC}"
-    
-    gitignore_path="$SCRIPT_DIR/.gitignore"
-    
-    cat > "$gitignore_path" << 'EOF'
-# Dependencies
-node_modules/
-.pnp/
-.pnp.js
-
-# Build outputs
-dist/
-build/
-.next/
-out/
-.turbo/
-.motia/
-
-# Cache
-.npm/
-.eslintcache
-*.tsbuildinfo
-.cache/
-
-# Logs
-logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Environment
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-desktop.ini
-
-# Testing
-coverage/
-.nyc_output/
-
-# Misc
-*.pem
-*.p12
-.vercel/
-EOF
-
-    echo -e "${GREEN}✅ Đã cập nhật .gitignore!${NC}"
-}
-
-# Main
-print_banner
-
-while true; do
-    print_menu
-    echo -e "${CYAN}Nhập lựa chọn: ${NC}"
-    read -r choice
-    echo ""
-    
-    case $choice in
-        1) delete_node_modules ;;
-        2) delete_build ;;
-        3) delete_cache ;;
-        4) delete_logs ;;
-        5) delete_all ;;
-        6) reinstall_deps ;;
-        7) calculate_size ;;
-        8) find_large_files ;;
-        9) delete_system_files ;;
-        10) update_gitignore ;;
-        0) 
-            echo -e "${GREEN}👋 Tạm biệt!${NC}"
-            exit 0 
-            ;;
-        *)
-            echo -e "${RED}❌ Lựa chọn không hợp lệ!${NC}"
-            ;;
-    esac
-    echo ""
+    # Get modification time
+    file_times["$file"]=$(stat -c %Y "$file" 2>/dev/null || echo "0")
 done
+
+# Sort files by modification time
+sorted_files=()
+while IFS= read -r file_entry; do
+    # Split time and filename
+    file_name="${file_entry#*:}"
+    if [ -n "$file_name" ]; then
+        sorted_files+=("$file_name")
+    fi
+done < <(for file in "${!file_times[@]}"; do
+    printf '%s:%s\n' "${file_times[$file]}" "$file"
+done | sort -n | cut -d: -f2-)
+
+# Process each file
+current_file=0
+for file in "${sorted_files[@]}"; do
+    current_file=$((current_file + 1))
+    
+    # Show progress bar
+    if [ "$DRY_RUN" = false ]; then
+        show_progress "$current_file" "$total_files"
+    fi
+    
+    if [ ! -f "$file" ]; then
+        continue
+    fi
+    
+    filename=$(basename "$file")
+    
+    # Skip README.md (case insensitive)
+    if [[ "${filename,,}" == "readme.md" ]]; then
+        skipped_files+=("$filename (README)")
+        skipped_count=$((skipped_count + 1))
+        continue
+    fi
+    
+    # Process based on file state
+    if [[ ! "$filename" =~ ^[0-9]+-.*\.md$ ]]; then
+        # File without number - add number and move
+        new_filename="${next_number}-${filename}"
+        
+        # Check if target already exists
+        if [ -f "docs/$new_filename" ]; then
+            if [ "$ARCHIVE_OLD" = true ]; then
+                # Archive the existing file
+                if [ "$DRY_RUN" = false ]; then
+                    mv "docs/$new_filename" "docs/archive/$new_filename"
+                fi
+                archived_files+=("$new_filename")
+                archived_count=$((archived_count + 1))
+            else
+                skipped_files+=("$filename (target exists: $new_filename)")
+                skipped_count=$((skipped_count + 1))
+                continue
+            fi
+        fi
+        
+        # Move file
+        if [ "$DRY_RUN" = false ]; then
+            if mv "$file" "docs/$new_filename" 2>/dev/null; then
+                moved_files+=("$filename → docs/$new_filename")
+                moved_count=$((moved_count + 1))
+                next_number=$((next_number + 1))
+            else
+                error_files+=("$filename (move failed)")
+                error_count=$((error_count + 1))
+            fi
+        else
+            echo "  [DRY RUN] Would move: $filename → docs/$new_filename"
+            moved_count=$((moved_count + 1))
+            next_number=$((next_number + 1))
+        fi
+    else
+        # File already has number - check if needs to move
+        if [ -f "docs/$filename" ]; then
+            # Duplicate - handle based on mode
+            if [ "$ARCHIVE_OLD" = true ] && [ "$DRY_RUN" = false ]; then
+                mv "docs/$filename" "docs/archive/$filename"
+                archived_files+=("$filename (duplicate)")
+                archived_count=$((archived_count + 1))
+                
+                mv "$file" "docs/$filename"
+                moved_files+=("$filename → docs/$filename (replaced)")
+                moved_count=$((moved_count + 1))
+            else
+                if [ "$DRY_RUN" = false ]; then
+                    rm "$file"
+                fi
+                skipped_files+=("$filename (duplicate removed)")
+                skipped_count=$((skipped_count + 1))
+            fi
+        else
+            # Just move it
+            if [ "$DRY_RUN" = false ]; then
+                if mv "$file" "docs/$filename" 2>/dev/null; then
+                    moved_files+=("$filename → docs/$filename")
+                    moved_count=$((moved_count + 1))
+                else
+                    error_files+=("$filename (move failed)")
+                    error_count=$((error_count + 1))
+                fi
+            else
+                echo "  [DRY RUN] Would move: $filename → docs/$filename"
+                moved_count=$((moved_count + 1))
+            fi
+        fi
+    fi
+done
+
+# Clear progress bar line
+if [ "$DRY_RUN" = false ]; then
+    echo -e "\n"
+fi
+
+# Print summary report
+echo "════════════════════════════════════════════════════════"
+print_status "$GREEN" "✅ Operation Complete!"
+echo "════════════════════════════════════════════════════════"
+echo ""
+
+# Summary statistics
+print_status "$BLUE" "📊 Summary:"
+echo "  • Processed: $total_files files"
+echo "  • Moved:     $moved_count files"
+echo "  • Skipped:   $skipped_count files"
+if [ "$ARCHIVE_OLD" = true ]; then
+    echo "  • Archived:  $archived_count files"
+fi
+if [ $error_count -gt 0 ]; then
+    print_status "$RED" "  • Errors:    $error_count files"
+fi
+echo ""
+
+# Total files in docs
+if [ "$DRY_RUN" = false ]; then
+    total_docs=$(ls -1 docs/*.md 2>/dev/null | wc -l)
+    print_status "$GREEN" "📁 Total files in docs/: $total_docs"
+    
+    if [ "$ARCHIVE_OLD" = true ]; then
+        total_archived=$(ls -1 docs/archive/*.md 2>/dev/null | wc -l)
+        if [ $total_archived -gt 0 ]; then
+            print_status "$YELLOW" "📦 Total files in archive/: $total_archived"
+        fi
+    fi
+fi
+echo ""
+
+# Detailed lists (if not too many)
+if [ ${#moved_files[@]} -gt 0 ] && [ ${#moved_files[@]} -le 20 ]; then
+    print_status "$GREEN" "📝 Moved files:"
+    for item in "${moved_files[@]}"; do
+        echo "  ✓ $item"
+    done
+    echo ""
+elif [ ${#moved_files[@]} -gt 20 ]; then
+    print_status "$GREEN" "📝 Moved files (first 10):"
+    for i in {0..9}; do
+        if [ $i -lt ${#moved_files[@]} ]; then
+            echo "  ✓ ${moved_files[$i]}"
+        fi
+    done
+    echo "  ... and $((${#moved_files[@]} - 10)) more"
+    echo ""
+fi
+
+if [ ${#skipped_files[@]} -gt 0 ] && [ ${#skipped_files[@]} -le 10 ]; then
+    print_status "$YELLOW" "⏭️  Skipped files:"
+    for item in "${skipped_files[@]}"; do
+        echo "  ⊘ $item"
+    done
+    echo ""
+fi
+
+if [ ${#archived_files[@]} -gt 0 ] && [ ${#archived_files[@]} -le 10 ]; then
+    print_status "$YELLOW" "📦 Archived files:"
+    for item in "${archived_files[@]}"; do
+        echo "  📦 $item"
+    done
+    echo ""
+fi
+
+if [ ${#error_files[@]} -gt 0 ]; then
+    print_status "$RED" "❌ Errors:"
+    for item in "${error_files[@]}"; do
+        echo "  ✗ $item"
+    done
+    echo ""
+fi
+
+# List final state (first 15 files)
+if [ "$DRY_RUN" = false ] && ls docs/*.md 1> /dev/null 2>&1; then
+    print_status "$BLUE" "📁 Current docs/ contents:"
+    ls -1 docs/*.md | head -15 | while read -r file; do
+        basename "$file"
+    done | nl -w2 -s'. '
+    
+    remaining=$(($(ls -1 docs/*.md | wc -l) - 15))
+    if [ $remaining -gt 0 ]; then
+        echo "   ... and $remaining more files"
+    fi
+fi
+
+echo ""
+print_status "$GREEN" "════════════════════════════════════════════════════════"
