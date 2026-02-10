@@ -32,7 +32,7 @@ export class EraProgressionResolver {
   async getMyCurrentEra(
     @CurrentUser() user: any,
   ): Promise<PlayerCurrentEra> {
-    return this.eraService.getPlayerCurrentEra(user.sub);
+    return this.eraService.getPlayerCurrentEra(user.id);
   }
 
   /**
@@ -42,7 +42,7 @@ export class EraProgressionResolver {
   async getEraTimeline(
     @CurrentUser() user: any,
   ): Promise<EraTimeline> {
-    return this.eraService.getEraTimeline(user.sub);
+    return this.eraService.getEraTimeline(user.id);
   }
 
   /**
@@ -52,7 +52,7 @@ export class EraProgressionResolver {
   async getMyEraBonuses(
     @CurrentUser() user: any,
   ): Promise<PlayerEraBonuses> {
-    return this.eraService.calculateEraBonuses(user.sub);
+    return this.eraService.calculateEraBonuses(user.id);
   }
 
   /**
@@ -62,6 +62,6 @@ export class EraProgressionResolver {
   async getUnlockableHeroes(
     @CurrentUser() user: any,
   ): Promise<UnlockableHeroesResult> {
-    return this.eraService.getUnlockableHeroes(user.sub);
+    return this.eraService.getUnlockableHeroes(user.id);
   }
 }

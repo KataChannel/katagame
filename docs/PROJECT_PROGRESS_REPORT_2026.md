@@ -50,6 +50,8 @@ Dự án đã hoàn tất toàn bộ các tính năng cốt lõi cho MVP1, MVP2 
     *   Công cụ kiểm duyệt (Moderation) và quản lý A/B Testing.
 *   **Cửa hàng & Thông báo (Shop & Broadcast)**: **100%**
     *   Hệ thống Gem Shop và Global Announcement thông báo sự kiện toàn server.
+*   **Tài liệu hướng dẫn (Documentation)**: **100%**
+    *   Hoàn thiện `GAME_GUIDE_2026.md` - Cẩm nang chinh phục 63 tỉnh thành chi tiết.
 
 ---
 

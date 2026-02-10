@@ -112,11 +112,11 @@ export function calculateHeroLevelUpCost(currentLevel: number): ResourceRequirem
 export function getResourceNameVN(resourceKey: string): string {
   const names: Record<string, string> = {
     gold: 'Vàng',
-    rice: 'Gạo',
+    rice: 'Lúa',
     lumber: 'Gỗ',
     stone: 'Đá',
-    bazan: 'Bazan',
-    gems: 'Ngọc',
+    bazan: 'Đất Đỏ Bazan',
+    gems: 'Kim Cương',
     culture: 'Văn hóa',
   };
   return names[resourceKey] || resourceKey;

@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Mail, Lock, Eye, EyeOff, Loader } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Loader, User } from 'lucide-react';
 import GoogleSignInButton from './GoogleSignInButton';
 import MVP1ApiClient from '@/lib/graphqlApiClient';
+import { toast } from 'sonner';
 
 interface AuthPageProps {
   onAuthSuccess: (token: string, user: any) => void;
@@ -13,8 +14,6 @@ export default function AuthPage({ onAuthSuccess }: AuthPageProps) {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   
   const [formData, setFormData] = useState({
     username: '',
@@ -40,13 +39,11 @@ export default function AuthPage({ onAuthSuccess }: AuthPageProps) {
       ...prev,
       [name]: value
     }));
-    setError('');
   };
 
   // Handle login
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
 
     try {
@@ -80,7 +77,8 @@ export default function AuthPage({ onAuthSuccess }: AuthPageProps) {
         level: authData.level,
       }));
 
-      setSuccess('Đăng nhập thành công! 🎉');
+      toast.success('Chào mừng bạn trở lại! 🎉');
+      
       setTimeout(() => {
         onAuthSuccess(authData.token, {
           id: authData.playerId,
@@ -90,7 +88,57 @@ export default function AuthPage({ onAuthSuccess }: AuthPageProps) {
         });
       }, 500);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Đã xảy ra lỗi');
+      toast.error(err instanceof Error ? err.message : 'Đã xảy ra lỗi');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle Demo Login
+  const handleDemoLogin = async () => {
+    setLoading(true);
+    const demoEmail = 'demo@katagame.vn';
+    const demoPass = 'Demo1234!';
+    const demoUsername = 'Người chơi Demo';
+
+    try {
+      let result = await MVP1ApiClient.login(demoEmail, demoPass);
+
+      if (!result.success) {
+        const regResult = await MVP1ApiClient.register(demoEmail, demoPass, demoUsername);
+        if (regResult.success) {
+          result = await MVP1ApiClient.login(demoEmail, demoPass);
+        } else {
+          throw new Error(regResult.message || 'Không thể tạo tài khoản demo');
+        }
+      }
+
+      if (result.success && result.data) {
+        const authData = result.data as any;
+        
+        localStorage.setItem('authToken', authData.token);
+        localStorage.setItem('user', JSON.stringify({
+          id: authData.playerId,
+          username: authData.username,
+          email: demoEmail,
+          level: authData.level,
+        }));
+
+        toast.success('Đang vào thế giới Demo... 🚀');
+        
+        setTimeout(() => {
+          onAuthSuccess(authData.token, {
+            id: authData.playerId,
+            username: authData.username,
+            email: demoEmail,
+            level: authData.level,
+          });
+        }, 500);
+      } else {
+        throw new Error(result.message || 'Lỗi đăng nhập demo');
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Lỗi khởi tạo Demo');
     } finally {
       setLoading(false);
     }
@@ -99,7 +147,6 @@ export default function AuthPage({ onAuthSuccess }: AuthPageProps) {
   // Handle signup
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
 
     try {
@@ -115,28 +162,14 @@ export default function AuthPage({ onAuthSuccess }: AuthPageProps) {
         throw new Error('Email không hợp lệ');
       }
 
-      if (!validatePassword(formData.password)) {
-        throw new Error('Mật khẩu phải có ít nhất 6 ký tự');
-      }
-
-      if (formData.password !== formData.confirmPassword) {
-        throw new Error('Mật khẩu không khớp');
-      }
-
       const result = await MVP1ApiClient.register(formData.email, formData.password, formData.username);
 
       if (!result.success || !result.data) {
         throw new Error(result.message || 'Đăng ký thất bại');
       }
 
-      const authData = result.data as {
-        token: string;
-        playerId: string;
-        username: string;
-        level: number;
-      };
+      const authData = result.data as any;
 
-      // Save token to localStorage
       localStorage.setItem('authToken', authData.token);
       localStorage.setItem('user', JSON.stringify({
         id: authData.playerId,
@@ -145,7 +178,8 @@ export default function AuthPage({ onAuthSuccess }: AuthPageProps) {
         level: authData.level,
       }));
 
-      setSuccess('Đăng ký thành công! 🎉');
+      toast.success('Đăng ký thành công! Chào tân thủ 🎉');
+
       setTimeout(() => {
         onAuthSuccess(authData.token, {
           id: authData.playerId,
@@ -155,202 +189,142 @@ export default function AuthPage({ onAuthSuccess }: AuthPageProps) {
         });
       }, 500);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Đã xảy ra lỗi');
+      toast.error(err instanceof Error ? err.message : 'Lỗi đăng ký');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-600 via-yellow-500 to-orange-400 flex items-center justify-center p-4">
-      {/* Background decoration */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-red-400 rounded-full opacity-10 -z-10"></div>
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-yellow-300 rounded-full opacity-10 -z-10"></div>
-
-      {/* Main card */}
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-red-600 to-yellow-500 text-white p-6 text-center">
-          <h1 className="text-3xl font-bold mb-2">🎮 Đất Việt Truyền Thuyết</h1>
-          <p className="text-red-100">MVP 1: Khởi Nguồn Đất Việt</p>
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#fafafa] dark:bg-[#09090b] text-foreground transition-colors duration-500 font-sans">
+      <div className="w-full max-w-md space-y-8">
+        {/* Logo Section */}
+        <div className="text-center space-y-2 animate-in fade-in slide-in-from-top-4 duration-700">
+          <div className="mx-auto h-20 w-20 bg-red-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-red-200 dark:shadow-none rotate-3 hover:rotate-0 transition-transform duration-300">
+            <span className="text-white text-4xl font-black">🇻🇳</span>
+          </div>
+          <h2 className="text-4xl font-black tracking-tight mt-6">
+            Đất Việt <span className="text-red-600">Truyền Thuyết</span>
+          </h2>
+          <p className="text-gray-500 dark:text-zinc-400 font-medium">Hành trình về nguồn cội văn sử Việt</p>
         </div>
 
-        {/* Content */}
-        <div className="p-6 sm:p-8">
-          {/* Tabs */}
-          <div className="flex gap-2 mb-6 bg-gray-100 p-1 rounded-lg">
+        {/* Auth Card */}
+        <div className="bg-white dark:bg-zinc-950 border border-gray-100 dark:border-zinc-800 p-8 rounded-[2rem] shadow-xl shadow-gray-100/50 dark:shadow-none animate-in fade-in zoom-in-95 duration-500 delay-150">
+          {/* Tab Selection */}
+          <div className="flex p-1 bg-gray-50 dark:bg-zinc-900 rounded-2xl mb-8">
             <button
-              onClick={() => {
-                setIsLogin(true);
-                setError('');
-                setSuccess('');
-                setFormData({ username: '', email: '', password: '', confirmPassword: '' });
-              }}
-              className={`flex-1 py-2 rounded-md font-semibold transition-all ${
-                isLogin
-                  ? 'bg-red-600 text-white shadow-lg'
-                  : 'text-gray-700 hover:bg-white'
+              onClick={() => setIsLogin(true)}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${
+                isLogin 
+                  ? 'bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm' 
+                  : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
               }`}
             >
               Đăng Nhập
             </button>
             <button
-              onClick={() => {
-                setIsLogin(false);
-                setError('');
-                setSuccess('');
-                setFormData({ username: '', email: '', password: '', confirmPassword: '' });
-              }}
-              className={`flex-1 py-2 rounded-md font-semibold transition-all ${
-                !isLogin
-                  ? 'bg-red-600 text-white shadow-lg'
-                  : 'text-gray-700 hover:bg-white'
+              onClick={() => setIsLogin(false)}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${
+                !isLogin 
+                  ? 'bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm' 
+                  : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
               }`}
             >
               Đăng Ký
             </button>
           </div>
 
-          {/* Error message */}
-          {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm flex items-start gap-2">
-              <span className="text-lg">⚠️</span>
-              <span>{error}</span>
-            </div>
-          )}
-
-          {/* Success message */}
-          {success && (
-            <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg text-sm flex items-start gap-2">
-              <span className="text-lg">✅</span>
-              <span>{success}</span>
-            </div>
-          )}
-
-          {/* Form */}
-          <form onSubmit={isLogin ? handleLogin : handleSignup} className="space-y-4">
-            {/* Username - only for signup */}
+          <form onSubmit={isLogin ? handleLogin : handleSignup} className="space-y-5">
             {!isLogin && (
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  👤 Tên Người Dùng
-                </label>
-                <input
-                  type="text"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleInputChange}
-                  placeholder="Tối thiểu 3 ký tự"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition"
-                />
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Tên anh hùng</label>
+                <div className="relative group">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-red-600 transition-colors" />
+                  <input
+                    name="username"
+                    type="text"
+                    required
+                    className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-zinc-900 border border-transparent focus:border-red-600/20 focus:bg-white dark:focus:bg-zinc-950 outline-none rounded-2xl transition-all font-medium"
+                    placeholder="Tên của bạn trong game"
+                    value={formData.username}
+                    onChange={handleInputChange}
+                  />
+                </div>
               </div>
             )}
 
-            {/* Email */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                <Mail className="inline mr-2 h-4 w-4" />
-                Email
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="you@example.com"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition"
-              />
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Email</label>
+              <div className="relative group">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-red-600 transition-colors" />
+                <input
+                  name="email"
+                  type="email"
+                  required
+                  className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-zinc-900 border border-transparent focus:border-red-600/20 focus:bg-white dark:focus:bg-zinc-950 outline-none rounded-2xl transition-all font-medium"
+                  placeholder="name@email.com"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                />
+              </div>
             </div>
 
-            {/* Password */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                <Lock className="inline mr-2 h-4 w-4" />
-                Mật Khẩu
-              </label>
-              <div className="relative">
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Mật mã</label>
+              <div className="relative group">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-red-600 transition-colors" />
                 <input
-                  type={showPassword ? 'text' : 'password'}
                   name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  className="w-full pl-12 pr-12 py-4 bg-gray-50 dark:bg-zinc-900 border border-transparent focus:border-red-600/20 focus:bg-white dark:focus:bg-zinc-950 outline-none rounded-2xl transition-all font-medium"
+                  placeholder="••••••••"
                   value={formData.password}
                   onChange={handleInputChange}
-                  placeholder={isLogin ? 'Nhập mật khẩu' : 'Tối thiểu 6 ký tự'}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition pr-10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
 
-            {/* Confirm Password - only for signup */}
-            {!isLogin && (
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  <Lock className="inline mr-2 h-4 w-4" />
-                  Xác Nhận Mật Khẩu
-                </label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  placeholder="Nhập lại mật khẩu"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition"
-                />
-              </div>
-            )}
-
-            {/* Submit button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-red-600 to-yellow-500 text-white font-semibold py-2 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-black rounded-2xl shadow-lg shadow-red-200 dark:shadow-none transition-all duration-300 transform active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed mt-2 flex items-center justify-center gap-2"
             >
-              {loading && <Loader size={20} className="animate-spin" />}
-              {isLogin ? 'Đăng Nhập' : 'Đăng Ký'}
+              {loading ? <Loader className="animate-spin h-5 w-5" /> : (isLogin ? 'Đăng Nhập Ngay' : 'Khai Cuộc Hành Trình')}
             </button>
           </form>
 
-          {/* Divider */}
-          <div className="my-6 flex items-center gap-3">
-            <div className="flex-1 h-px bg-gray-300"></div>
-            <span className="text-gray-500 text-sm">HOẶC</span>
-            <div className="flex-1 h-px bg-gray-300"></div>
+          <div className="relative my-8">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-100 dark:border-zinc-800"></div>
+            </div>
+            <div className="relative flex justify-center text-xs uppercase font-black">
+              <span className="bg-white dark:bg-zinc-950 px-4 text-gray-400">Hoặc</span>
+            </div>
           </div>
 
-          {/* Google Sign In */}
-          <GoogleSignInButton onSuccess={onAuthSuccess} />
-
-          {/* Footer text */}
-          <p className="text-center text-sm text-gray-600 mt-6">
-            {isLogin ? (
-              <>
-                Chưa có tài khoản?{' '}
-                <button
-                  onClick={() => setIsLogin(false)}
-                  className="text-red-600 font-semibold hover:underline"
-                >
-                  Đăng ký ngay
-                </button>
-              </>
-            ) : (
-              <>
-                Đã có tài khoản?{' '}
-                <button
-                  onClick={() => setIsLogin(true)}
-                  className="text-red-600 font-semibold hover:underline"
-                >
-                  Đăng nhập
-                </button>
-              </>
-            )}
-          </p>
+          <div className="grid gap-3">
+            <button
+              onClick={handleDemoLogin}
+              className="w-full py-4 px-4 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 text-gray-900 dark:text-white font-bold rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
+            >
+              <span className="text-xl">🚀</span> Truy Cập Demo Nhanh
+            </button>
+            <GoogleSignInButton />
+          </div>
         </div>
+
+        <p className="text-center text-xs text-gray-400 font-medium pb-8">
+          Bằng việc tham gia, bạn đồng ý với Điều khoản của Đất Việt Truyền Thuyết.
+        </p>
       </div>
     </div>
   );

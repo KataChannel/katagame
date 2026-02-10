@@ -31,7 +31,7 @@ export class ResourceSynergyResolver {
   async getMyResourceSynergies(
     @CurrentUser() user: any,
   ): Promise<PlayerSynergies> {
-    return this.synergyService.calculatePlayerSynergies(user.sub);
+    return this.synergyService.calculatePlayerSynergies(user.id);
   }
 
   /**
@@ -41,7 +41,7 @@ export class ResourceSynergyResolver {
   async getWuXingCycle(
     @CurrentUser() user: any,
   ): Promise<WuXingCycleData> {
-    return this.synergyService.getWuXingCycleData(user.sub);
+    return this.synergyService.getWuXingCycleData(user.id);
   }
 
   /**
@@ -52,6 +52,6 @@ export class ResourceSynergyResolver {
     @CurrentUser() user: any,
     @Args('provinceId', { type: () => Int }) provinceId: number,
   ): Promise<ProvinceSynergyInfo> {
-    return this.synergyService.checkProvinceSynergy(user.sub, provinceId);
+    return this.synergyService.checkProvinceSynergy(user.id, provinceId);
   }
 }

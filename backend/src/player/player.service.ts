@@ -65,7 +65,7 @@ export class PlayerService {
         },
         {
           player_id: player.id,
-          province_id: 2, // Hồ Chí Minh
+          province_id: 2, // Hải Phòng
           farmer_level: 1,
           resource_level: 1,
           development_level: 1,

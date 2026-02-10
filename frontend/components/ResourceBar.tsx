@@ -1,10 +1,9 @@
-'use client';
-
-import { Coins, Wheat, TreePine, Mountain, Flame, Scroll } from 'lucide-react';
+import { Coins, Wheat, TreePine, Mountain, Flame, Scroll, Gem } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '@/lib/gameStore';
 import { useEffect } from 'react';
 import { syncPlayerFromApi } from '@/lib/hooks/useApiDataSync';
+import { formatNumber } from '@/lib/utils'; // Standard formatter
 
 const ResourceBar = () => {
   const player = useGameStore((state) => state.player);
@@ -30,24 +29,19 @@ const ResourceBar = () => {
     gems: 0,
   };
 
-  const formatNumber = (num: number) => {
-    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
-    return Math.floor(num).toString();
-  };
-
   const resourceItems = [
-    { key: 'gold', icon: Coins, color: 'text-yellow-500', label: 'Vàng' },
-    { key: 'rice', icon: Wheat, color: 'text-green-500', label: 'Lúa' },
-    { key: 'lumber', icon: TreePine, color: 'text-amber-600', label: 'Gỗ' },
-    { key: 'stone', icon: Mountain, color: 'text-gray-500', label: 'Đá' },
-    { key: 'bazan', icon: Flame, color: 'text-red-600', label: 'Đất Đỏ Bazan' },
-    { key: 'culture', icon: Scroll, color: 'text-purple-500', label: 'Văn Hóa' },
+    { key: 'gold', icon: Coins, color: 'text-yellow-400', label: 'Vàng' },
+    { key: 'rice', icon: Wheat, color: 'text-green-400', label: 'Lúa' },
+    { key: 'lumber', icon: TreePine, color: 'text-amber-500', label: 'Gỗ' },
+    { key: 'stone', icon: Mountain, color: 'text-gray-400', label: 'Đá' },
+    { key: 'bazan', icon: Flame, color: 'text-red-500', label: 'Bazan' },
+    { key: 'gems', icon: Gem, color: 'text-cyan-400', label: 'Kim Cương' },
+    { key: 'culture', icon: Scroll, color: 'text-purple-400', label: 'Văn Hóa' },
   ];
 
   return (
-    <div className="bg-gradient-to-r from-red-600 to-yellow-500 p-4 rounded-lg shadow-lg">
-      <div className="flex justify-between items-center space-x-6">
+    <div className="bg-white/90 dark:bg-black/90 backdrop-blur-md rounded-xl shadow-sm border border-gray-200 dark:border-zinc-800 p-2 sm:p-3 overflow-x-auto no-scrollbar">
+      <div className="flex justify-between items-center gap-2 sm:gap-4 md:gap-6 min-w-max">
         {resourceItems.map(({ key, icon: Icon, color, label }, index) => {
           const value = resources[key as keyof typeof resources] || 0;
           
@@ -56,19 +50,20 @@ const ResourceBar = () => {
               key={key} 
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              whileHover={{ scale: 1.05 }}
-              className="flex items-center space-x-2 bg-black/20 rounded-lg px-3 py-2 cursor-default"
+              transition={{ delay: index * 0.05 }}
+              className="flex items-center gap-2 bg-gray-50 dark:bg-zinc-900 rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 border border-gray-100 dark:border-zinc-800"
               title={`${label}: ${value.toLocaleString()}`}
             >
-              <Icon className={`h-5 w-5 ${color}`} />
-              <div className="text-white">
-                <div className="text-xs opacity-80">{label}</div>
+              <div className={`p-1 rounded-md bg-white dark:bg-zinc-800 shadow-sm ${color.replace('text-', 'bg-').replace('400', '100').replace('500', '100')} bg-opacity-20`}>
+                <Icon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${color}`} />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] uppercase font-bold text-gray-400 leading-none mb-0.5">{label}</span>
                 <motion.div 
                   key={value}
-                  initial={{ scale: 1.2 }}
+                  initial={{ scale: 1.1 }}
                   animate={{ scale: 1 }}
-                  className="font-bold"
+                  className="text-xs sm:text-sm font-black text-gray-900 dark:text-gray-100 leading-none"
                 >
                   {formatNumber(value)}
                 </motion.div>
