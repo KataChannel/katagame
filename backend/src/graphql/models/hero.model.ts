@@ -9,16 +9,16 @@ export class ProvinceData {
   @Field(() => Int)
   id: number;
 
-  @Field()
+  @Field(() => String)
   name: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   nameEnglish?: string;
 
   @Field()
   region: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   description?: string;
 
   @Field(() => Boolean, { nullable: true })
@@ -76,16 +76,16 @@ export class ProvincePlayerData {
   activeSkillLevel: number;
 
   // Note: Use forwardRef pattern - deployedHero is simplified to avoid circular ref
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   deployedHeroId?: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   deployedHeroName?: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   deployedHeroEra?: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   deployedHeroRarity?: string;
 }
 
@@ -127,16 +127,16 @@ export class ProvinceDetails {
   @Field(() => Int)
   id: number;
 
-  @Field()
+  @Field(() => String)
   name: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   nameEnglish?: string;
 
   @Field()
   region: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   description?: string;
 
   @Field(() => Boolean, { nullable: true })
@@ -169,7 +169,7 @@ export class ProvinceDetails {
   @Field(() => Boolean)
   isOwned: boolean;
 
-  @Field()
+  @Field(() => String)
   ownershipStatus: string;
 
   @Field(() => ProvincePlayerData, { nullable: true })
@@ -248,16 +248,16 @@ export class Hero {
   @Field()
   nameVietnamese: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   nameEnglish?: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   era?: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   rarity?: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   role?: string;
 
   @Field(() => Int, { nullable: true })
@@ -272,16 +272,16 @@ export class Hero {
   @Field(() => Int, { nullable: true })
   baseSpeed?: number;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   bonusType?: string;
 
   @Field(() => Int, { nullable: true })
   bonusValue?: number;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   petName?: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   petEmoji?: string;
 
   @Field(() => Int, { nullable: true })
@@ -290,7 +290,7 @@ export class Hero {
   @Field(() => Int, { nullable: true })
   storyDay?: number;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   unlockRequirement?: string;
 
   @Field(() => Boolean, { nullable: true })
@@ -408,10 +408,10 @@ export class Pet {
   @Field()
   name: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   petType?: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   rarity?: string;
 
   @Field(() => Int, { nullable: true })
@@ -465,10 +465,10 @@ export class PetBonuses {
   @Field(() => Int, { nullable: true })
   allStats?: number;
 
-  @Field()
+  @Field(() => String)
   icon: string;
 
-  @Field()
+  @Field(() => String)
   description: string;
 }
 

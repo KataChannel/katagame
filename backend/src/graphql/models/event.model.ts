@@ -6,16 +6,16 @@ export class GameEvent {
   @Field(() => ID)
   id: string;
 
-  @Field()
+  @Field(() => String)
   name: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   description?: string;
 
-  @Field()
+  @Field(() => String)
   eventType: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   era?: string;
 
   @Field(() => Date)
@@ -45,7 +45,7 @@ export class PlayerEventParticipation {
   @Field(() => ID)
   eventId: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   choice?: string;
 
   @Field(() => Int, { nullable: true })

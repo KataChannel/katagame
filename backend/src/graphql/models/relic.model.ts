@@ -5,19 +5,19 @@ export class Relic {
   @Field(() => ID)
   id: string;
 
-  @Field()
+  @Field(() => String)
   name: string;
 
-  @Field()
+  @Field(() => String)
   era: string;
 
-  @Field()
+  @Field(() => String)
   rarity: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   description?: string | null;
 
-  @Field()
+  @Field(() => String)
   auraType: string;
 
   @Field(() => Float)
@@ -47,7 +47,7 @@ export class PlayerRelic {
   @Field(() => Int, { nullable: true })
   provinceId?: number | null;
 
-  @Field({ nullable: true })
+  @Field(() => Date, { nullable: true })
   placedAt?: Date | null;
 
   @Field(() => Relic)

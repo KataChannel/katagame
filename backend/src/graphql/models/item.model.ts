@@ -5,16 +5,16 @@ export class Item {
   @Field(() => ID)
   id: string;
 
-  @Field()
+  @Field(() => String)
   nameVietnamese: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   description?: string;
 
-  @Field()
+  @Field(() => String)
   itemType: string;
 
-  @Field()
+  @Field(() => String)
   rarity: string;
 
   @Field(() => Int, { nullable: true })
@@ -32,7 +32,7 @@ export class Item {
   @Field(() => Int, { nullable: true })
   baseWoodCost?: number;
 
-  @Field()
+  @Field(() => Boolean)
   isCraftable: boolean;
 
   @Field(() => Date)

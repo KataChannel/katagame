@@ -3,11 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Map, Swords, Trophy, Gift, Clock, Zap, Star, ChevronRight,
+  Map as MapIcon, Swords, Trophy, Gift, Clock, Zap, Star, ChevronRight,
   ChevronLeft, Target, Award, Flame, Droplet, Mountain, Shield,
   Leaf, Lock, CheckCircle, Play, Pause, RotateCw, TrendingUp,
-  Package, Sparkles, Crown, AlertCircle
+  Package, Sparkles, Crown, AlertCircle, List
 } from 'lucide-react';
+import InteractiveVietnamMap from './InteractiveVietnamMap';
 import { useGameStore } from '@/lib/gameStore';
 import {
   updateStamina,
@@ -74,7 +75,7 @@ export default function WorldMapTab() {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-green-900 via-emerald-800 to-teal-900">
         <div className="text-center">
-          <Map className="w-16 h-16 mx-auto text-white animate-pulse" />
+          <MapIcon className="w-16 h-16 mx-auto text-white animate-pulse" />
           <p className="mt-4 text-xl text-white">Đang Tải Bản Đồ...</p>
         </div>
       </div>
@@ -191,7 +192,7 @@ export default function WorldMapTab() {
   };
 
   const subNavItems = [
-    { key: 'map' as SubTab, label: 'Bản Đồ', icon: Map },
+    { key: 'map' as SubTab, label: 'Bản Đồ', icon: MapIcon },
     { key: 'expeditions' as SubTab, label: 'Thám Hiểm', icon: Swords },
     { key: 'bosses' as SubTab, label: 'Boss', icon: Trophy },
     { key: 'loot' as SubTab, label: 'Phần Thưởng', icon: Gift },
@@ -278,7 +279,7 @@ export default function WorldMapTab() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-              <Map className="w-8 h-8 text-white" />
+              <MapIcon className="w-8 h-8 text-white" />
             </div>
             <div>
               <h2 className="text-2xl font-bold text-white">Bản Đồ Việt Nam</h2>
@@ -431,50 +432,84 @@ function MapTab({
   onProvinceClick: (province: WorldProvince) => void;
   getElementEmoji: (element: string) => string;
 }) {
+  const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
+
   return (
     <div className="space-y-4">
       <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4">
-        <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <Map className="w-6 h-6 text-green-400" />
-          63 Tỉnh Thành Việt Nam
-        </h3>
-
-        {/* scrollable province list showing all 63 provinces */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-          {provinces.slice(0, 63).map((province) => (
-            <motion.button
-              key={province.id}
-              onClick={() => onProvinceClick(province)}
-              className={`p-4 rounded-lg text-left transition-all ${
-                province.id === currentProvince
-                  ? 'bg-green-500 text-white shadow-lg ring-2 ring-green-300'
-                  : province.status === 'completed'
-                  ? 'bg-blue-900/50 text-white hover:bg-blue-800/50'
-                  : province.status === 'unlocked'
-                  ? 'bg-gray-700 text-white hover:bg-gray-600'
-                  : 'bg-gray-800/50 text-gray-500'
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold text-white flex items-center gap-2">
+            <MapIcon className="w-6 h-6 text-green-400" />
+            Bản Đồ Việt Nam
+          </h3>
+          
+          <div className="flex bg-gray-700/50 p-1 rounded-lg">
+            <button
+              onClick={() => setViewMode('map')}
+              className={`p-2 rounded-md transition-all ${
+                viewMode === 'map' ? 'bg-green-500 text-white shadow' : 'text-gray-400 hover:text-white'
               }`}
-              whileHover={{ scale: province.status !== 'locked' ? 1.02 : 1 }}
-              whileTap={{ scale: province.status !== 'locked' ? 0.98 : 1 }}
-              disabled={province.status === 'locked'}
             >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-2xl">{getElementEmoji(province.element)}</span>
-                {province.status === 'locked' && <Lock className="w-4 h-4" />}
-                {province.status === 'completed' && <CheckCircle className="w-4 h-4 text-green-300" />}
-              </div>
-              <p className="font-semibold">{province.name}</p>
-              <p className="text-xs opacity-75">Cấp {province.level}</p>
-            </motion.button>
-          ))}
+              <MapIcon className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`p-2 rounded-md transition-all ${
+                viewMode === 'list' ? 'bg-green-500 text-white shadow' : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <List className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
-        <div className="mt-6 p-4 bg-gray-700/50 rounded-lg">
-          <p className="text-gray-300 text-sm text-center">
-            <CheckCircle className="w-4 h-4 inline mr-2 text-green-400" />
-            Đã hiển thị đầy đủ 63 tỉnh thành Việt Nam.
-          </p>
-        </div>
+        {viewMode === 'map' ? (
+          <InteractiveVietnamMap
+            provinces={provinces}
+            currentProvince={currentProvince}
+            onProvinceClick={onProvinceClick}
+            getElementEmoji={getElementEmoji}
+          />
+        ) : (
+          /* Scrollable province list showing all 63 provinces */
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+            {provinces.slice(0, 63).map((province) => (
+              <motion.button
+                key={province.id}
+                onClick={() => onProvinceClick(province)}
+                className={`p-4 rounded-lg text-left transition-all ${
+                  province.id === currentProvince
+                    ? 'bg-green-500 text-white shadow-lg ring-2 ring-green-300'
+                    : province.status === 'completed'
+                    ? 'bg-blue-900/50 text-white hover:bg-blue-800/50'
+                    : province.status === 'unlocked'
+                    ? 'bg-gray-700 text-white hover:bg-gray-600'
+                    : 'bg-gray-800/50 text-gray-500'
+                }`}
+                whileHover={{ scale: province.status !== 'locked' ? 1.02 : 1 }}
+                whileTap={{ scale: province.status !== 'locked' ? 0.98 : 1 }}
+                disabled={province.status === 'locked'}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-2xl">{getElementEmoji(province.element)}</span>
+                  {province.status === 'locked' && <Lock className="w-4 h-4" />}
+                  {province.status === 'completed' && <CheckCircle className="w-4 h-4 text-green-300" />}
+                </div>
+                <p className="font-semibold">{province.name}</p>
+                <p className="text-xs opacity-75">Cấp {province.level}</p>
+              </motion.button>
+            ))}
+          </div>
+        )}
+
+        {viewMode === 'list' && (
+          <div className="mt-6 p-4 bg-gray-700/50 rounded-lg">
+            <p className="text-gray-300 text-sm text-center">
+              <CheckCircle className="w-4 h-4 inline mr-2 text-green-400" />
+              Đã hiển thị đầy đủ 63 tỉnh thành Việt Nam.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

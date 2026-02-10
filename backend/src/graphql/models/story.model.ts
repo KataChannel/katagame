@@ -9,19 +9,19 @@ export class Story {
   @Field(() => Int)
   day: number;
 
-  @Field()
+  @Field(() => String)
   titleVietnamese: string;
 
-  @Field()
+  @Field(() => String)
   titleEnglish: string;
 
-  @Field()
+  @Field(() => String)
   content: string;
 
-  @Field()
+  @Field(() => String)
   category: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   era?: string;
 
   @Field(() => Int, { nullable: true })
@@ -69,7 +69,7 @@ export class QuizQuestion {
   @Field(() => Int)
   questionNumber: number;
 
-  @Field()
+  @Field(() => String)
   question: string;
 
   @Field(() => GraphQLJSON)
@@ -78,10 +78,10 @@ export class QuizQuestion {
   @Field(() => Int)
   correctAnswer: number;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   difficulty?: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   type?: string;
 
   @Field(() => Date)

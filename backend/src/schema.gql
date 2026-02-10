@@ -162,6 +162,7 @@ input MarkStoryReadInput {
 type Mutation {
   addResources(bazan: Float = 0, gold: Float = 0, lumber: Float = 0, rice: Float = 0, stone: Float = 0): MutationResponse!
   assignPetToHero(heroId: String!, petId: String!): AssignPetResult!
+  craftRelic(relicId: String!): PlayerRelic!
   deployHero(input: DeployHeroInput!): PlayerHero!
   googleAuth(credential: String!): AuthResponse!
   grantExpToHero(expAmount: Int!, heroId: String!): GrantExpResult!
@@ -170,6 +171,7 @@ type Mutation {
   levelUpPet(petId: String!): Pet!
   login(email: String!, password: String!): AuthResponse!
   markStoryRead(input: MarkStoryReadInput!): String!
+  placeRelic(playerRelicId: String!, provinceId: Int!): PlayerRelic!
   recruitHero(input: RecruitHeroInput!): PlayerHero!
   register(email: String!, password: String!, username: String!): AuthResponse!
   resetPlayerData: MutationResponse!
@@ -178,6 +180,7 @@ type Mutation {
   unlockProvince(input: UnlockProvinceInput!): PlayerProvince!
   updatePlayer(data: PlayerUpdateInput!): Player!
   upgradeProvince(input: UpgradeProvinceInput!): PlayerProvince!
+  upgradeSpiral(provinceId: Int!): PlayerProvince!
   useProvinceSkill(provinceId: Int!): UseActiveSkillResult!
 }
 
@@ -249,10 +252,12 @@ type Player {
   id: ID!
   lastLogin: DateTime
   level: Int
+  maxStamina: Int
   premiumExpiresAt: DateTime
   premiumPassActive: Boolean
   region: String
   resources: JSON
+  stamina: Int
   status: String
   updatedAt: DateTime
   username: String!
@@ -323,6 +328,7 @@ type PlayerProvince {
   province: Province!
   provinceId: Int!
   resourceLevel: Int
+  spiralLayers: Int
   updatedAt: DateTime!
 }
 
@@ -348,7 +354,17 @@ type PlayerProvinceWithSkills {
   provinceId: Int!
   resourceLevel: Int
   skillCooldown: SkillCooldownStatus
+  spiralLayers: Int
   updatedAt: DateTime!
+}
+
+type PlayerRelic {
+  id: ID!
+  placedAt: DateTime
+  playerId: ID!
+  provinceId: Int
+  relic: Relic!
+  relicId: ID!
 }
 
 type PlayerResource {
@@ -496,6 +512,7 @@ input ProvinceWhereInput {
 type Query {
   """Get all 63 provinces with ownership status"""
   allProvinces: [ProvinceData!]!
+  allRelics: [Relic!]!
   availableStories: [StoryWithUnlockStatus!]!
   eraTimeline: EraTimeline!
   hero(id: String!): Hero!
@@ -516,6 +533,7 @@ type Query {
   myProvinceCount: Int!
   myProvinces(where: PlayerProvinceWhereInput): [PlayerProvince!]!
   myQuizSubmissions: [QuizSubmission!]!
+  myRelics: [PlayerRelic!]!
   myResource(resourceType: String!): PlayerResource
   myResourceSynergies: PlayerSynergies!
   myResources: [PlayerResource!]!
@@ -603,6 +621,19 @@ type RegionStatistics {
   north: RegionStatistic!
   overall: RegionStatistic!
   south: RegionStatistic!
+}
+
+type Relic {
+  auraRadius: Int!
+  auraType: String!
+  auraValue: Float!
+  baseBazanCost: Int
+  baseBronzeCost: Int
+  description: String
+  era: String!
+  id: ID!
+  name: String!
+  rarity: String!
 }
 
 type Resource {

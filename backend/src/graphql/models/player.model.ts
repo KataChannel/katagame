@@ -27,10 +27,10 @@ export class Player {
   @Field(() => Int, { nullable: true })
   maxStamina?: number;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   status?: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   region?: string;
 
   @Field(() => Boolean, { nullable: true })
