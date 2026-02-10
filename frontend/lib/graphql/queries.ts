@@ -56,6 +56,8 @@ export const GET_ME = gql`
       region
       premiumPassActive
       premiumExpiresAt
+      stamina
+      maxStamina
       lastLogin
       createdAt
       updatedAt
@@ -217,6 +219,7 @@ export const GET_MY_PROVINCES = gql`
       resourceLevel
       developmentLevel
       buildingsCount
+      spiralLayers
       heroId
       createdAt
       updatedAt
@@ -239,6 +242,7 @@ export const GET_MY_PROVINCE = gql`
       resourceLevel
       developmentLevel
       buildingsCount
+      spiralLayers
       heroId
       createdAt
       updatedAt
@@ -633,6 +637,7 @@ export const GET_PROVINCE_WITH_SKILLS = gql`
       resourceLevel
       developmentLevel
       buildingsCount
+      spiralLayers
       province {
         id
         name
@@ -1217,5 +1222,197 @@ export const TOTAL_PROVINCE_COUNT = gql`
 export const MY_PROVINCE_COUNT = gql`
   query MyProvinceCount {
     myProvinceCount
+  }
+`;
+
+// ==================== ERA 1: RELIC SYSTEM ====================
+
+export const GET_ALL_RELICS = gql`
+  query GetAllRelics {
+    allRelics {
+      id
+      name
+      era
+      rarity
+      description
+      auraType
+      auraValue
+      auraRadius
+      baseBronzeCost
+      baseBazanCost
+    }
+  }
+`;
+
+export const GET_MY_RELICS = gql`
+  query GetMyRelics {
+    myRelics {
+      id
+      playerId
+      relicId
+      provinceId
+      placedAt
+      relic {
+        id
+        name
+        era
+        rarity
+        description
+        auraType
+        auraValue
+        auraRadius
+      }
+    }
+  }
+`;
+
+export const CRAFT_RELIC = gql`
+  mutation CraftRelic($relicId: String!) {
+    craftRelic(relicId: $relicId) {
+      id
+      playerId
+      relicId
+      relic {
+        id
+        name
+        rarity
+      }
+    }
+  }
+`;
+
+export const PLACE_RELIC = gql`
+  mutation PlaceRelic($playerRelicId: String!, $provinceId: Int!) {
+    placeRelic(playerRelicId: $playerRelicId, provinceId: $provinceId) {
+      id
+      playerId
+      provinceId
+      placedAt
+      relic {
+        id
+        name
+      }
+    }
+  }
+`;
+
+export const UPGRADE_SPIRAL = gql`
+  mutation UpgradeSpiral($provinceId: Int!) {
+    upgradeSpiral(provinceId: $provinceId) {
+      id
+      provinceId
+      spiralLayers
+    }
+  }
+`;
+
+// ==================== ERA 1: CRAFTING SYSTEM ====================
+
+export const GET_CRAFTABLE_ITEMS = gql`
+  query GetCraftableItems {
+    craftableItems {
+      id
+      nameVietnamese
+      description
+      itemType
+      rarity
+      staminaRestore
+      luckBonus
+      baseBronzeCost
+      baseRiceCost
+      baseWoodCost
+      isCraftable
+    }
+  }
+`;
+
+export const GET_MY_INVENTORY = gql`
+  query GetMyInventory {
+    myInventory {
+      id
+      itemId
+      quantity
+      item {
+        id
+        nameVietnamese
+        description
+        itemType
+        rarity
+        staminaRestore
+        luckBonus
+      }
+    }
+  }
+`;
+
+export const CRAFT_ITEM = gql`
+  mutation CraftItem($itemId: String!) {
+    craftItem(itemId: $itemId) {
+      id
+      itemId
+      quantity
+      item {
+        id
+        nameVietnamese
+      }
+    }
+  }
+`;
+
+export const USE_ITEM = gql`
+  mutation UseItem($itemId: String!) {
+    useItem(itemId: $itemId)
+  }
+`;
+
+// ==================== ERA 1: EVENT SYSTEM ====================
+
+export const GET_ACTIVE_EVENTS = gql`
+  query GetActiveEvents {
+    activeEvents {
+      id
+      name
+      description
+      eventType
+      startDate
+      endDate
+      isActive
+      metadata
+    }
+  }
+`;
+
+export const GET_MY_PARTICIPATION = gql`
+  query GetMyParticipation($eventId: String!) {
+    myParticipation(eventId: $eventId) {
+      id
+      choice
+      contributionPoints
+      rewardsClaimed
+      event {
+        id
+        name
+        metadata
+      }
+    }
+  }
+`;
+
+export const JOIN_EVENT = gql`
+  mutation JoinEvent($eventId: String!, $choice: String!) {
+    joinEvent(eventId: $eventId, choice: $choice) {
+      id
+      choice
+      contributionPoints
+    }
+  }
+`;
+
+export const CONTRIBUTE_TO_EVENT = gql`
+  mutation ContributeToEvent($eventId: String!, $amount: Int!) {
+    contributeToEvent(eventId: $eventId, amount: $amount) {
+      id
+      contributionPoints
+    }
   }
 `;

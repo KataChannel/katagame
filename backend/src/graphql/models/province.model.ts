@@ -71,6 +71,9 @@ export class PlayerProvince {
   @Field(() => Int, { nullable: true })
   buildingsCount?: number;
 
+  @Field(() => Int, { nullable: true })
+  spiralLayers?: number;
+
   @Field(() => ID, { nullable: true })
   heroId?: string;
 

@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Sparkles, Clock } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';
@@ -162,6 +163,55 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     return this.props.children;
   }
 }
+
+export const ComingSoon = ({ 
+  title = 'Tính Năng Đăng Phát Triển', 
+  description = 'Tính năng này đang được chuẩn bị để ra mắt trong các phiên bản tiếp theo. Hãy theo dõi hành trình của chúng tôi!',
+  icon: Icon = Sparkles
+}: { 
+  title?: string, 
+  description?: string,
+  icon?: any
+}) => {
+  const router = useRouter();
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="w-24 h-24 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-6 text-red-500 dark:text-red-400">
+        <Icon className="w-12 h-12" strokeWidth={1.5} />
+      </div>
+      
+      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+        {title}
+      </h2>
+      
+      <p className="text-gray-500 dark:text-zinc-400 max-w-sm mb-8">
+        {description}
+      </p>
+
+      <div className="space-y-4 w-full max-w-xs">
+        <button
+          onClick={() => router.back()}
+          className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-2xl font-bold shadow-lg shadow-red-200 dark:shadow-red-900/20 transition-all active:scale-95"
+        >
+          Quay Lại
+        </button>
+        
+        <button
+          onClick={() => router.push('/game')}
+          className="w-full bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 py-3 rounded-2xl font-bold transition-all hover:bg-gray-50 dark:hover:bg-zinc-700"
+        >
+          Trang Chủ
+        </button>
+      </div>
+
+      <div className="mt-12 flex items-center gap-2 text-xs font-bold text-red-600 dark:text-red-500 uppercase tracking-widest">
+        <Clock className="w-3 h-3" />
+        Sắp Ra Mắt
+      </div>
+    </div>
+  );
+};
 
 // Need to import React
 import React from 'react';

@@ -28,6 +28,9 @@ model Player {
   // MVP2: Daily story unlocks
   registration_date       DateTime?            @default(now()) @db.Date
   created_at              DateTime?            @default(now()) @db.Timestamp(6)
+  stamina                 Int?                 @default(100)
+  max_stamina             Int?                 @default(100)
+  era_progress            Int?                 @default(0)
   updated_at              DateTime?            @default(now()) @updatedAt @db.Timestamp(6)
   daily_quest_progress    DailyQuestProgress[]
   player_provinces        PlayerProvince[]
@@ -35,6 +38,9 @@ model Player {
   player_resources        PlayerResource[]
   quiz_submissions        QuizSubmission[]
   player_stats            PlayerStats?
+  player_relics           PlayerRelic[]
+  player_items            PlayerItem[]
+  event_participations    PlayerEventParticipation[]
 
   @@map("players")
 }
@@ -198,6 +204,7 @@ model PlayerProvince {
   resource_level            Int?      @default(1)
   development_level         Int?      @default(1)
   buildings_count           Int?      @default(0)
+  spiral_layers             Int?      @default(0)
   hero_id                   String?   @db.Uuid
   // MVP2: Province skills
   passive_buffs             Json?     @default("[]")
@@ -650,4 +657,99 @@ model QuizSubmission {
   @@index([story_id], map: "idx_quiz_submissions_story")
   @@index([submitted_at(sort: Desc)], map: "idx_quiz_submissions_date")
   @@map("quiz_submissions")
+}
+
+model Relic {
+  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name             String        @unique @db.VarChar(100)
+  era              String        @db.VarChar(100)
+  rarity           String        @default("common") @db.VarChar(20)
+  description      String?
+  aura_type        String        @db.VarChar(50)
+  aura_value       Decimal       @db.Decimal(10, 2)
+  aura_radius      Int           @default(1)
+  base_bronze_cost Int?          @default(0)
+  base_bazan_cost  Int?          @default(0)
+  created_at       DateTime?     @default(now()) @db.Timestamp(6)
+  updated_at       DateTime?     @default(now()) @updatedAt @db.Timestamp(6)
+  player_relics    PlayerRelic[]
+
+  @@map("relics")
+}
+
+model PlayerRelic {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  player_id   String    @db.Uuid
+  relic_id    String    @db.Uuid
+  province_id Int?      @db.SmallInt
+  placed_at   DateTime? @db.Timestamp(6)
+  player      Player    @relation(fields: [player_id], references: [id], onDelete: Cascade)
+  relic       Relic     @relation(fields: [relic_id], references: [id], onDelete: Cascade)
+
+  @@unique([player_id, relic_id])
+  @@map("player_relics")
+}
+
+model Item {
+  id               String       @id @db.VarChar(100)
+  name_vietnamese  String       @db.VarChar(100)
+  description      String?      @db.VarChar(255)
+  item_type        String       @db.VarChar(50) // 'FOOD', 'MATERIAL', 'RECIPE'
+  rarity           String       @default("common") @db.VarChar(20)
+  stamina_restore  Int?         @default(0)
+  luck_bonus       Int?         @default(0)
+  base_bronze_cost Int?         @default(0)
+  base_rice_cost   Int?         @default(0)
+  base_wood_cost   Int?         @default(0)
+  is_craftable     Boolean      @default(true)
+  created_at       DateTime?    @default(now()) @db.Timestamp(6)
+  player_items     PlayerItem[]
+
+  @@map("items")
+}
+
+model PlayerItem {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  player_id  String    @db.Uuid
+  item_id    String    @db.VarChar(100)
+  quantity   Int       @default(1)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_at DateTime? @default(now()) @updatedAt @db.Timestamp(6)
+  item       Item      @relation(fields: [item_id], references: [id], onDelete: Cascade)
+  player     Player    @relation(fields: [player_id], references: [id], onDelete: Cascade)
+
+  @@unique([player_id, item_id])
+  @@map("player_items")
+}
+
+model GameEvent {
+  id               String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name             String                    @db.VarChar(100)
+  description      String?                   @db.Text
+  event_type       String                    @db.VarChar(50) // 'MYTHICAL', 'HOLIDAY', 'CONQUEST'
+  era              String?                   @db.VarChar(100)
+  start_date       DateTime                  @db.Timestamp(6)
+  end_date         DateTime                  @db.Timestamp(6)
+  is_active        Boolean?                  @default(true)
+  metadata         Json?                     @default("{}") // Store specific event config like resource costs
+  created_at       DateTime?                 @default(now()) @db.Timestamp(6)
+  participations   PlayerEventParticipation[]
+
+  @@map("game_events")
+}
+
+model PlayerEventParticipation {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  player_id           String    @db.Uuid
+  event_id            String    @db.Uuid
+  choice              String?   @db.VarChar(50) // e.g., 'SON_TINH' or 'THUY_TINH'
+  contribution_points Int?      @default(0)
+  rewards_claimed     Boolean?  @default(false)
+  created_at          DateTime? @default(now()) @db.Timestamp(6)
+  updated_at          DateTime? @default(now()) @updatedAt @db.Timestamp(6)
+  event               GameEvent @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  player              Player    @relation(fields: [player_id], references: [id], onDelete: Cascade)
+
+  @@unique([player_id, event_id])
+  @@map("player_event_participations")
 }

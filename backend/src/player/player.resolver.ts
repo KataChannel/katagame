@@ -18,6 +18,8 @@ export class PlayerResolver {
       ...player,
       level: player.level ?? undefined,
       experience: player.experience ?? undefined,
+      stamina: player.stamina ?? undefined,
+      maxStamina: player.max_stamina ?? undefined,
       createdAt: player.created_at ?? undefined,
       updatedAt: player.updated_at ?? undefined,
     };

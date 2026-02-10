@@ -7,6 +7,8 @@
 
 import { spawn, type Subprocess } from "bun";
 import * as readline from "readline";
+import { readdir, rename } from "node:fs/promises";
+import { join, basename, extname } from "node:path";
 
 // ANSI Colors
 const colors = {
@@ -42,6 +44,7 @@ const menuOptions = [
   { key: "11", label: "6backupdocker.sh - Backup", value: "backup" },
   { key: "12", label: "7restoredocker.sh - Restore", value: "restore" },
   { key: "13", label: "8manage-backups.sh - Backups", value: "manage_backups" },
+  { key: "14", label: "Reorder Markdown Files", value: "reorder" },
   { key: "0", label: "Exit", value: "exit" },
 ];
 
@@ -99,8 +102,8 @@ function printMenu() {
                  opt.value === "clean" ? "🧹" :
                  opt.value === "killport" ? "💀" :
                  opt.value === "backup" ? "💾" :
-                 opt.value === "restore" ? "🔄" :
-                 opt.value === "manage_backups" ? "📊" : "•";
+                 opt.value === "manage_backups" ? "📊" :
+                 opt.value === "reorder" ? "🔢" : "•";
     
     const color = opt.value === "ssh" ? c.cyan :
                   opt.value === "git" ? c.magenta :
@@ -109,6 +112,7 @@ function printMenu() {
                   opt.value === "killport" ? c.red :
                   opt.value === "backup" ? c.yellow :
                   opt.value === "restore" ? c.magenta :
+                  opt.value === "reorder" ? c.cyan :
                   c.cyan;
     
     console.log(`${c.bright}${c.white}│  ${color}[${opt.key.padStart(2)}]${c.white} ${icon} ${opt.label.padEnd(31)}│${c.reset}`);
@@ -279,6 +283,10 @@ async function runOption(option: string) {
       await runScript("scripts/8manage-backups.sh", "Manage Backups");
       return;
       
+    case "reorder":
+      await reorderFiles();
+      return;
+      
     case "exit":
       console.log(`${c.yellow}👋 Goodbye!${c.reset}`);
       process.exit(0);
@@ -311,6 +319,62 @@ async function promptUser(): Promise<string> {
       resolve(answer.trim());
     });
   });
+}
+
+async function reorderFiles() {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  const dir = await new Promise<string>((resolve) => {
+    rl.question(`${c.bright}${c.cyan}Enter directory path (e.g., docs/features): ${c.reset}`, (answer) => {
+      resolve(answer.trim());
+    });
+  });
+
+  rl.close();
+
+  if (!dir) {
+    console.log(`${c.red}No directory specified.${c.reset}`);
+    return;
+  }
+
+  try {
+    const fullPath = join(process.cwd(), dir);
+    const files = await readdir(fullPath);
+    
+    // Filter only markdown files
+    const mdFiles = files.filter(f => f.toLowerCase().endsWith('.md'))
+      .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+
+    if (mdFiles.length === 0) {
+      console.log(`${c.yellow}No markdown files found in ${dir}.${c.reset}`);
+      return;
+    }
+
+    console.log(`${c.cyan}Found ${mdFiles.length} markdown files. Renaming...${c.reset}`);
+
+    let count = 0;
+    for (const file of mdFiles) {
+      // Remove existing number prefix if any (e.g., "106-name.md" or "01-name.md")
+      let cleanName = file.replace(/^\d+[-_ ]*/, '');
+      
+      const newName = `${String(count + 1).padStart(3, '0')}-${cleanName}`;
+      
+      if (file !== newName) {
+        await rename(join(fullPath, file), join(fullPath, newName));
+        console.log(`  ${c.white}${file}${c.cyan} ➔ ${c.green}${newName}${c.reset}`);
+        count++;
+      } else {
+        console.log(`  ${c.white}${file}${c.yellow} (no change)${c.reset}`);
+      }
+    }
+
+    console.log(`\n${c.green}✅ Successfully reordered ${count} files.${c.reset}`);
+  } catch (err: any) {
+    console.log(`${c.red}Error reordering files: ${err.message}${c.reset}`);
+  }
 }
 
 // Cleanup on exit

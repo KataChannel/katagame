@@ -15,6 +15,9 @@ import { StoryModule } from './story/story.module';
 import { ResourceModule } from './resource/resource.module';
 import { ResourceSynergyModule } from './resource/resource-synergy.module';
 import { EraProgressionModule } from './era/era-progression.module';
+import { RelicModule } from './relic/relic.module';
+import { CraftingModule } from './crafting/crafting.module';
+import { EventModule } from './event/event.module';
 import { GraphQLLoggingPlugin } from './graphql/plugins/logging.plugin';
 
 @Module({
@@ -51,6 +54,9 @@ import { GraphQLLoggingPlugin } from './graphql/plugins/logging.plugin';
     
     // Era Progression Module (MVP2 Sprint 4)
     EraProgressionModule,
+
+    // Relic Module (Era 1 Features)
+    RelicModule,
     
     // GraphQL Module with Code-First approach
     GraphQLModule.forRoot<ApolloDriverConfig>({

@@ -629,15 +629,138 @@ export class ProvinceService {
     // Calculate passive buffs
     const passiveBuffs = this.calculatePassiveBuffs(playerProvince);
 
+    // Get Relic buffs
+    const relicBuffs = await this.calculateRelicBuffs(playerId, provinceId);
+
+    // Get Spiral buffs
+    const spiralBuffs = this.calculateSpiralBuffs(playerProvince);
+    
+    // Combine all
+    const allPassiveBuffs = [...passiveBuffs, ...relicBuffs, ...spiralBuffs];
+
     // Get active skill
     const activeSkill = this.getActiveSkill(playerProvince);
     const cooldownStatus = activeSkill ? this.getSkillCooldownStatus(playerProvince) : null;
 
     return {
       ...playerProvince,
-      passiveBuffs,
+      passiveBuffs: allPassiveBuffs,
       activeSkill,
       skillCooldown: cooldownStatus,
     };
+  }
+
+  /**
+   * Calculate buffs from relics placed in this province
+   */
+  async calculateRelicBuffs(playerId: string, provinceId: number) {
+    const playerRelics = await this.prisma.playerRelic.findMany({
+      where: {
+        player_id: playerId,
+        province_id: provinceId,
+      },
+      include: {
+        relic: true,
+      },
+    });
+
+    return playerRelics.map((pr) => ({
+      type: pr.relic.aura_type,
+      value: Number(pr.relic.aura_value) * 100,
+      description: `Di vật: ${pr.relic.name}`,
+      source: `RELIC_${pr.relic.id}`,
+      icon: '🏺',
+    }));
+  }
+
+  /**
+   * Upgrade Spiral Construction (Thành Cổ Loa)
+   */
+  async upgradeSpiral(playerId: string, provinceId: number) {
+    const playerProvince = await this.getPlayerProvince(playerId, provinceId);
+    if (!playerProvince) throw new NotFoundException('Province not unlocked');
+
+    const currentLayers = (playerProvince as any).spiral_layers || 0;
+    const nextLayer = currentLayers + 1;
+
+    // Spiral Construction costs more at each layer (Stone and Wood/Lumber)
+    const costs = {
+      stone: 1000 * Math.pow(2, currentLayers),
+      lumber: 800 * Math.pow(2, currentLayers),
+      gold: 500 * Math.pow(2, currentLayers),
+    };
+
+    // Check resources
+    const player = await this.prisma.player.findUnique({ where: { id: playerId } });
+    if (!this.checkResourcesAvailable(player, costs)) {
+      throw new BadRequestException('Không đủ tài nguyên để xây dựng thành quách (Cần đá, gỗ và vàng)');
+    }
+
+    // Deduct and Update
+    await this.deductPlayerResources(playerId, costs);
+    
+    const updated = await this.prisma.playerProvince.update({
+      where: {
+        player_id_province_id: {
+          player_id: playerId,
+          province_id: provinceId,
+        },
+      },
+      data: {
+        spiral_layers: nextLayer,
+      } as any,
+      include: {
+        province: true,
+        hero: true,
+      },
+    });
+
+    this.logger.log(`🏯 Spiral upgraded to layer ${nextLayer} for province ${provinceId}`);
+    return updated;
+  }
+
+  /**
+   * Calculate buffs from spiral construction
+   */
+  private calculateSpiralBuffs(playerProvince: any) {
+    const layers = (playerProvince as any).spiral_layers || 0;
+    if (layers === 0) return [];
+
+    const buffs: any[] = [];
+    
+    // Layer 1: Basic fortification (+20% Defense)
+    if (layers >= 1) {
+      buffs.push({
+        type: 'DEFENSE',
+        value: 20,
+        description: 'Thành Cổ Loa: Vòng Ngoài (+20% Thủ)',
+        source: 'SPIRAL_LAYER_1',
+        icon: '🧱',
+      });
+    }
+
+    // Layer 2: Intermediate fortification (+15% Production)
+    if (layers >= 2) {
+      buffs.push({
+        type: 'PRODUCTION_ALL',
+        value: 15,
+        description: 'Thành Cổ Loa: Vòng Trung (+15% Sản xuất)',
+        source: 'SPIRAL_LAYER_2',
+        icon: '🌀',
+      });
+    }
+
+    // Layer 3: Advanced fortification (+25% Defense, +10% All Output)
+    if (layers >= 3) {
+      buffs.push({
+        type: 'DEFENSE_ELITE',
+        value: 25,
+        description: 'Thành Cổ Loa: Vòng Nội (+25% Thủ Cực Hạn)',
+        source: 'SPIRAL_LAYER_3',
+        icon: '🏰',
+      });
+    }
+
+    return buffs;
   }
 }

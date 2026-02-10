@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Home, Crown, ShoppingCart, Book, Trophy, Settings, Swords, Users as UsersIcon, 
   Sparkles, Gem, Shield, Map, Target, UserPlus, Palette, BarChart3, Radio, Store, 
-  Heart, Clock, Menu, X, MoreHorizontal, ChevronRight
+  Heart, Clock, Menu, X, MoreHorizontal, ChevronRight, Hammer, Droplets
 } from 'lucide-react';
 import { touchTargets, animations, zIndex } from '@/lib/mobileDesignSystem';
 import { useState, useEffect, useRef } from 'react';
@@ -25,7 +25,7 @@ interface MobileBottomNavProps {
 const iconMap: Record<string, any> = {
   Home, Crown, ShoppingCart, Book, Trophy, Settings, Swords, UsersIcon, 
   Sparkles, Gem, Shield, Map, Target, UserPlus, Palette, BarChart3, Radio, 
-  Store, Heart, Clock
+  Store, Heart, Clock, Hammer, Droplets
 };
 
 export default function MobileBottomNav({ className = '', token }: MobileBottomNavProps) {

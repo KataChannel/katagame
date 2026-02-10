@@ -40,6 +40,7 @@ export class ProvinceResolver {
       resourceLevel: pp.resource_level ?? undefined,
       developmentLevel: pp.development_level ?? undefined,
       buildingsCount: pp.buildings_count ?? undefined,
+      spiralLayers: pp.spiral_layers ?? 0,
       heroId: pp.hero_id ?? undefined,
       createdAt: pp.created_at ?? undefined,
       updatedAt: pp.updated_at ?? undefined,
@@ -157,5 +158,20 @@ export class ProvinceResolver {
       cooldownEnds: result.cooldownEnds,
       effectEnds: result.effectEnds,
     };
+  }
+
+  // ==================== ERA 1: SPECIAL CONSTRUCTION ====================
+
+  /**
+   * Upgrade Thành Cổ Loa (Spiral Construction)
+   */
+  @Mutation(() => PlayerProvince)
+  @UseGuards(JwtAuthGuard)
+  async upgradeSpiral(
+    @CurrentUser() user: any,
+    @Args('provinceId', { type: () => Int }) provinceId: number,
+  ): Promise<PlayerProvince> {
+    const province = await this.provinceService.upgradeSpiral(user.id, provinceId);
+    return this.transformPlayerProvince(province);
   }
 }

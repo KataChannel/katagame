@@ -18,17 +18,41 @@ import {
 } from 'lucide-react';
 import { PROVINCE_DETAIL } from '@/lib/graphql/queries';
 import type { ProvinceDetails } from '@/lib/types/mvp1.types';
+import { useState } from 'react';
+import GraphQLApiClient from '@/lib/graphqlApiClient';
+import { toast } from 'sonner';
 
 export default function ProvinceDetailPage() {
   const params = useParams();
   const router = useRouter();
   const provinceId = parseInt(params.id as string);
 
-  const { data, loading, error } = useQuery<{ provinceDetail: ProvinceDetails }>(PROVINCE_DETAIL, {
+  const { data, loading, error, refetch } = useQuery<{ provinceDetail: ProvinceDetails }>(PROVINCE_DETAIL, {
     variables: { provinceId },
   });
 
+  const [upgrading, setUpgrading] = useState(false);
+
   const province = data?.provinceDetail;
+
+  const handleUpgradeSpiral = async () => {
+    if (!province) return;
+    
+    setUpgrading(true);
+    try {
+      const res = await GraphQLApiClient.upgradeSpiral(provinceId);
+      if (res.success) {
+        toast.success('Nâng cấp Thành Cổ Loa thành công!');
+        refetch();
+      } else {
+        toast.error(res.message || 'Không thể nâng cấp Thành Cổ Loa');
+      }
+    } catch (err) {
+      toast.error('Có lỗi xảy ra khi nâng cấp');
+    } finally {
+      setUpgrading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -264,6 +288,111 @@ export default function ProvinceDetailPage() {
                 </div>
               </div>
             )}
+          </motion.div>
+        )}
+
+        {/* Spiral Construction (Thành Cổ Loa) - ERA 1 FEATURE */}
+        {province.ownershipStatus === 'owned' && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.25 }}
+            className="bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 rounded-2xl shadow-2xl p-8 text-white relative overflow-hidden border border-indigo-500/30"
+          >
+            {/* Background Decoration */}
+            <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-indigo-500/20 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-purple-500/20 rounded-full blur-3xl"></div>
+
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-3xl font-black tracking-tight mb-1 bg-clip-text text-transparent bg-gradient-to-r from-yellow-200 to-yellow-500">
+                    THÀNH CỔ LOA
+                  </h2>
+                  <p className="text-indigo-200 font-medium">Kiến trúc phòng thủ vòng xoáy</p>
+                </div>
+                <div className="bg-yellow-500/20 p-3 rounded-2xl border border-yellow-500/30">
+                  <Shield className="w-8 h-8 text-yellow-500" />
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-8 items-center">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <div className="text-5xl font-black text-yellow-400">
+                      {province.playerData?.spiralLayers || 0}
+                    </div>
+                    <div>
+                      <div className="text-sm uppercase tracking-widest text-indigo-300 font-bold">Vòng Thành</div>
+                      <div className="text-xs text-indigo-400">Mô hình vòng xoắn ốc độc bản</div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-bold text-indigo-300 uppercase tracking-tighter">Hiệu quả hiện tại:</h4>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-2 bg-white/5 rounded-lg px-3 py-2 border border-white/10">
+                        <Swords className="w-4 h-4 text-red-400" />
+                        <span className="text-sm">+{(province.playerData?.spiralLayers || 0) * 20}% Sức mạnh phòng thủ</span>
+                      </div>
+                      {(province.playerData?.spiralLayers || 0) >= 2 && (
+                        <div className="flex items-center gap-2 bg-white/5 rounded-lg px-3 py-2 border border-white/10">
+                          <TrendingUp className="w-4 h-4 text-green-400" />
+                          <span className="text-sm">+15% Sản lượng tài nguyên</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10">
+                  <h4 className="text-sm font-bold text-indigo-300 uppercase tracking-widest mb-4">Chi phí nâng cấp tiếp theo:</h4>
+                  <div className="space-y-3 mb-6">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="flex items-center gap-2 text-gray-300">🪨 Đá (Stone)</span>
+                      <span className="font-bold text-yellow-400">
+                        {(1000 * Math.pow(2, province.playerData?.spiralLayers || 0)).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="flex items-center gap-2 text-gray-300">🪵 Gỗ (Lumber)</span>
+                      <span className="font-bold text-yellow-400">
+                        {(800 * Math.pow(2, province.playerData?.spiralLayers || 0)).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="flex items-center gap-2 text-gray-300">💰 Vàng (Gold)</span>
+                      <span className="font-bold text-yellow-400">
+                        {(500 * Math.pow(2, province.playerData?.spiralLayers || 0)).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleUpgradeSpiral}
+                    disabled={upgrading}
+                    className={`w-full py-4 rounded-xl font-black text-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 shadow-xl ${
+                      upgrading 
+                      ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-yellow-500 via-orange-500 to-yellow-600 text-black'
+                    }`}
+                  >
+                    {upgrading ? (
+                      <div className="w-6 h-6 border-2 border-black/20 border-t-black rounded-full animate-spin"></div>
+                    ) : (
+                      <>
+                        <Zap className="w-5 h-5 fill-current" />
+                        XÂY VÒNG THÀNH TIẾP THEO
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Visual Spiral Effect */}
+            <div className="absolute -bottom-20 -right-20 w-64 h-64 border-8 border-indigo-500/10 rounded-full animate-[spin_10s_linear_infinite]"></div>
+            <div className="absolute -bottom-20 -right-20 w-48 h-48 border-8 border-purple-500/10 rounded-full animate-[spin_15s_linear_infinite_reverse]"></div>
           </motion.div>
         )}
 

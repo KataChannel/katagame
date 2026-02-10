@@ -36,6 +36,19 @@ import {
   SUBMIT_QUIZ,
   GET_MY_QUIZ_SUBMISSIONS,
   RESET_PLAYER_DATA,
+  GET_ALL_RELICS,
+  GET_MY_RELICS,
+  CRAFT_RELIC,
+  PLACE_RELIC,
+  UPGRADE_SPIRAL,
+  GET_CRAFTABLE_ITEMS,
+  GET_MY_INVENTORY,
+  CRAFT_ITEM,
+  USE_ITEM,
+  GET_ACTIVE_EVENTS,
+  GET_MY_PARTICIPATION,
+  JOIN_EVENT,
+  CONTRIBUTE_TO_EVENT,
 } from './graphql/queries';
 
 interface ApiResponse<T = any> {
@@ -1011,6 +1024,248 @@ export class GraphQLApiClient {
         success: false,
         message: error.message || 'Failed to reset player data',
       };
+    }
+  }
+
+  // ==================== RELICS ====================
+
+  static async getAllRelics(): Promise<ApiResponse> {
+    try {
+      const { data } = await apolloClient.query({
+        query: GET_ALL_RELICS,
+      });
+
+      return {
+        success: true,
+        data: (data as any).allRelics,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
+  }
+
+  static async getMyRelics(): Promise<ApiResponse> {
+    try {
+      const { data } = await apolloClient.query({
+        query: GET_MY_RELICS,
+      });
+
+      return {
+        success: true,
+        data: (data as any).myRelics,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
+  }
+
+  static async craftRelic(relicId: string): Promise<ApiResponse> {
+    try {
+      const { data } = await apolloClient.mutate({
+        mutation: CRAFT_RELIC,
+        variables: { relicId },
+        refetchQueries: [{ query: GET_MY_RELICS }, { query: GET_MY_RESOURCES }],
+        awaitRefetchQueries: true,
+      });
+
+      return {
+        success: true,
+        data: (data as any).craftRelic,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
+  }
+
+  static async placeRelic(playerRelicId: string, provinceId: number): Promise<ApiResponse> {
+    try {
+      const { data } = await apolloClient.mutate({
+        mutation: PLACE_RELIC,
+        variables: { playerRelicId, provinceId },
+        refetchQueries: [{ query: GET_MY_RELICS }, { query: GET_MY_PROVINCES }],
+        awaitRefetchQueries: true,
+      });
+
+      return {
+        success: true,
+        data: (data as any).placeRelic,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
+  }
+
+  static async upgradeSpiral(provinceId: number): Promise<ApiResponse> {
+    try {
+      const { data } = await apolloClient.mutate({
+        mutation: UPGRADE_SPIRAL,
+        variables: { provinceId },
+        refetchQueries: [
+          { query: GET_MY_PROVINCES },
+          { query: GET_ME },
+          { query: GET_MY_RESOURCES },
+        ],
+        awaitRefetchQueries: true,
+      });
+
+      return {
+        success: true,
+        data: (data as any).upgradeSpiral,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
+  }
+
+  static async getCraftableItems(): Promise<ApiResponse> {
+    try {
+      const { data } = await apolloClient.query({
+        query: GET_CRAFTABLE_ITEMS,
+      });
+
+      return {
+        success: true,
+        data: (data as any).craftableItems,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
+  }
+
+  static async getMyInventory(): Promise<ApiResponse> {
+    try {
+      const { data } = await apolloClient.query({
+        query: GET_MY_INVENTORY,
+        fetchPolicy: 'network-only',
+      });
+
+      return {
+        success: true,
+        data: (data as any).myInventory,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
+  }
+
+  static async craftItem(itemId: string): Promise<ApiResponse> {
+    try {
+      const { data } = await apolloClient.mutate({
+        mutation: CRAFT_ITEM,
+        variables: { itemId },
+        refetchQueries: [
+          { query: GET_MY_INVENTORY },
+          { query: GET_MY_RESOURCES },
+          { query: GET_ME },
+        ],
+        awaitRefetchQueries: true,
+      });
+
+      return {
+        success: true,
+        data: (data as any).craftItem,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
+  }
+
+  static async useItem(itemId: string): Promise<ApiResponse> {
+    try {
+      const { data } = await apolloClient.mutate({
+        mutation: USE_ITEM,
+        variables: { itemId },
+        refetchQueries: [
+          { query: GET_MY_INVENTORY },
+          { query: GET_ME },
+        ],
+        awaitRefetchQueries: true,
+      });
+
+      return {
+        success: true,
+        data: (data as any).useItem,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
+  }
+
+  static async getActiveEvents(): Promise<ApiResponse> {
+    try {
+      const { data } = await apolloClient.query({ query: GET_ACTIVE_EVENTS });
+      return { success: true, data: (data as any).activeEvents };
+    } catch (error: any) {
+      return { success: false, message: error.message };
+    }
+  }
+
+  static async getMyParticipation(eventId: string): Promise<ApiResponse> {
+    try {
+      const { data } = await apolloClient.query({
+        query: GET_MY_PARTICIPATION,
+        variables: { eventId },
+        fetchPolicy: 'network-only',
+      });
+      return { success: true, data: (data as any).myParticipation };
+    } catch (error: any) {
+      return { success: false, message: error.message };
+    }
+  }
+
+  static async joinEvent(eventId: string, choice: string): Promise<ApiResponse> {
+    try {
+      const { data } = await apolloClient.mutate({
+        mutation: JOIN_EVENT,
+        variables: { eventId, choice },
+        refetchQueries: [{ query: GET_ME }],
+      });
+      return { success: true, data: (data as any).joinEvent };
+    } catch (error: any) {
+      return { success: false, message: error.message };
+    }
+  }
+
+  static async contributeToEvent(eventId: string, amount: number): Promise<ApiResponse> {
+    try {
+      const { data } = await apolloClient.mutate({
+        mutation: CONTRIBUTE_TO_EVENT,
+        variables: { eventId, amount },
+        refetchQueries: [
+          { query: GET_MY_RESOURCES },
+          { query: GET_ME },
+        ],
+      });
+      return { success: true, data: (data as any).contributeToEvent };
+    } catch (error: any) {
+      return { success: false, message: error.message };
     }
   }
 }

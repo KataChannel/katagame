@@ -705,6 +705,7 @@ export interface ProvincePlayerData {
   resourceLevel: number;
   developmentLevel: number;
   buildingsCount: number;
+  spiralLayers: number;
   passiveBuffs: string[];
   activeSkillLevel: number;
   deployedHeroId?: string;

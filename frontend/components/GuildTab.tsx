@@ -74,8 +74,8 @@ export default function GuildTab() {
       <div className="min-h-screen pb-24 md:pb-6 flex items-center justify-center">
         <div className="text-center">
           <Users className="w-16 h-16 mx-auto mb-4 text-gray-400 animate-pulse" />
-          <h2 className="text-2xl font-bold text-gray-700 mb-2">Guild Loading...</h2>
-          <p className="text-gray-600">Đang khởi tạo hệ thống guild...</p>
+          <h2 className="text-2xl font-bold text-gray-700 mb-2">Đang Tải Bộ Lạc...</h2>
+          <p className="text-gray-600">Đang khởi tạo hệ thống bộ lạc...</p>
         </div>
       </div>
     );
@@ -232,9 +232,9 @@ function NoGuildScreen({ onCreateClick }: { onCreateClick: () => void }) {
       {/* Hero Section */}
       <div className="bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 text-white p-12 rounded-lg shadow-lg text-center mb-8">
         <Users className="w-24 h-24 mx-auto mb-6 opacity-90" />
-        <h1 className="text-4xl font-bold mb-4">Gia Nhập Guild</h1>
+        <h1 className="text-4xl font-bold mb-4">Gia Nhập Bộ Lạc</h1>
         <p className="text-xl text-purple-100 mb-8">
-          Hợp tác cùng người chơi khác, chinh phục thách thức và nhận phần thưởng độc quyền!
+          Hợp tác cùng người chơi khác, xây dựng liên minh và nhận phần thưởng độc quyền!
         </p>
 
         <div className="flex gap-4 justify-center">
@@ -245,7 +245,7 @@ function NoGuildScreen({ onCreateClick }: { onCreateClick: () => void }) {
             className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-bold rounded-lg shadow-lg hover:shadow-xl"
           >
             <Crown className="w-6 h-6" />
-            Tạo Guild Mới
+            Lập Bộ Lạc Mới
             <span className="ml-2 text-sm opacity-90">(💎 {GUILD_CREATE_COST})</span>
           </motion.button>
 
@@ -256,7 +256,7 @@ function NoGuildScreen({ onCreateClick }: { onCreateClick: () => void }) {
             className="flex items-center gap-2 px-8 py-4 bg-white text-purple-600 font-bold rounded-lg shadow-lg hover:shadow-xl"
           >
             <UserPlus className="w-6 h-6" />
-            Tìm Guild
+            Tìm Bộ Lạc
           </motion.button>
         </div>
       </div>
@@ -300,7 +300,7 @@ function GuildInfoTab({ guild, myRole, onDonate }: { guild: Guild; myRole?: impo
           <div className="flex items-start gap-3">
             <AlertCircle className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-1" />
             <div>
-              <h3 className="font-bold text-gray-900 mb-2">📢 Thông Báo Guild</h3>
+              <h3 className="font-bold text-gray-900 mb-2">📢 Thông Báo Bộ Lạc</h3>
               <p className="text-gray-700">{guild.settings.announcement}</p>
             </div>
           </div>
@@ -311,7 +311,7 @@ function GuildInfoTab({ guild, myRole, onDonate }: { guild: Guild; myRole?: impo
       <div className="bg-white rounded-lg p-6 shadow-md">
         <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
           <Trophy className="w-6 h-6 text-purple-600" />
-          Kho Báu Guild
+          Kho Báu Bộ Lạc
         </h3>
         <div className="grid grid-cols-3 gap-4">
           <div className="text-center p-4 bg-yellow-50 rounded-lg">
@@ -395,7 +395,7 @@ function GuildInfoTab({ guild, myRole, onDonate }: { guild: Guild; myRole?: impo
       {!isGuildLeader(myRole) && (
         <button className="w-full py-3 bg-red-100 text-red-600 font-semibold rounded-lg hover:bg-red-200 transition-colors flex items-center justify-center gap-2">
           <LogOut className="w-5 h-5" />
-          Rời Guild
+          Rời Bộ Lạc
         </button>
       )}
     </div>
@@ -458,13 +458,13 @@ function GuildChatTab({ guild }: { guild: Guild }) {
     <div className="bg-white rounded-lg shadow-md h-[600px] flex flex-col">
       {/* Chat Header */}
       <div className="p-4 border-b border-gray-200">
-        <h3 className="text-xl font-bold text-gray-900">Trò Chuyện Guild</h3>
+        <h3 className="text-xl font-bold text-gray-900">Trò Chuyện Bộ Lạc</h3>
       </div>
 
       {/* Chat Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         <div className="text-center text-gray-500 text-sm py-4">
-          Chào mừng đến với guild chat! 💬
+          Chào mừng đến với trò chuyện bộ lạc! 💬
         </div>
         {/* Messages will be rendered here */}
       </div>
@@ -622,7 +622,7 @@ function CreateGuildModal({ onClose }: { onClose: () => void }) {
           </button>
           <h2 className="text-3xl font-bold flex items-center gap-2">
             <Crown className="w-8 h-8" />
-            Tạo Guild Mới
+            Tạo Bộ Lạc Mới
           </h2>
           <p className="text-purple-100 mt-1">Chi phí: 💎 {GUILD_CREATE_COST} Gems</p>
         </div>
@@ -652,14 +652,14 @@ function CreateGuildModal({ onClose }: { onClose: () => void }) {
           {/* Name */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Tên Guild <span className="text-red-500">*</span>
+              Tên Bộ Lạc <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               maxLength={20}
-              placeholder="Ví dụ: Đại Việt Warriors"
+              placeholder="Ví dụ: Lạc Việt Warriors"
               className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 ${
                 errors.name ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-purple-500'
               }`}
@@ -671,7 +671,7 @@ function CreateGuildModal({ onClose }: { onClose: () => void }) {
           {/* Tag */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Tag Guild <span className="text-red-500">*</span>
+              Ký Hiệu <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -695,7 +695,7 @@ function CreateGuildModal({ onClose }: { onClose: () => void }) {
               onChange={(e) => setDescription(e.target.value)}
               maxLength={200}
               rows={3}
-              placeholder="Mô tả ngắn về guild của bạn..."
+              placeholder="Mô tả ngắn về bộ lạc của bạn..."
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
             />
             <p className="text-gray-500 text-xs mt-1">{description.length}/200 ký tự</p>
@@ -706,7 +706,7 @@ function CreateGuildModal({ onClose }: { onClose: () => void }) {
             onClick={handleCreate}
             className="w-full py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-lg hover:opacity-90 transition-opacity"
           >
-            Tạo Guild Ngay
+            Lập Bộ Lạc Ngay
           </button>
         </div>
       </motion.div>
@@ -744,7 +744,7 @@ function GuildListModal({ onClose }: { onClose: () => void }) {
         <div className="p-12 text-center">
           <Users className="w-24 h-24 mx-auto text-gray-300 mb-6" />
           <h3 className="text-2xl font-bold text-gray-700 mb-2">Đang phát triển</h3>
-          <p className="text-gray-600">Danh sách guild sẽ có sớm!</p>
+          <p className="text-gray-600">Danh sách bộ lạc sẽ có sớm!</p>
         </div>
       </motion.div>
     </motion.div>
@@ -1231,6 +1231,7 @@ function DonateModal({
     lumber: 0,
     stone: 0,
     culture: 0,
+    bazan: 0,
   });
 
   const calculateContribution = () => {
@@ -1250,6 +1251,7 @@ function DonateModal({
       lumber: donations.lumber,
       stone: donations.stone,
       culture: donations.culture,
+      bazan: donations.bazan,
       gems: 0,
     });
     onClose();
@@ -1329,9 +1331,9 @@ function DonateModal({
           </button>
           <h2 className="text-3xl font-bold flex items-center gap-2">
             <Gift className="w-8 h-8" />
-            Quyên Góp Guild
+            Quyên Góp Bộ Lạc
           </h2>
-          <p className="text-purple-100 mt-1">Đóng góp tài nguyên để phát triển guild</p>
+          <p className="text-purple-100 mt-1">Đóng góp tài nguyên để phát triển bộ lạc</p>
         </div>
 
         {/* Content */}

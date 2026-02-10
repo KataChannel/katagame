@@ -21,6 +21,12 @@ export class Player {
   @Field(() => GraphQLJSON, { nullable: true })
   resources?: any;
 
+  @Field(() => Int, { nullable: true })
+  stamina?: number;
+
+  @Field(() => Int, { nullable: true })
+  maxStamina?: number;
+
   @Field({ nullable: true })
   status?: string;
 
