@@ -77,6 +77,15 @@ export class PlayerProvince {
   @Field(() => ID, { nullable: true })
   heroId?: string;
 
+  @Field(() => Boolean, { nullable: true })
+  isUpgrading?: boolean;
+
+  @Field({ nullable: true })
+  upgradingType?: string;
+
+  @Field(() => Date, { nullable: true })
+  upgradeEndsAt?: Date;
+
   @Field(() => Province)
   province: Province;
 

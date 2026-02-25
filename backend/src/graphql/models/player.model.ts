@@ -40,7 +40,16 @@ export class Player {
   premiumExpiresAt?: Date;
 
   @Field(() => Date, { nullable: true })
+  shieldExpiresAt?: Date;
+
+  @Field(() => Date, { nullable: true })
+  lastRewardClaim?: Date;
+
+  @Field(() => Date, { nullable: true })
   lastLogin?: Date;
+
+  @Field(() => Int, { nullable: true })
+  reputation?: number;
 
   @Field(() => Date, { nullable: true })
   createdAt?: Date;

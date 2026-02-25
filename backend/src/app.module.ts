@@ -18,6 +18,8 @@ import { EraProgressionModule } from './era/era-progression.module';
 import { RelicModule } from './relic/relic.module';
 import { CraftingModule } from './crafting/crafting.module';
 import { EventModule } from './event/event.module';
+import { PvPModule } from './pvp/pvp.module';
+import { RedisModule } from './redis/redis.module';
 import { GraphQLLoggingPlugin } from './graphql/plugins/logging.plugin';
 
 @Module({
@@ -57,6 +59,12 @@ import { GraphQLLoggingPlugin } from './graphql/plugins/logging.plugin';
 
     // Relic Module (Era 1 Features)
     RelicModule,
+    
+    // PvP Module (Optimization Week 2)
+    PvPModule,
+    
+    // Redis Cache Module (Optimization Week 3)
+    RedisModule,
     
     // GraphQL Module with Code-First approach
     GraphQLModule.forRoot<ApolloDriverConfig>({

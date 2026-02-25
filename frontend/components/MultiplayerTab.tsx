@@ -26,7 +26,9 @@ import {
   Crown,
   Star,
   AlertCircle,
+  Dna,
 } from 'lucide-react';
+import WorldBossTab from './WorldBossTab';
 import {
   getMultiplayerSystem,
   OnlineUser,
@@ -38,7 +40,7 @@ import {
 } from '@/lib/multiplayerSystem';
 import { useGameStore } from '@/lib/gameStore';
 
-type MultiplayerTab = 'online' | 'chat' | 'battles' | 'queue' | 'coop' | 'replays';
+type MultiplayerTab = 'online' | 'chat' | 'battles' | 'queue' | 'coop' | 'boss' | 'replays';
 
 export default function MultiplayerTab() {
   const { player } = useGameStore();
@@ -338,6 +340,7 @@ export default function MultiplayerTab() {
           { id: 'battles', label: 'Trận đấu', icon: Swords },
           { id: 'queue', label: 'Tìm trận', icon: Search },
           { id: 'coop', label: 'Co-op', icon: Shield },
+          { id: 'boss', label: 'Boss', icon: Flame },
           { id: 'replays', label: 'Xem lại', icon: Play },
         ].map(tab => {
           const Icon = tab.icon;
@@ -745,6 +748,18 @@ export default function MultiplayerTab() {
                 </div>
               )}
             </div>
+          </motion.div>
+        )}
+
+        {/* WORLD BOSS */}
+        {activeTab === 'boss' && (
+          <motion.div
+            key="boss"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+          >
+            <WorldBossTab />
           </motion.div>
         )}
 

@@ -127,55 +127,44 @@ export class ProvinceService {
     return newPlayerProvince;
   }
 
-  // Upgrade province (farmer/resource/development)
+  // Upgrade province (farmer/resource/development) - Now Asynchronous
   async upgradeProvince(playerId: string, input: UpgradeProvinceInput) {
     this.logger.log(`🔧 Upgrade request: Player=${playerId}, Province=${input.provinceId}, Type=${input.upgradeType}`);
-    
-    // Normalize upgrade type to lowercase for consistency
-    const normalizedUpgradeType = input.upgradeType.toLowerCase();
-    this.logger.debug(`📝 Normalized upgrade type: ${input.upgradeType} → ${normalizedUpgradeType}`);
     
     // Get player province
     const playerProvince = await this.getPlayerProvince(playerId, input.provinceId);
     if (!playerProvince) {
-      this.logger.error(`❌ Province ${input.provinceId} not unlocked for player ${playerId}`);
       throw new NotFoundException('Province not unlocked');
     }
 
-    this.logger.debug(`📊 Current province state: ${JSON.stringify({
-      provinceId: playerProvince.province_id,
-      farmerLevel: playerProvince.farmer_level,
-      resourceLevel: playerProvince.resource_level,
-      developmentLevel: playerProvince.development_level,
-    })}`);
+    if ((playerProvince as any).is_upgrading) {
+      throw new BadRequestException('Another upgrade is already in progress for this province');
+    }
 
-    // Calculate upgrade costs (now using normalized type)
+    // Normalize upgrade type
+    const normalizedUpgradeType = input.upgradeType.toLowerCase();
+    
+    // Calculate upgrade costs
     const costs = this.calculateUpgradeCosts(playerProvince, normalizedUpgradeType);
-    this.logger.log(`💰 Upgrade costs: ${JSON.stringify(costs)}`);
-
+    
     // Check if player has enough resources
     const player = await this.prisma.player.findUnique({
       where: { id: playerId },
     });
 
-    this.logger.debug(`🏦 Player resources (JSON): ${JSON.stringify(player?.resources)}`);
-
-    const hasResources = this.checkResourcesAvailable(player, costs);
-    if (!hasResources) {
-      this.logger.error(`❌ Insufficient resources. Required: ${JSON.stringify(costs)}`);
+    if (!this.checkResourcesAvailable(player, costs)) {
       throw new BadRequestException('Insufficient resources');
     }
 
-    this.logger.log(`✅ Resource check passed`);
+    // Calculate upgrade time (seconds)
+    const level = playerProvince[`${normalizedUpgradeType}_level`] || 1;
+    const upgradeTimeSeconds = this.calculateUpgradeTime(level);
+    const upgradeEndsAt = new Date(Date.now() + upgradeTimeSeconds * 1000);
 
-    // Deduct resources and upgrade (using normalized type)
-    const updateData = this.getUpgradeUpdateData(normalizedUpgradeType, playerProvince);
-    this.logger.debug(`📝 Update data: ${JSON.stringify(updateData)}`);
-
-    // Deduct resources first
+    // Deduct resources
     await this.deductPlayerResources(playerId, costs);
 
-    // Then upgrade province
+    // Set upgrade in progress
     const updatedProvince = await this.prisma.playerProvince.update({
       where: {
         player_id_province_id: {
@@ -183,16 +172,113 @@ export class ProvinceService {
           province_id: input.provinceId,
         },
       },
-      data: updateData,
+      data: {
+        is_upgrading: true,
+        upgrading_type: normalizedUpgradeType.toUpperCase(),
+        upgrade_ends_at: upgradeEndsAt,
+      } as any,
       include: {
         province: true,
         hero: true,
       },
     });
 
-    this.logger.log(`✅ Upgrade completed successfully! New ${normalizedUpgradeType}_level: ${updatedProvince[`${normalizedUpgradeType}_level`]}`);
+    this.logger.log(`✅ Upgrade for ${normalizedUpgradeType} started! Ends at ${upgradeEndsAt}`);
 
     return updatedProvince;
+  }
+
+  // Finish an upgrade that has completed its time
+  async finishUpgrade(playerId: string, provinceId: number) {
+    const playerProvince = await this.getPlayerProvince(playerId, provinceId);
+    if (!playerProvince || !(playerProvince as any).is_upgrading) {
+      throw new BadRequestException('No upgrade in progress');
+    }
+
+    const now = new Date();
+    if (new Date((playerProvince as any).upgrade_ends_at) > now) {
+      const remaining = Math.ceil((new Date((playerProvince as any).upgrade_ends_at).getTime() - now.getTime()) / 1000);
+      throw new BadRequestException(`Upgrade still in progress. ${remaining}s remaining.`);
+    }
+
+    const upgradeType = (playerProvince as any).upgrading_type.toLowerCase();
+    const updateData = this.getUpgradeUpdateData(upgradeType, playerProvince);
+    
+    // Clear upgrade status and increment level
+    const updated = await this.prisma.playerProvince.update({
+      where: {
+        player_id_province_id: {
+          player_id: playerId,
+          province_id: provinceId,
+        },
+      },
+      data: {
+        ...updateData,
+        is_upgrading: false,
+        upgrading_type: null,
+        upgrade_ends_at: null,
+      } as any,
+      include: {
+        province: true,
+        hero: true,
+      },
+    });
+
+    this.logger.log(`🎉 Upgrade for ${upgradeType} finished successfully!`);
+    return updated;
+  }
+
+  // Use Gems to finish an upgrade instantly (Time-Skip)
+  async timeSkipUpgrade(playerId: string, provinceId: number) {
+    const playerProvince = await this.getPlayerProvince(playerId, provinceId);
+    if (!playerProvince || !(playerProvince as any).is_upgrading) {
+      throw new BadRequestException('No upgrade in progress');
+    }
+
+    const now = new Date();
+    const remainingMs = new Date((playerProvince as any).upgrade_ends_at).getTime() - now.getTime();
+    if (remainingMs <= 0) return this.finishUpgrade(playerId, provinceId);
+
+    // Calculate Gems cost: 1 Gem per 1 minute (minimum 10 Gems)
+    const remainingMinutes = Math.ceil(remainingMs / (1000 * 60));
+    const gemsCost = Math.max(10, remainingMinutes);
+
+    // Deduct Gems
+    await this.deductPlayerResources(playerId, { gems: gemsCost });
+
+    // Complete instantly
+    const upgradeType = (playerProvince as any).upgrading_type.toLowerCase();
+    const updateData = this.getUpgradeUpdateData(upgradeType, playerProvince);
+    
+    const updated = await this.prisma.playerProvince.update({
+      where: {
+        player_id_province_id: {
+          player_id: playerId,
+          province_id: provinceId,
+        },
+      },
+      data: {
+        ...updateData,
+        is_upgrading: false,
+        upgrading_type: null,
+        upgrade_ends_at: null,
+      } as any,
+      include: {
+        province: true,
+        hero: true,
+      },
+    });
+
+    this.logger.log(`💎 Time-skip used! ${gemsCost} Gems spent to finish ${upgradeType} instantly.`);
+    return updated;
+  }
+
+  // Calculate upgrade time in seconds
+  private calculateUpgradeTime(currentLevel: number): number {
+    // Level 1 -> 2: 1 min (60s)
+    // Level 5 -> 6: ~16 min
+    // Level 10 -> 11: ~17 hours
+    return 60 * Math.pow(2, currentLevel - 1);
   }
 
   // Helper: Build province where clause
@@ -327,6 +413,8 @@ export class ProvinceService {
       updateData.resource_level = (playerProvince.resource_level || 1) + 1;
     } else if (normalizedType === 'development') {
       updateData.development_level = (playerProvince.development_level || 1) + 1;
+    } else if (normalizedType === 'spiral') {
+      updateData.spiral_layers = (playerProvince.spiral_layers || 0) + 1;
     }
 
     return updateData;
@@ -696,7 +784,15 @@ export class ProvinceService {
       throw new BadRequestException('Không đủ tài nguyên để xây dựng thành quách (Cần đá, gỗ và vàng)');
     }
 
-    // Deduct and Update
+    if ((playerProvince as any).is_upgrading) {
+      throw new BadRequestException('Another upgrade is already in progress');
+    }
+
+    // Calculate upgrade time
+    const upgradeTimeSeconds = 300 * Math.pow(2, currentLayers); // Spiral takes longer (5 min base)
+    const upgradeEndsAt = new Date(Date.now() + upgradeTimeSeconds * 1000);
+
+    // Deduct and Update to starting state
     await this.deductPlayerResources(playerId, costs);
     
     const updated = await this.prisma.playerProvince.update({
@@ -707,7 +803,9 @@ export class ProvinceService {
         },
       },
       data: {
-        spiral_layers: nextLayer,
+        is_upgrading: true,
+        upgrading_type: 'SPIRAL',
+        upgrade_ends_at: upgradeEndsAt,
       } as any,
       include: {
         province: true,
@@ -715,7 +813,7 @@ export class ProvinceService {
       },
     });
 
-    this.logger.log(`🏯 Spiral upgraded to layer ${nextLayer} for province ${provinceId}`);
+    this.logger.log(`🏯 Spiral upgrade started to layer ${nextLayer} for province ${provinceId}`);
     return updated;
   }
 

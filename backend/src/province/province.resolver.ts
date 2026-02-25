@@ -42,6 +42,9 @@ export class ProvinceResolver {
       buildingsCount: pp.buildings_count ?? undefined,
       spiralLayers: pp.spiral_layers ?? 0,
       heroId: pp.hero_id ?? undefined,
+      isUpgrading: pp.is_upgrading ?? false,
+      upgradingType: pp.upgrading_type ?? undefined,
+      upgradeEndsAt: pp.upgrade_ends_at ?? undefined,
       createdAt: pp.created_at ?? undefined,
       updatedAt: pp.updated_at ?? undefined,
       province: pp.province ? this.transformProvince(pp.province) : undefined,
@@ -110,6 +113,28 @@ export class ProvinceResolver {
     @Args('input') input: UpgradeProvinceInput,
   ): Promise<PlayerProvince> {
     const province = await this.provinceService.upgradeProvince(user.id, input);
+    return this.transformPlayerProvince(province);
+  }
+
+  // Finish upgrade mutation
+  @Mutation(() => PlayerProvince)
+  @UseGuards(JwtAuthGuard)
+  async finishUpgrade(
+    @CurrentUser() user: any,
+    @Args('provinceId', { type: () => Int }) provinceId: number,
+  ): Promise<PlayerProvince> {
+    const province = await this.provinceService.finishUpgrade(user.id, provinceId);
+    return this.transformPlayerProvince(province);
+  }
+
+  // Time-skip upgrade mutation
+  @Mutation(() => PlayerProvince)
+  @UseGuards(JwtAuthGuard)
+  async timeSkipUpgrade(
+    @CurrentUser() user: any,
+    @Args('provinceId', { type: () => Int }) provinceId: number,
+  ): Promise<PlayerProvince> {
+    const province = await this.provinceService.timeSkipUpgrade(user.id, provinceId);
     return this.transformPlayerProvince(province);
   }
 

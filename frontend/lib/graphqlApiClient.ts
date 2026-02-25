@@ -49,6 +49,18 @@ import {
   GET_MY_PARTICIPATION,
   JOIN_EVENT,
   CONTRIBUTE_TO_EVENT,
+  PULL_HERO,
+  BUY_SHIELD,
+  BUY_MONTHLY_PASS,
+  CLAIM_MONTHLY_PASS,
+  GET_PVP_OPPONENTS,
+  RAID_OPPONENT,
+  GET_PVP_SHOP_ITEMS,
+  BUY_PVP_SHOP_ITEM,
+  GET_ACTIVE_WORLD_BOSS,
+  ATTACK_WORLD_BOSS,
+  FINISH_UPGRADE,
+  TIME_SKIP_UPGRADE,
 } from './graphql/queries';
 
 interface ApiResponse<T = any> {
@@ -1264,6 +1276,150 @@ export class GraphQLApiClient {
         ],
       });
       return { success: true, data: (data as any).contributeToEvent };
+    } catch (error: any) {
+      return { success: false, message: error.message };
+    }
+  }
+
+  // ==================== WEEK 2/3 OPTIMIZATIONS ====================
+
+  static async pullHero(count: number): Promise<ApiResponse> {
+    try {
+      const { data } = await apolloClient.mutate({
+        mutation: PULL_HERO,
+        variables: { count },
+        refetchQueries: [{ query: GET_ME }, { query: GET_MY_HEROES }, { query: GET_MY_RESOURCES }],
+      });
+      return { success: true, data: (data as any).pullHeroGacha };
+    } catch (error: any) {
+      return { success: false, message: error.message };
+    }
+  }
+
+  static async buyShield(durationHours: number): Promise<ApiResponse> {
+    try {
+      const { data } = await apolloClient.mutate({
+        mutation: BUY_SHIELD,
+        variables: { durationHours },
+        refetchQueries: [{ query: GET_ME }, { query: GET_MY_RESOURCES }],
+      });
+      return { success: true, data: (data as any).buyShield };
+    } catch (error: any) {
+      return { success: false, message: error.message };
+    }
+  }
+
+  static async buyMonthlyPass(): Promise<ApiResponse> {
+    try {
+      const { data } = await apolloClient.mutate({
+        mutation: BUY_MONTHLY_PASS,
+        refetchQueries: [{ query: GET_ME }, { query: GET_MY_RESOURCES }],
+      });
+      return { success: true, data: (data as any).buyMonthlyPass };
+    } catch (error: any) {
+      return { success: false, message: error.message };
+    }
+  }
+
+  static async claimMonthlyPassReward(): Promise<ApiResponse> {
+    try {
+      const { data } = await apolloClient.mutate({
+        mutation: CLAIM_MONTHLY_PASS,
+        refetchQueries: [{ query: GET_ME }, { query: GET_MY_RESOURCES }],
+      });
+      return { success: true, data: (data as any).claimMonthlyPassReward };
+    } catch (error: any) {
+      return { success: false, message: error.message };
+    }
+  }
+
+  static async getPvPOpponents(): Promise<ApiResponse> {
+    try {
+      const { data } = await apolloClient.query({ query: GET_PVP_OPPONENTS, fetchPolicy: 'network-only' });
+      return { success: true, data: (data as any).getPvPOpponents };
+    } catch (error: any) {
+      return { success: false, message: error.message };
+    }
+  }
+
+  static async raidOpponent(defenderId: string): Promise<ApiResponse> {
+    try {
+      const { data } = await apolloClient.mutate({
+        mutation: RAID_OPPONENT,
+        variables: { defenderId },
+        refetchQueries: [{ query: GET_ME }, { query: GET_MY_RESOURCES }],
+      });
+      return { success: true, data: (data as any).raidOpponent };
+    } catch (error: any) {
+      return { success: false, message: error.message };
+    }
+  }
+
+  static async getPvPShopItems(): Promise<ApiResponse> {
+    try {
+      const { data } = await apolloClient.query({ query: GET_PVP_SHOP_ITEMS });
+      return { success: true, data: (data as any).getPvPShopItems };
+    } catch (error: any) {
+      return { success: false, message: error.message };
+    }
+  }
+
+  static async buyPvPShopItem(itemId: string): Promise<ApiResponse> {
+    try {
+      const { data } = await apolloClient.mutate({
+        mutation: BUY_PVP_SHOP_ITEM,
+        variables: { itemId },
+        refetchQueries: [{ query: GET_ME }, { query: GET_MY_RESOURCES }],
+      });
+      return { success: true, data: (data as any).buyPvPShopItem };
+    } catch (error: any) {
+      return { success: false, message: error.message };
+    }
+  }
+
+  static async getActiveWorldBoss(): Promise<ApiResponse> {
+    try {
+      const { data } = await apolloClient.query({ query: GET_ACTIVE_WORLD_BOSS, fetchPolicy: 'network-only' });
+      return { success: true, data: (data as any).getActiveWorldBoss };
+    } catch (error: any) {
+      return { success: false, message: error.message };
+    }
+  }
+
+  static async attackWorldBoss(bossId: string, damage: number): Promise<ApiResponse> {
+    try {
+      const { data } = await apolloClient.mutate({
+        mutation: ATTACK_WORLD_BOSS,
+        variables: { bossId, damage },
+        refetchQueries: [{ query: GET_ME }, { query: GET_MY_RESOURCES }],
+      });
+      return { success: true, data: (data as any).attackWorldBoss };
+    } catch (error: any) {
+      return { success: false, message: error.message };
+    }
+  }
+
+  static async finishUpgrade(provinceId: number): Promise<ApiResponse> {
+    try {
+      const { data } = await apolloClient.mutate({
+        mutation: FINISH_UPGRADE,
+        variables: { provinceId },
+        refetchQueries: [{ query: GET_MY_PROVINCES }, { query: GET_ME }],
+      });
+      return { success: true, data: (data as any).finishUpgrade };
+    } catch (error: any) {
+      return { success: false, message: error.message };
+    }
+  }
+
+  static async timeSkipUpgrade(provinceId: number): Promise<ApiResponse> {
+    try {
+      const { data } = await apolloClient.mutate({
+        mutation: TIME_SKIP_UPGRADE,
+        variables: { provinceId },
+        refetchQueries: [{ query: GET_MY_PROVINCES }, { query: GET_ME }, { query: GET_MY_RESOURCES }],
+      });
+      return { success: true, data: (data as any).timeSkipUpgrade };
     } catch (error: any) {
       return { success: false, message: error.message };
     }

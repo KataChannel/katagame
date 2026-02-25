@@ -39,10 +39,11 @@ export default function ArenaTab() {
     heroes,
     arenaState,
     initializeArena,
-    findArenaOpponents,
-    attackArenaOpponent,
+    getPvPOpponentsAction,
+    raidOpponentAction,
+    getPvPShopItemsAction,
+    buyPvPShopItemAction,
     setArenaDefense,
-    purchaseFromArenaShop,
   } = useGameStore();
 
   const [activeSubTab, setActiveSubTab] = useState<'battle' | 'leaderboard' | 'defense' | 'shop' | 'history'>('battle');
@@ -95,21 +96,24 @@ export default function ArenaTab() {
     }
   };
 
-  const handleAttack = (opponent: ArenaPlayer) => {
+  const handleAttack = (opponent: any) => {
     setSelectedOpponent(opponent);
     setShowBattleModal(true);
   };
 
-  const handleConfirmBattle = () => {
+  const handleConfirmBattle = async () => {
     if (!selectedOpponent || selectedAttackHeroes.length === 0) return;
     
-    // Get player's selected heroes for battle
-    const attackHeroObjects = (heroes || []).filter(h => selectedAttackHeroes.includes(h.id));
-    const result = attackArenaOpponent(selectedOpponent.playerId, attackHeroObjects);
+    // In real backend, we just need defenderId
+    const result = await raidOpponentAction((selectedOpponent as any).id || (selectedOpponent as any).playerId);
     
-    if (result.success && result.battle) {
-      setBattleResult(result.battle);
-      // Don't auto-close result so user can read log
+    if (result) {
+      setBattleResult({
+        result: result.success ? 'win' : 'lose',
+        ratingChange: result.success ? 15 : -10, // Mocked for UI
+        rewardCoins: result.success ? 50 : 5,
+        battleLog: [result.message, `⚔️ Attacker CP: ${result.attackerCp}`, `🛡️ Defender CP: ${result.defenderCp}`]
+      } as any);
     }
   };
 
@@ -195,7 +199,12 @@ export default function ArenaTab() {
         {activeSubTab === 'battle' && (
           <BattleTab
             arenaState={arenaState}
-            onFindOpponents={findArenaOpponents}
+            onFindOpponents={async () => {
+              const ops = await getPvPOpponentsAction();
+              if (ops) {
+                useGameStore.setState({ arenaState: { ...arenaState, matchedOpponents: ops } });
+              }
+            }}
             onAttack={handleAttack}
             battlesRemaining={battlesRemaining}
           />
@@ -213,7 +222,13 @@ export default function ArenaTab() {
         {activeSubTab === 'shop' && (
           <ShopTab
             arenaState={arenaState}
-            onPurchase={purchaseFromArenaShop}
+            onPurchase={buyPvPShopItemAction}
+            onLoadItems={async () => {
+              const items = await getPvPShopItemsAction();
+              if (items) {
+                // Assuming items is an array or object
+              }
+            }}
           />
         )}
         {activeSubTab === 'history' && (
@@ -421,64 +436,58 @@ function BattleTab({
       </div>
 
       {/* Opponents List */}
-      {arenaState.matchedOpponents.length > 0 ? (
+      {arenaState.matchedOpponents && arenaState.matchedOpponents.length > 0 ? (
         <div className="space-y-4">
-          {arenaState.matchedOpponents.map((opponent: ArenaPlayer, index: number) => (
-            <motion.div
-              key={opponent.playerId}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-white rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="text-4xl">
-                    {opponent.rank === 'legend' ? '👑' :
-                     opponent.rank === 'diamond' ? '💎' :
-                     opponent.rank === 'platinum' ? '⭐' :
-                     opponent.rank === 'gold' ? '🥇' :
-                     opponent.rank === 'silver' ? '🥈' : '🥉'}
-                  </div>
-                  <div>
-                    <h4 className="text-xl font-bold text-gray-900">{opponent.playerName}</h4>
-                    <div className="flex items-center gap-3 text-sm text-gray-600 mt-1">
-                      <span>Lv. {opponent.playerLevel}</span>
-                      <span>•</span>
-                      <span style={{ color: getRankDetails(opponent.rank).color }} className="font-semibold">
-                        {getRankDetails(opponent.rank).displayName}
-                      </span>
-                      <span>•</span>
-                      <span>{opponent.rating} Rating</span>
-                    </div>
-                    <div className="flex items-center gap-4 mt-2">
-                      <span className="text-sm">
-                        <span className="text-green-600 font-semibold">{opponent.wins}W</span>
-                        {' - '}
-                        <span className="text-red-600 font-semibold">{opponent.losses}L</span>
-                      </span>
-                      <span className="text-sm text-gray-500">
-                        ⚡ {opponent.defenseTeam.teamPower} Power
-                      </span>
+          {arenaState.matchedOpponents.map((opponent: any, index: number) => {
+            const oppName = opponent.username || opponent.playerName;
+            const oppLevel = opponent.level || opponent.playerLevel;
+            const oppRating = opponent.reputation || opponent.rating || 1000;
+            const oppCp = opponent.combatPower || (opponent.defenseTeam?.teamPower) || 0;
+            
+            return (
+              <motion.div
+                key={opponent.id || opponent.playerId}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="bg-white rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="text-4xl">⚔️</div>
+                    <div>
+                      <h4 className="text-xl font-bold text-gray-900">{oppName}</h4>
+                      <div className="flex items-center gap-3 text-sm text-gray-600 mt-1">
+                        <span>Lv. {oppLevel}</span>
+                        <span>•</span>
+                        <span className="font-semibold text-orange-600">
+                          {oppRating} Reputation
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-4 mt-2">
+                        <span className="text-sm text-gray-500">
+                          ⚡ {oppCp} Combat Power
+                        </span>
+                      </div>
                     </div>
                   </div>
+  
+                  <button
+                    onClick={() => onAttack(opponent)}
+                    disabled={battlesRemaining === 0}
+                    className={`px-6 py-3 rounded-lg font-bold transition-all ${
+                      battlesRemaining > 0
+                        ? 'bg-red-600 text-white hover:bg-red-700 shadow-md hover:shadow-lg'
+                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    <Swords className="w-5 h-5 inline mr-2" />
+                    Tấn Công
+                  </button>
                 </div>
-
-                <button
-                  onClick={() => onAttack(opponent)}
-                  disabled={battlesRemaining === 0}
-                  className={`px-6 py-3 rounded-lg font-bold transition-all ${
-                    battlesRemaining > 0
-                      ? 'bg-red-600 text-white hover:bg-red-700 shadow-md hover:shadow-lg'
-                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  <Swords className="w-5 h-5 inline mr-2" />
-                  Tấn Công
-                </button>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            );
+          })}
         </div>
       ) : (
         <div className="bg-gray-50 rounded-lg p-12 text-center">
@@ -731,9 +740,11 @@ function DefenseTab({
 function ShopTab({
   arenaState,
   onPurchase,
+  onLoadItems,
 }: {
   arenaState: any;
   onPurchase: (itemId: string) => void;
+  onLoadItems?: () => void;
 }) {
   const getRarityColor = (rarity: string) => {
     switch (rarity) {

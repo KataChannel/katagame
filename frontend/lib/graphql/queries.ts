@@ -56,6 +56,8 @@ export const GET_ME = gql`
       region
       premiumPassActive
       premiumExpiresAt
+      shieldExpiresAt
+      reputation
       stamina
       maxStamina
       lastLogin
@@ -1413,6 +1415,135 @@ export const CONTRIBUTE_TO_EVENT = gql`
     contributeToEvent(eventId: $eventId, amount: $amount) {
       id
       contributionPoints
+    }
+  }
+`;
+
+// ==================== WEEK 2/3 OPTIMIZATIONS ====================
+
+export const PULL_HERO = gql`
+  mutation PullHero($count: Int!) {
+    pullHeroGacha(count: $count) {
+      results {
+        hero {
+          id
+          nameVietnamese
+          rarity
+          role
+          era
+        }
+        playerHero {
+          id
+          level
+        }
+        isDuplicate
+        reward
+      }
+      totalSpent
+      newPityCount
+    }
+  }
+`;
+
+export const BUY_SHIELD = gql`
+  mutation BuyShield($durationHours: Int!) {
+    buyShield(durationHours: $durationHours) {
+      id
+      shieldExpiresAt
+      resources
+    }
+  }
+`;
+
+export const BUY_MONTHLY_PASS = gql`
+  mutation BuyMonthlyPass {
+    buyMonthlyPass {
+      id
+      premiumPassActive
+      premiumExpiresAt
+    }
+  }
+`;
+
+export const CLAIM_MONTHLY_PASS = gql`
+  mutation ClaimMonthlyPassReward {
+    claimMonthlyPassReward {
+      id
+      resources
+    }
+  }
+`;
+
+export const GET_PVP_OPPONENTS = gql`
+  query GetPvPOpponents {
+    getPvPOpponents {
+      id
+      username
+      level
+      combatPower
+      reputation
+    }
+  }
+`;
+
+export const RAID_OPPONENT = gql`
+  mutation RaidOpponent($defenderId: String!) {
+    raidOpponent(defenderId: $defenderId) {
+      success
+      message
+      loot
+      attackerCp
+      defenderCp
+    }
+  }
+`;
+
+export const GET_PVP_SHOP_ITEMS = gql`
+  query GetPvPShopItems {
+    getPvPShopItems
+  }
+`;
+
+export const BUY_PVP_SHOP_ITEM = gql`
+  mutation BuyPvPShopItem($itemId: String!) {
+    buyPvPShopItem(itemId: $itemId)
+  }
+`;
+
+export const GET_ACTIVE_WORLD_BOSS = gql`
+  query GetActiveWorldBoss {
+    getActiveWorldBoss
+  }
+`;
+
+export const ATTACK_WORLD_BOSS = gql`
+  mutation AttackWorldBoss($bossId: String!, $damage: Int!) {
+    attackWorldBoss(bossId: $bossId, damage: $damage)
+  }
+`;
+
+export const FINISH_UPGRADE = gql`
+  mutation FinishUpgrade($provinceId: Int!) {
+    finishUpgrade(provinceId: $provinceId) {
+      id
+      isUpgrading
+      upgradingType
+      farmerLevel
+      resourceLevel
+      developmentLevel
+    }
+  }
+`;
+
+export const TIME_SKIP_UPGRADE = gql`
+  mutation TimeSkipUpgrade($provinceId: Int!) {
+    timeSkipUpgrade(provinceId: $provinceId) {
+      id
+      isUpgrading
+      upgradingType
+      farmerLevel
+      resourceLevel
+      developmentLevel
     }
   }
 `;

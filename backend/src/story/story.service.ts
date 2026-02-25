@@ -1,13 +1,21 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { StoryWhereInput, SubmitQuizInput, MarkStoryReadInput } from '../graphql/inputs/story.input';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class StoryService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private redis: RedisService,
+  ) {}
 
   // Get all stories
   async findAll(where?: StoryWhereInput, skip?: number, take?: number) {
+    const cacheKey = `stories:all:${JSON.stringify(where)}:${skip}:${take}`;
+    const cached = await this.redis.get(cacheKey);
+    if (cached) return JSON.parse(cached);
+
     const whereClause = this.buildStoryWhereClause(where);
 
     const [stories, total] = await Promise.all([
@@ -20,11 +28,17 @@ export class StoryService {
       this.prisma.story.count({ where: whereClause }),
     ]);
 
-    return { stories, total };
+    const result = { stories, total };
+    await this.redis.set(cacheKey, JSON.stringify(result), 3600); // 1 hour
+    return result;
   }
 
   // Get story by ID
   async findById(id: string) {
+    const cacheKey = `story:id:${id}`;
+    const cached = await this.redis.get(cacheKey);
+    if (cached) return JSON.parse(cached);
+
     const story = await this.prisma.story.findUnique({
       where: { id },
       include: {
@@ -38,6 +52,7 @@ export class StoryService {
       throw new NotFoundException(`Story with ID ${id} not found`);
     }
 
+    await this.redis.set(cacheKey, JSON.stringify(story), 3600); // 1 hour
     return story;
   }
 

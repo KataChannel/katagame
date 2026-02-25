@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { Player } from '../graphql/models/player.model';
 import { AuthResponse, MutationResponse } from '../graphql/common/responses.type';
@@ -20,6 +20,11 @@ export class PlayerResolver {
       experience: player.experience ?? undefined,
       stamina: player.stamina ?? undefined,
       maxStamina: player.max_stamina ?? undefined,
+      premiumPassActive: player.premium_pass_active ?? false,
+      premiumExpiresAt: player.premium_expires_at ?? undefined,
+      shieldExpiresAt: player.shield_expires_at ?? undefined,
+      lastRewardClaim: player.last_reward_claim ?? undefined,
+      reputation: player.reputation ?? 0,
       createdAt: player.created_at ?? undefined,
       updatedAt: player.updated_at ?? undefined,
     };
@@ -151,5 +156,31 @@ export class PlayerResolver {
         message: error.message || 'Failed to reset player data' 
       };
     }
+  }
+
+  // ==================== NEW WEEK 2 MUTATIONS ====================
+
+  @Mutation(() => Player)
+  @UseGuards(JwtAuthGuard)
+  async buyShield(
+    @CurrentUser() user: any,
+    @Args('durationHours', { type: () => Int }) durationHours: number,
+  ): Promise<Player> {
+    const player = await this.playerService.buyShield(user.id, durationHours);
+    return this.transformPlayer(player);
+  }
+
+  @Mutation(() => Player)
+  @UseGuards(JwtAuthGuard)
+  async buyMonthlyPass(@CurrentUser() user: any): Promise<Player> {
+    const player = await this.playerService.buyMonthlyPass(user.id);
+    return this.transformPlayer(player);
+  }
+
+  @Mutation(() => Player)
+  @UseGuards(JwtAuthGuard)
+  async claimMonthlyPassReward(@CurrentUser() user: any): Promise<Player> {
+    const player = await this.playerService.claimMonthlyPassReward(user.id);
+    return this.transformPlayer(player);
   }
 }

@@ -45,7 +45,7 @@ const GemShop = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
         {GEM_PACKS.map((pack, index) => (
           <motion.div
             key={pack.id}
@@ -89,6 +89,106 @@ const GemShop = () => {
             </div>
           </motion.div>
         ))}
+      </div>
+
+      {/* Monthly Pass Section */}
+      <div className="bg-gradient-to-r from-yellow-600/20 to-orange-600/20 rounded-2xl p-6 border-2 border-yellow-500/30 overflow-hidden relative">
+        <div className="absolute top-0 right-0 p-4 opacity-10">
+          <ChevronRight className="w-32 h-32" />
+        </div>
+        <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
+          <div className="w-20 h-20 bg-yellow-500 rounded-2xl flex items-center justify-center text-4xl shadow-lg shadow-yellow-500/50">
+            ☀️
+          </div>
+          <div className="flex-1 text-center md:text-left">
+            <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter">Thẻ Tháng Đặc Quyền</h3>
+            <p className="text-yellow-200 text-sm mt-1">Nhận ngay 300 Gems và 100 Gems mỗi ngày trong 30 ngày!</p>
+            <div className="flex flex-wrap gap-2 mt-3 justify-center md:justify-start">
+              <span className="bg-black/40 text-yellow-500 text-[10px] font-bold px-2 py-1 rounded">3300 GEMS TỔNG</span>
+              <span className="bg-black/40 text-yellow-500 text-[10px] font-bold px-2 py-1 rounded">X2 EXP</span>
+              <span className="bg-black/40 text-yellow-500 text-[10px] font-bold px-2 py-1 rounded">HẠN CHẾ QUẢNG CÁO</span>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2">
+            <button 
+              onClick={async () => {
+                const { default: GraphQLApiClient } = await import('@/lib/graphqlApiClient');
+                const res = await GraphQLApiClient.buyMonthlyPass();
+                if (res.success) {
+                  useGameStore.getState().addNotification({ type: 'success', title: 'Thành công', message: 'Kích hoạt Thẻ Tháng thành công!' });
+                }
+              }}
+              className="px-8 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-black rounded-xl transition-all shadow-lg"
+            >
+              125,000 ₫
+            </button>
+            <button 
+              onClick={async () => {
+                const { default: GraphQLApiClient } = await import('@/lib/graphqlApiClient');
+                const res = await GraphQLApiClient.claimMonthlyPassReward();
+                if (res.success) {
+                  useGameStore.getState().addNotification({ type: 'success', title: 'Thành công', message: 'Nhận quà Thẻ Tháng hôm nay!' });
+                }
+              }}
+              className="text-yellow-500 text-xs font-bold hover:underline"
+            >
+              Nhận Quà Hàng Ngày
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Special Items / Shields */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-gray-800 rounded-xl p-5 border border-blue-500/20 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
+              <Shield className="w-8 h-8 text-blue-500" />
+            </div>
+            <div>
+              <h4 className="text-white font-bold">Khiên Hòa Bình (8h)</h4>
+              <p className="text-xs text-gray-400">Tránh bị raid trong 8 giờ</p>
+            </div>
+          </div>
+          <button 
+            onClick={async () => {
+              const { default: GraphQLApiClient } = await import('@/lib/graphqlApiClient');
+              const res = await GraphQLApiClient.buyShield(8);
+              if (res.success) {
+                useGameStore.getState().addNotification({ type: 'success', title: 'Bảo vệ', message: 'Kích hoạt khiên 8h!' });
+              }
+            }}
+            className="flex items-center gap-1 bg-blue-600 px-4 py-2 rounded-lg text-white font-bold text-sm"
+          >
+            <Gem className="w-3 h-3" />
+            100
+          </button>
+        </div>
+
+        <div className="bg-gray-800 rounded-xl p-5 border border-purple-500/20 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
+              <Zap className="w-8 h-8 text-purple-500" />
+            </div>
+            <div>
+              <h4 className="text-white font-bold">Khiên Thần Thánh (24h)</h4>
+              <p className="text-xs text-gray-400">Tránh bị raid trong 24 giờ</p>
+            </div>
+          </div>
+          <button 
+            onClick={async () => {
+              const { default: GraphQLApiClient } = await import('@/lib/graphqlApiClient');
+              const res = await GraphQLApiClient.buyShield(24);
+              if (res.success) {
+                useGameStore.getState().addNotification({ type: 'success', title: 'Bảo vệ', message: 'Kích hoạt khiên 24h!' });
+              }
+            }}
+            className="flex items-center gap-1 bg-purple-600 px-4 py-2 rounded-lg text-white font-bold text-sm"
+          >
+            <Gem className="w-3 h-3" />
+            250
+          </button>
+        </div>
       </div>
 
       {/* Bonus Info */}

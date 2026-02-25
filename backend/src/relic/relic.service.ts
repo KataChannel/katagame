@@ -1,14 +1,22 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Relic, PlayerRelic } from '../graphql/models/relic.model';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class RelicService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private redis: RedisService,
+  ) {}
 
   async getAllRelics(): Promise<Relic[]> {
+    const cacheKey = 'relics:all';
+    const cached = await this.redis.get(cacheKey);
+    if (cached) return JSON.parse(cached);
+
     const relics = await this.prisma.relic.findMany();
-    return relics.map(r => ({
+    const result = relics.map(r => ({
       ...r,
       auraValue: Number(r.aura_value),
       baseBronzeCost: r.base_bronze_cost,
@@ -16,6 +24,9 @@ export class RelicService {
       auraType: r.aura_type,
       auraRadius: r.aura_radius
     }));
+
+    await this.redis.set(cacheKey, JSON.stringify(result), 3600); // 1 hour
+    return result;
   }
 
   async getPlayerRelics(playerId: string): Promise<PlayerRelic[]> {

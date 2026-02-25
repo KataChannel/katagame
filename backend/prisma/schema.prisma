@@ -32,6 +32,20 @@ model Player {
   max_stamina             Int?                 @default(100)
   era_progress            Int?                 @default(0)
   updated_at              DateTime?            @default(now()) @updatedAt @db.Timestamp(6)
+  
+  // Gacha Pity System
+  hero_pity_count         Int?                 @default(0)
+  relic_pity_count        Int?                 @default(0)
+  
+  // PvP & Protect
+  shield_expires_at       DateTime?            @db.Timestamp(6)
+  daily_raid_count        Int?                 @default(0)
+  last_raid_at            DateTime?            @db.Timestamp(6)
+  reputation              Int?                 @default(0)
+  
+  // Rewards & Subscriptions
+  last_reward_claim       DateTime?            @db.Timestamp(6)
+  
   daily_quest_progress    DailyQuestProgress[]
   player_provinces        PlayerProvince[]
   player_heroes           PlayerHero[]
@@ -41,6 +55,7 @@ model Player {
   player_relics           PlayerRelic[]
   player_items            PlayerItem[]
   event_participations    PlayerEventParticipation[]
+  world_boss_contributions WorldBossContribution[]
 
   @@map("players")
 }
@@ -211,6 +226,12 @@ model PlayerProvince {
   active_skill_level        Int?      @default(0)
   active_skill_last_used    DateTime? @db.Timestamp(6)
   active_skill_cooldown_ends DateTime? @db.Timestamp(6)
+  
+  // Asynchronous Upgrading
+  is_upgrading              Boolean?  @default(false)
+  upgrading_type            String?   @db.VarChar(20) // 'FARMER', 'RESOURCE', 'DEVELOPMENT', 'SPIRAL'
+  upgrade_ends_at           DateTime? @db.Timestamp(6)
+  
   created_at                DateTime? @default(now()) @db.Timestamp(6)
   updated_at                DateTime? @default(now()) @updatedAt @db.Timestamp(6)
   hero                      Hero?     @relation(fields: [hero_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -752,4 +773,37 @@ model PlayerEventParticipation {
 
   @@unique([player_id, event_id])
   @@map("player_event_participations")
+}
+
+model WorldBoss {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name             String    @db.VarChar(100)
+  era              String?   @db.VarChar(100)
+  max_hp           BigInt
+  current_hp       BigInt
+  status           String    @default("active") // 'active', 'defeated', 'expired'
+  starts_at        DateTime  @db.Timestamp(6)
+  ends_at          DateTime  @db.Timestamp(6)
+  
+  contributions    WorldBossContribution[]
+  
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  updated_at       DateTime? @default(now()) @updatedAt @db.Timestamp(6)
+
+  @@map("world_bosses")
+}
+
+model WorldBossContribution {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  boss_id          String    @db.Uuid
+  player_id        String    @db.Uuid
+  total_damage     BigInt    @default(0)
+  attempts         Int       @default(0)
+  last_attack_at   DateTime? @db.Timestamp(6)
+  
+  boss             WorldBoss @relation(fields: [boss_id], references: [id], onDelete: Cascade)
+  player           Player    @relation(fields: [player_id], references: [id], onDelete: Cascade)
+
+  @@unique([boss_id, player_id])
+  @@map("world_boss_contributions")
 }

@@ -363,6 +363,19 @@ interface GameStore extends GameState {
   globalAnnouncements: GlobalAnnouncement[];
   addGlobalAnnouncement: (message: string, type: 'purchase' | 'achievement' | 'system' | 'event') => void;
   removeGlobalAnnouncement: (id: string) => void;
+  // ==================== WEEK 2/3 OPTIMIZATIONS (GraphQL) ====================
+  lastGachaResults: any[] | null;
+  pullHeroGacha: (count: number) => Promise<any>;
+  buyShieldAction: (hours: number) => Promise<boolean>;
+  buyMonthlyPassAction: () => Promise<boolean>;
+  claimMonthlyPassRewardAction: () => Promise<boolean>;
+  raidOpponentAction: (defenderId: string) => Promise<any>;
+  getPvPOpponentsAction: () => Promise<any>;
+  getPvPShopItemsAction: () => Promise<any>;
+  buyPvPShopItemAction: (itemId: string) => Promise<boolean>;
+  attackWorldBossAction: (bossId: string, damage: number) => Promise<any>;
+  finishUpgradeAction: (provinceId: number) => Promise<boolean>;
+  timeSkipUpgradeAction: (provinceId: number) => Promise<boolean>;
 }
 
 export const useGameStore = create<GameStore>()(
@@ -390,6 +403,7 @@ export const useGameStore = create<GameStore>()(
       enhancedShopState: undefined,
       customizationState: undefined,
       learnedCultureTopics: [],
+      lastGachaResults: null,
 
       receiveReward: (rewards) => {
         set((state) => {
@@ -3385,6 +3399,153 @@ export const useGameStore = create<GameStore>()(
         if (result.success && result.state) {
           set({ customizationState: result.state });
         }
+      },
+
+      // ==================== WEEK 2/3 OPTIMIZATIONS (GraphQL) ====================
+      pullHeroGacha: async (count: number) => {
+        const { default: GraphQLApiClient } = await import('./graphqlApiClient');
+        const response = await GraphQLApiClient.pullHero(count);
+        
+        if (response.success) {
+          const { results, newPityCount } = response.data;
+          set((state) => ({
+            lastGachaResults: results,
+            gacha: state.gacha ? { ...state.gacha, pityCounter: newPityCount } : undefined,
+          }));
+          return results;
+        } else {
+          get().addNotification({
+            type: 'error',
+            title: 'Lỗi Triệu Hồi',
+            message: response.message || 'Không thể triệu hồi anh hùng',
+          });
+          return null;
+        }
+      },
+
+      buyShieldAction: async (hours: number) => {
+        const { default: GraphQLApiClient } = await import('./graphqlApiClient');
+        const response = await GraphQLApiClient.buyShield(hours);
+        if (response.success) {
+          get().addNotification({
+            type: 'success',
+            title: 'Mua Khiên Thành Công',
+            message: `Bạn được bảo vệ trong ${hours} giờ!`,
+          });
+          return true;
+        }
+        return false;
+      },
+
+      buyMonthlyPassAction: async () => {
+        const { default: GraphQLApiClient } = await import('./graphqlApiClient');
+        const response = await GraphQLApiClient.buyMonthlyPass();
+        if (response.success) {
+          get().addNotification({
+            type: 'success',
+            title: 'Kích Hoạt Thẻ Tháng',
+            message: 'Chúc mừng! Bạn đã nhận đặc quyền Thẻ Tháng.',
+          });
+          return true;
+        }
+        return false;
+      },
+
+      claimMonthlyPassRewardAction: async () => {
+        const { default: GraphQLApiClient } = await import('./graphqlApiClient');
+        const response = await GraphQLApiClient.claimMonthlyPassReward();
+        if (response.success) {
+          get().addNotification({
+            type: 'success',
+            title: 'Nhận Thưởng Thẻ Tháng',
+            message: 'Đã nhận phần thưởng hàng ngày!',
+          });
+          return true;
+        }
+        return false;
+      },
+
+      raidOpponentAction: async (defenderId: string) => {
+        const { default: GraphQLApiClient } = await import('./graphqlApiClient');
+        const response = await GraphQLApiClient.raidOpponent(defenderId);
+        if (response.success) {
+          get().addNotification({
+            type: response.data.success ? 'success' : 'info',
+            title: response.data.success ? '🎉 Chiến Thắng!' : '😔 Thất Bại',
+            message: response.data.message,
+          });
+          return response.data;
+        }
+        return null;
+      },
+
+      getPvPOpponentsAction: async () => {
+        const { default: GraphQLApiClient } = await import('./graphqlApiClient');
+        const response = await GraphQLApiClient.getPvPOpponents();
+        if (response.success) {
+          return response.data;
+        }
+        return null;
+      },
+
+      getPvPShopItemsAction: async () => {
+        const { default: GraphQLApiClient } = await import('./graphqlApiClient');
+        const response = await GraphQLApiClient.getPvPShopItems();
+        if (response.success) {
+          return response.data;
+        }
+        return null;
+      },
+
+      buyPvPShopItemAction: async (itemId: string) => {
+        const { default: GraphQLApiClient } = await import('./graphqlApiClient');
+        const response = await GraphQLApiClient.buyPvPShopItem(itemId);
+        if (response.success) {
+          get().addNotification({
+            type: 'success',
+            title: 'Mua Thành Công',
+            message: 'Đã nhận vật phẩm từ Đấu Trường Shop!',
+          });
+          return true;
+        }
+        return false;
+      },
+
+      attackWorldBossAction: async (bossId: string, damage: number) => {
+        const { default: GraphQLApiClient } = await import('./graphqlApiClient');
+        const response = await GraphQLApiClient.attackWorldBoss(bossId, damage);
+        if (response.success) {
+          return response.data;
+        }
+        return null;
+      },
+
+      finishUpgradeAction: async (provinceId: number) => {
+        const { default: GraphQLApiClient } = await import('./graphqlApiClient');
+        const response = await GraphQLApiClient.finishUpgrade(provinceId);
+        if (response.success) {
+          get().addNotification({
+            type: 'success',
+            title: 'Hoàn Thành Nâng Cấp',
+            message: 'Công trình đã được nâng cấp xong!',
+          });
+          return true;
+        }
+        return false;
+      },
+
+      timeSkipUpgradeAction: async (provinceId: number) => {
+        const { default: GraphQLApiClient } = await import('./graphqlApiClient');
+        const response = await GraphQLApiClient.timeSkipUpgrade(provinceId);
+        if (response.success) {
+          get().addNotification({
+            type: 'success',
+            title: 'Dùng TimeSkip',
+            message: 'Đã giảm thời gian nâng cấp!',
+          });
+          return true;
+        }
+        return false;
       },
     }),
     {

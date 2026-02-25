@@ -97,7 +97,7 @@ export default function HeroDetailPage({ params }: PageProps) {
 
   const handleLevelUp = async () => {
     // Grant enough exp to level up (simplified - in real game would cost resources)
-    const hero: PlayerHeroWithStats = heroData?.myHeroWithStats;
+    const hero: PlayerHeroWithStats = (heroData as any)?.myHeroWithStats;
     if (!hero) return;
 
     const expNeeded = hero.expForNextLevel - hero.expProgress;
@@ -145,8 +145,8 @@ export default function HeroDetailPage({ params }: PageProps) {
     );
   }
 
-  const hero: PlayerHeroWithStats = heroData?.myHeroWithStats;
-  const pets: PetWithBonuses[] = petsData?.myPets || [];
+  const hero: PlayerHeroWithStats = (heroData as any)?.myHeroWithStats;
+  const pets: PetWithBonuses[] = (petsData as any)?.myPets || [];
 
   if (!hero) {
     return (
@@ -182,39 +182,39 @@ export default function HeroDetailPage({ params }: PageProps) {
           
           <div className="flex items-center gap-4">
             <div className="text-5xl">
-              {hero.hero?.era === 'ancient' && '👑'}
-              {hero.hero?.era === 'medieval' && '⚔️'}
-              {hero.hero?.era === 'modern' && '🎖️'}
-              {!hero.hero?.era && '🦸'}
+              {hero.era === 'ancient' && '👑'}
+              {hero.era === 'medieval' && '⚔️'}
+              {hero.era === 'modern' && '🎖️'}
+              {!hero.era && '🦸'}
             </div>
             <div>
               <h1 className="text-3xl font-bold flex items-center gap-2">
                 <Crown className="w-8 h-8" />
-                {hero.hero?.nameVietnamese || 'Anh Hùng'}
+                {hero.nameVietnamese || 'Anh Hùng'}
               </h1>
-              {hero.hero?.nameEnglish && (
-                <p className="text-purple-100 text-sm">{hero.hero.nameEnglish}</p>
+              {hero.nameEnglish && (
+                <p className="text-purple-100 text-sm">{hero.nameEnglish}</p>
               )}
               <div className="flex items-center gap-3 mt-2 text-sm">
-                {hero.hero?.era && (
+                {hero.era && (
                   <span className="bg-purple-700 px-3 py-1 rounded-full">
-                    {hero.hero.era}
+                    {hero.era}
                   </span>
                 )}
-                {hero.hero?.rarity && (
+                {hero.rarity && (
                   <span className={`
                     px-3 py-1 rounded-full font-semibold capitalize
-                    ${hero.hero.rarity === 'legendary' ? 'bg-yellow-500 text-yellow-900' : ''}
-                    ${hero.hero.rarity === 'epic' ? 'bg-purple-500 text-white' : ''}
-                    ${hero.hero.rarity === 'rare' ? 'bg-blue-500 text-white' : ''}
-                    ${hero.hero.rarity === 'common' ? 'bg-gray-500 text-white' : ''}
+                    ${hero.rarity === 'legendary' ? 'bg-yellow-500 text-yellow-900' : ''}
+                    ${hero.rarity === 'epic' ? 'bg-purple-500 text-white' : ''}
+                    ${hero.rarity === 'rare' ? 'bg-blue-500 text-white' : ''}
+                    ${hero.rarity === 'common' ? 'bg-gray-500 text-white' : ''}
                   `}>
-                    {hero.hero.rarity}
+                    {hero.rarity}
                   </span>
                 )}
-                {hero.hero?.role && (
+                {(hero as any).role && (
                   <span className="bg-purple-700 px-3 py-1 rounded-full">
-                    {hero.hero.role}
+                    {(hero as any).role}
                   </span>
                 )}
               </div>
@@ -283,7 +283,7 @@ export default function HeroDetailPage({ params }: PageProps) {
                   <PetCard
                     key={pet.id}
                     pet={pet}
-                    heroName={isAssigned ? hero.hero?.nameVietnamese : undefined}
+                    heroName={isAssigned ? hero.nameVietnamese : undefined}
                     isAssigned={isAssigned}
                     onAssign={!isPetAssignedToOther ? () => handleAssignPet(pet.id) : undefined}
                     onUnassign={isAssigned ? handleUnassignPet : undefined}

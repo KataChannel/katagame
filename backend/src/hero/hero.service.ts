@@ -1,13 +1,21 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { HeroWhereInput, PlayerHeroWhereInput, RecruitHeroInput, DeployHeroInput, LevelUpHeroInput } from '../graphql/inputs/hero.input';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class HeroService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private redis: RedisService,
+  ) {}
 
   // Get all heroes
   async findAll(where?: HeroWhereInput, skip?: number, take?: number) {
+    const cacheKey = `heroes:all:${JSON.stringify(where)}:${skip}:${take}`;
+    const cached = await this.redis.get(cacheKey);
+    if (cached) return JSON.parse(cached);
+
     const whereClause = this.buildHeroWhereClause(where);
 
     const [heroes, total] = await Promise.all([
@@ -20,11 +28,17 @@ export class HeroService {
       this.prisma.hero.count({ where: whereClause }),
     ]);
 
-    return { heroes, total };
+    const result = { heroes, total };
+    await this.redis.set(cacheKey, JSON.stringify(result), 3600); // 1 hour
+    return result;
   }
 
   // Get hero by ID
   async findById(id: string) {
+    const cacheKey = `hero:id:${id}`;
+    const cached = await this.redis.get(cacheKey);
+    if (cached) return JSON.parse(cached);
+
     const hero = await this.prisma.hero.findUnique({
       where: { id },
     });
@@ -33,6 +47,7 @@ export class HeroService {
       throw new NotFoundException(`Hero with ID ${id} not found`);
     }
 
+    await this.redis.set(cacheKey, JSON.stringify(hero), 3600); // 1 hour
     return hero;
   }
 

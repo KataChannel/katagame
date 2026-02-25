@@ -34,8 +34,8 @@ import {
 } from 'lucide-react';
 
 export default function GachaTab() {
-  const { player, gacha, performGachaPull, performGachaTenPull, performDailyFreePull, initializeGacha } = useGameStore();
-  const [showPullResult, setShowPullResult] = useState<PullResult[] | null>(null);
+  const { player, gacha, pullHeroGacha, lastGachaResults, initializeGacha } = useGameStore();
+  const [showPullResult, setShowPullResult] = useState<any[] | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [isPulling, setIsPulling] = useState(false);
   const [timeUntilFree, setTimeUntilFree] = useState(0);
@@ -81,27 +81,23 @@ export default function GachaTab() {
   const stats = getGachaStatistics(gacha);
 
   const handleSinglePull = async () => {
-    if (!canAffordSingle || isPulling) return;
-    
     setIsPulling(true);
     // Simulate pull animation delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 800));
     
-    const result = performGachaPull();
-    if (result) {
-      setShowPullResult([result]);
+    const results = await pullHeroGacha(1);
+    if (results) {
+      setShowPullResult(results);
     }
     setIsPulling(false);
   };
 
   const handleTenPull = async () => {
-    if (!canAffordTen || isPulling) return;
-    
     setIsPulling(true);
     // Simulate pull animation delay
-    await new Promise(resolve => setTimeout(resolve, 800));
+    await new Promise(resolve => setTimeout(resolve, 1500));
     
-    const results = performGachaTenPull();
+    const results = await pullHeroGacha(10);
     if (results) {
       setShowPullResult(results);
     }
@@ -109,6 +105,7 @@ export default function GachaTab() {
   };
 
   const handleFreePull = async () => {
+    /* 
     if (!freePullAvailable || isPulling) return;
     
     setIsPulling(true);
@@ -119,6 +116,8 @@ export default function GachaTab() {
       setShowPullResult([result]);
     }
     setIsPulling(false);
+    */
+    useGameStore.getState().addNotification({ type: 'info', title: 'Thông báo', message: 'Tính năng Free Pull đang được cập nhật.' });
   };
 
   return (
@@ -409,7 +408,7 @@ function PullResultModal({
   results,
   onClose,
 }: {
-  results: PullResult[];
+  results: any[];
   onClose: () => void;
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -460,13 +459,23 @@ function GachaRevealCard({
   onNext,
   isLast,
 }: {
-  result: PullResult;
+  result: any;
   onNext: () => void;
   isLast: boolean;
 }) {
-  const { item, isNew, isPity } = result;
-  const gradient = getRarityGradient(item.rarity);
-  const rarityName = getRarityNameVi(item.rarity);
+  const { hero, isDuplicate, reward } = result;
+  
+  // Map backend rarity to frontend rarity string
+  const rarity = (hero.rarity || 'common').toLowerCase() as Rarity;
+  const gradient = getRarityGradient(rarity);
+  const rarityName = getRarityNameVi(rarity);
+
+  const displayItem = {
+    displayName: hero.nameVietnamese || hero.name,
+    description: hero.description || 'Anh hùng hào kiệt đất Việt.',
+    type: 'hero',
+    rarity: rarity
+  };
 
   return (
     <motion.div
@@ -483,9 +492,9 @@ function GachaRevealCard({
           <motion.div
             key={i}
             className={`absolute w-2 h-2 rounded-full ${
-              item.rarity === 'legendary' ? 'bg-yellow-300' :
-              item.rarity === 'epic' ? 'bg-purple-400' :
-              item.rarity === 'rare' ? 'bg-blue-400' : 'bg-gray-400'
+              displayItem.rarity === 'legendary' ? 'bg-yellow-300' :
+              displayItem.rarity === 'epic' ? 'bg-purple-400' :
+              displayItem.rarity === 'rare' ? 'bg-blue-400' : 'bg-gray-400'
             }`}
             style={{
               left: `${Math.random() * 100}%`,
@@ -514,14 +523,14 @@ function GachaRevealCard({
           >
             {rarityName}
           </motion.div>
-          {isPity && (
+          {displayItem.rarity === 'legendary' && (
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.4, type: 'spring' }}
               className="mt-2 inline-block px-3 py-1 rounded-full bg-red-500 text-white text-sm font-bold"
             >
-              🎯 PITY ACTIVATED!
+              🎯 TRIỆU HỒI ĐẶC BIỆT!
             </motion.div>
           )}
         </div>
@@ -534,18 +543,26 @@ function GachaRevealCard({
           className="text-center"
         >
           <div className="text-6xl mb-4">
-            {item.type === 'hero' ? '🗡️' :
-             item.type === 'pet' ? '✨' :
-             item.type === 'hero-skin' ? '👘' :
-             item.type === 'pet-variant' ? '🌈' : '💰'}
+            {displayItem.rarity === 'legendary' ? '🏮' :
+             displayItem.rarity === 'epic' ? '🗡️' :
+             displayItem.rarity === 'rare' ? '🛡️' : '🚶'}
           </div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">{item.displayName}</h3>
-          <p className="text-gray-600 text-sm mb-4">{item.description}</p>
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">{displayItem.displayName}</h3>
+          <p className="text-gray-600 text-sm mb-4">{displayItem.description}</p>
           
-          {isNew && (
+          {isDuplicate && (
+            <div className="inline-flex flex-col items-center gap-1">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-medium">
+                <History className="w-4 h-4" />
+                TRÙNG LẶP
+              </div>
+              {reward && <p className="text-xs text-orange-600 font-bold">Chuyển thành: {reward}</p>}
+            </div>
+          )}
+          {!isDuplicate && (
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
               <Star className="w-4 h-4" />
-              NEW!
+              MỚI!
             </div>
           )}
         </motion.div>
