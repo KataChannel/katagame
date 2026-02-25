@@ -1,100 +1,103 @@
 import { useState } from 'react';
 import { Book, Star, Trophy, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useGameStore } from '@/lib/gameStore';
+import { toast } from 'sonner';
 
 const CultureCenter = () => {
   const [selectedTopic, setSelectedTopic] = useState<'history' | 'places' | 'people' | 'traditions'>('history');
+  const { learnTopic, learnedCultureTopics } = useGameStore();
 
   const cultureContent = {
     history: {
-      title: '🏛️ Lịch Sử Việt Nam',
+      title: '📜 Truyền Thuyết & Lịch Sử',
       items: [
         {
-          title: 'Hà Nội - Thăng Long Kinh Thành',
-          content: 'Thủ đô của Việt Nam từ thời Lý (1010). Vua Lý Thái Tổ dời đô về đây và đặt tên là Thăng Long, có nghĩa là "rồng bay lên". Đây là trung tâm chính trị, văn hóa của cả nước.',
+          title: 'Con Rồng Cháu Tiên',
+          content: 'Truyền thuyết về Lạc Long Quân và Âu Cơ, cội nguồn của dân tộc Việt. 100 trứng nở trăm con, 50 xuống biển, 50 lên non, khai phá đất đai.',
           reward: { culture: 50, gold: 20 },
-          image: '🏛️'
-        },
-        {
-          title: 'Nghệ An - Quê Hương Bác Hồ',
-          content: 'Tỉnh Nghệ An là quê hương của Chủ tịch Hồ Chí Minh. Đây cũng là vùng đất có truyền thống cách mạng lâu đời với nhiều phong trào đấu tranh.',
-          reward: { culture: 60, gold: 25 },
-          image: '⭐'
-        },
-        {
-          title: 'Quảng Ninh - Vịnh Hạ Long',
-          content: 'Vịnh Hạ Long được UNESCO công nhận là di sản thiên nhiên thế giới. Truyền thuyết kể rằng rồng mẹ và rồng con xuống biển tạo ra hàng nghìn hòn đảo đẹp.',
-          reward: { culture: 70, gold: 30 },
           image: '🐉'
+        },
+        {
+          title: 'Nhà Nước Văn Lang',
+          content: 'Nhà nước đầu tiên của người Việt, do các Vua Hùng cai trị, đóng đô tại Phong Châu. Nổi tiếng với nền văn minh lúa nước và trống đồng.',
+          reward: { culture: 60, rice: 50 },
+          image: '🌾'
+        },
+        {
+          title: 'Thánh Gióng',
+          content: 'Người anh hùng làng Gióng, 3 tuổi vươn vai thành tráng sĩ, cưỡi ngựa sắt, nhổ tre ngà đánh tan giặc Ân, bay về trời.',
+          reward: { culture: 70, bronze: 40 },
+          image: '🐎'
         }
       ]
     },
     places: {
-      title: '🗺️ Danh Thắng Nổi Tiếng',
+      title: '🏔️ Danh Thắng Cổ Đại',
       items: [
         {
-          title: 'Hồ Gương - Hà Nội',
-          content: 'Hồ Hoàn Kiếm hay Hồ Gương là biểu tượng của Hà Nội. Truyền thuyết kể về thanh gươm thiêng và rùa thần Kim Quy.',
-          reward: { culture: 40, rice: 50 },
-          image: '🏮'
+          title: 'Núi Nghĩa Lĩnh',
+          content: 'Nơi ngự trị của các Vua Hùng, nay là khu di tích Đền Hùng (Phú Thọ). Nơi thực hiện các nghi lễ tế trời đất.',
+          reward: { culture: 40, stone: 30 },
+          image: '⛰️'
         },
         {
-          title: 'Cửa Lò - Nghệ An',
-          content: 'Bãi biển Cửa Lò với cát trắng, nước xanh là điểm du lịch nổi tiếng. Đây cũng là nơi Bác Hồ thường về thăm quê hương.',
-          reward: { culture: 45, lumber: 30 },
-          image: '🏖️'
+          title: 'Kinh Đô Phong Châu',
+          content: 'Trung tâm chính trị, văn hóa của nước Văn Lang. Nằm ở ngã ba sông (Việt Trì), thuận lợi cho giao thương và phòng thủ.',
+          reward: { culture: 45, rice: 40 },
+          image: '🏰'
         },
         {
-          title: 'Động Thiên Cung - Quảng Ninh',
-          content: 'Động Thiên Cung trong vịnh Hạ Long với những khối thạch nhũ kỳ thú, được ví như cung điện của các vị thần.',
-          reward: { culture: 55, stone: 40 },
-          image: '✨'
+          title: 'Núi Tản Viên',
+          content: 'Ngọn núi thiêng (Ba Vì), nơi ngự của Sơn Tinh - vị thần cai quản núi rừng, người đã đánh bại Thủy Tinh.',
+          reward: { culture: 55, wood: 40 },
+          image: '🗻'
         }
       ]
     },
     people: {
-      title: '👑 Danh Nhân Lịch Sử',
+      title: '👑 Nhân Vật Huyền Thoại',
       items: [
         {
-          title: 'Lý Thái Tổ (974-1028)',
-          content: 'Vua sáng lập nhà Lý, dời đô về Thăng Long. Ông là vị vua anh minh, tạo nền tảng cho thời kỳ hưng thịnh của Việt Nam.',
-          reward: { culture: 80, gold: 50 },
+          title: 'Hùng Vương',
+          content: 'Vị vua đứng đầu nhà nước Văn Lang. Có 18 đời vua Hùng, người có công dựng nước và dạy dân trồng lúa nước.',
+          reward: { culture: 80, bronze: 50 },
           image: '👑'
         },
         {
-          title: 'Chủ tịch Hồ Chí Minh (1890-1969)',
-          content: 'Lãnh tụ kính yêu của dân tộc Việt Nam, người đã dành cả cuộc đời cho sự nghiệp giải phóng dân tộc và thống nhất đất nước.',
-          reward: { culture: 100, gold: 100 },
-          image: '⭐'
+          title: 'Sơn Tinh',
+          content: 'Vị thần núi Tản Viên, biểu tượng cho sức mạnh chinh phục thiên nhiên, trị thủy và bảo vệ mùa màng của người Việt cổ.',
+          reward: { culture: 100, stone: 60 },
+          image: '🏔️'
         },
         {
-          title: 'Trần Hưng Đạo (1228-1300)',
-          content: 'Danh tướng nhà Trần, ba lần đánh bại quân Mông Cổ xâm lược. Ông để lại nhiều chiến thuật quân sự xuất sắc.',
-          reward: { culture: 90, stone: 60 },
-          image: '⚔️'
+          title: 'Lang Liêu',
+          content: 'Vị hoàng tử nghèo khó nhưng hiếu thảo, người đã sáng tạo ra Bánh Chưng (Đất) và Bánh Giày (Trời) dâng lên vua cha.',
+          reward: { culture: 90, rice: 80 },
+          image: '🍱'
         }
       ]
     },
     traditions: {
-      title: '🎭 Truyền Thống Văn Hóa',
+      title: '🥁 Văn Hóa & Phong Tục',
       items: [
         {
-          title: 'Tết Nguyên Đán',
-          content: 'Tết là dịp lễ quan trọng nhất trong năm của người Việt. Đây là thời gian sum họp gia đình, thờ cúng tổ tiên và cầu chúc năm mới an khang.',
+          title: 'Bánh Chưng Bánh Giày',
+          content: 'Biểu tượng của Trời Tròn Đất Vuông. Món ăn không thể thiếu trong dịp Tết để thờ cúng tổ tiên, nhắc nhở về cội nguồn.',
           reward: { culture: 60, rice: 100 },
-          image: '🧧'
+          image: '🥮'
         },
         {
-          title: 'Áo Dài Việt Nam',
-          content: 'Áo dài là trang phục truyền thống của phụ nữ Việt Nam, thể hiện sự duyên dáng và thanh lịch của người phụ nữ Á Đông.',
-          reward: { culture: 50, gold: 40 },
-          image: '👘'
+          title: 'Sự Tích Trầu Cau',
+          content: 'Câu chuyện cảm động về tình anh em, nghĩa vợ chồng. Tục ăn trầu là nét văn hóa đặc sắc, "miếng trầu là đầu câu chuyện".',
+          reward: { culture: 50, wood: 40 },
+          image: '🍃'
         },
         {
-          title: 'Nghệ thuật Chèo',
-          content: 'Chèo là loại hình nghệ thuật sân khấu dân gian của miền Bắc, kết hợp giữa hát, múa và diễn xuất.',
-          reward: { culture: 70, lumber: 50 },
-          image: '🎭'
+          title: 'Trống Đồng Đông Sơn',
+          content: 'Đỉnh cao của nghệ thuật đúc đồng thời kỳ Hùng Vương. Hoa văn trên trống phản ánh đời sống, tín ngưỡng của người Việt cổ.',
+          reward: { culture: 70, bronze: 80 },
+          image: '🥁'
         }
       ]
     }
@@ -108,8 +111,15 @@ const CultureCenter = () => {
   ];
 
   const handleLearnTopic = (item: any) => {
-    // In real game, this would add resources to player
-    alert(`Bạn đã học về "${item.title}"!\nNhận được: ${Object.entries(item.reward).map(([key, value]) => `${value} ${key}`).join(', ')}`);
+    if (learnedCultureTopics.includes(item.title)) {
+      toast.info(`Bạn đã học về "${item.title}" rồi!`);
+      return;
+    }
+    learnTopic(item.title, item.reward);
+    toast.success(`Bạn đã học về "${item.title}"!`, {
+      description: `Nhận được: ${Object.entries(item.reward).map(([key, value]) => `+${value} ${key}`).join(', ')}`,
+      duration: 3000,
+    });
   };
 
   return (
@@ -177,9 +187,14 @@ const CultureCenter = () => {
 
               <button
                 onClick={() => handleLearnTopic(item)}
-                className="w-full bg-gradient-to-r from-red-500 to-yellow-500 text-white py-2 rounded-lg font-semibold hover:from-red-600 hover:to-yellow-600 transition-colors"
+                disabled={learnedCultureTopics.includes(item.title)}
+                className={`w-full py-2 rounded-lg font-semibold transition-colors ${
+                  learnedCultureTopics.includes(item.title)
+                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-red-500 to-yellow-500 text-white hover:from-red-600 hover:to-yellow-600'
+                }`}
               >
-                📖 Học Ngay
+                {learnedCultureTopics.includes(item.title) ? '✅ Đã Học' : '📖 Học Ngay'}
               </button>
             </motion.div>
           ))}

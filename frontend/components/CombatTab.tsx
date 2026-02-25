@@ -23,8 +23,8 @@ export default function CombatTab() {
   const [inBattle, setInBattle] = useState(false);
   const [currentEnemies, setCurrentEnemies] = useState<any[]>([]);
 
-  // Get available heroes (for now, use first 3 from heroesData)
-  const availableHeroes = heroes.slice(0, 3);
+  // Get available heroes (show all era 1 heroes)
+  const availableHeroes = heroes.slice(0, 5);
 
   const handleStartBattle = () => {
     // Generate encounter based on difficulty and player level

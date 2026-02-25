@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '@/lib/gameStore';
 import { Resource } from '@/lib/types';
@@ -102,7 +102,7 @@ export default function GuildTab() {
   return (
     <div className="min-h-screen pb-24 md:pb-6">
       {/* Guild Header */}
-      <div className="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white p-6 rounded-lg shadow-lg mb-6">
+      <div className="bg-gradient-to-r from-orange-700 via-red-700 to-red-900 text-white p-6 rounded-lg shadow-lg mb-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="text-5xl">{guild.icon}</div>
@@ -150,7 +150,7 @@ export default function GuildTab() {
         {/* Guild XP Bar */}
         <div className="mt-4">
           <div className="flex items-center justify-between text-sm mb-1">
-            <span>Guild XP</span>
+            <span>Uy Danh</span>
             <span>{guild.exp} / {guild.expToNextLevel}</span>
           </div>
           <div className="h-3 bg-black/30 rounded-full overflow-hidden">
@@ -183,11 +183,11 @@ export default function GuildTab() {
               className={`
                 flex items-center gap-2 px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors relative
                 ${isActive
-                  ? 'bg-purple-600 text-white shadow-md'
+                  ? 'bg-orange-600 text-white shadow-md'
                   : 'bg-white text-gray-700 hover:bg-gray-50'
                 }
               `}
-            >
+             >
               <Icon className="w-5 h-5" />
               {tab.label}
               {tab.badge && tab.badge > 0 && (
@@ -230,7 +230,7 @@ function NoGuildScreen({ onCreateClick }: { onCreateClick: () => void }) {
   return (
     <div className="max-w-4xl mx-auto">
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 text-white p-12 rounded-lg shadow-lg text-center mb-8">
+      <div className="bg-gradient-to-br from-orange-700 via-red-700 to-red-900 text-white p-12 rounded-lg shadow-lg text-center mb-8">
         <Users className="w-24 h-24 mx-auto mb-6 opacity-90" />
         <h1 className="text-4xl font-bold mb-4">Gia Nhập Bộ Lạc</h1>
         <p className="text-xl text-purple-100 mb-8">
@@ -276,7 +276,7 @@ function NoGuildScreen({ onCreateClick }: { onCreateClick: () => void }) {
         <div className="bg-white rounded-lg p-6 shadow-md text-center">
           <div className="text-5xl mb-4">🎁</div>
           <h3 className="text-xl font-bold text-gray-900 mb-2">Phần Thưởng</h3>
-          <p className="text-gray-600">Cửa hàng guild với vật phẩm độc quyền</p>
+          <p className="text-gray-600">Kho báu và vật phẩm độc quyền của tộc</p>
         </div>
       </div>
 
@@ -453,36 +453,108 @@ function GuildMembersTab({ guild, myRole }: { guild: Guild; myRole?: import('@/l
 // Guild Chat Tab
 function GuildChatTab({ guild }: { guild: Guild }) {
   const [message, setMessage] = useState('');
+  const [chatHistory, setChatHistory] = useState<import('@/lib/guildSystem').GuildChatMessage[]>([
+    { id: '1', senderId: 'p2', senderName: 'Lạc Tướng', senderRole: 'officer', message: 'Anh em chuẩn bị tối nay đi săn Thuồng Luồng nhé!', timestamp: Date.now() - 3600000, type: 'normal' },
+    { id: '2', senderId: 'p3', senderName: 'Nông Dân Chăm Chỉ', senderRole: 'member', message: 'Ai có dư ít Gỗ không cho mình xin với, đang thiếu để nâng cấp nhà.', timestamp: Date.now() - 1800000, type: 'normal' },
+    { id: '3', senderId: 'p1', senderName: 'Trưởng Bản', senderRole: 'leader', message: 'Đã gửi cho bạn 500 Gỗ nhé!', timestamp: Date.now() - 900000, type: 'normal' },
+  ]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [chatHistory]);
+
+  const handleSendMessage = () => {
+    if (!message.trim()) return;
+
+    const newMessage: import('@/lib/guildSystem').GuildChatMessage = {
+      id: Date.now().toString(),
+      senderId: 'current-player',
+      senderName: 'Bạn',
+      senderRole: 'member',
+      message: message,
+      timestamp: Date.now(),
+      type: 'normal',
+    };
+
+    setChatHistory([...chatHistory, newMessage]);
+    setMessage('');
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSendMessage();
+    }
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-md h-[600px] flex flex-col">
       {/* Chat Header */}
-      <div className="p-4 border-b border-gray-200">
-        <h3 className="text-xl font-bold text-gray-900">Trò Chuyện Bộ Lạc</h3>
+      <div className="p-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+        <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+          <MessageSquare className="w-5 h-5 text-orange-600" />
+          Hội Bàn Tròn ({guild.members.length} thành viên)
+        </h3>
       </div>
 
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        <div className="text-center text-gray-500 text-sm py-4">
-          Chào mừng đến với trò chuyện bộ lạc! 💬
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-100">
+        <div className="text-center text-gray-400 text-xs py-2">
+          --- Bắt đầu cuộc trò chuyện ---
         </div>
-        {/* Messages will be rendered here */}
+        {chatHistory.map((msg) => {
+          const isMe = msg.senderId === 'current-player';
+          return (
+            <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+              <div className={`flex items-end gap-2 max-w-[80%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
+                {!isMe && (
+                  <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold text-gray-700 mb-1">
+                    {msg.senderName[0]}
+                  </div>
+                )}
+                <div>
+                  {!isMe && <div className="text-xs text-gray-500 ml-1 mb-1">{msg.senderName}</div>}
+                  <div
+                    className={`px-4 py-2 rounded-2xl text-sm ${
+                      isMe
+                        ? 'bg-orange-600 text-white rounded-br-none'
+                        : 'bg-white text-gray-800 rounded-bl-none shadow-sm'
+                    }`}
+                  >
+                    {msg.message}
+                  </div>
+                  <div className={`text-[10px] text-gray-400 mt-1 ${isMe ? 'text-right mr-1' : 'ml-1'}`}>
+                    {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Chat Input */}
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-4 border-t border-gray-200 bg-white rounded-b-lg">
         <div className="flex gap-2">
           <input
             type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder="Nhập tin nhắn..."
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="flex-1 px-4 py-3 bg-gray-50 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
             maxLength={200}
           />
-          <button className="px-6 py-2 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2">
-            <Send className="w-5 h-5" />
-            Gửi
+          <button
+            onClick={handleSendMessage}
+            className="px-6 py-3 bg-orange-600 text-white font-bold rounded-full hover:bg-orange-700 transition-colors flex items-center gap-2 shadow-md hover:shadow-lg active:scale-95 transform"
+          >
+            <Send className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -589,7 +661,7 @@ function CreateGuildModal({ onClose }: { onClose: () => void }) {
 
     const gems = player.totalResources.gems || 0;
     if (gems < GUILD_CREATE_COST) {
-      alert(`Không đủ gems! Cần ${GUILD_CREATE_COST} gems để tạo guild.`);
+      alert(`Không đủ đá quý! Cần ${GUILD_CREATE_COST} đá quý để lập bộ lạc.`);
       return;
     }
 
@@ -613,7 +685,7 @@ function CreateGuildModal({ onClose }: { onClose: () => void }) {
         className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-6 text-white relative">
+        <div className="bg-gradient-to-r from-orange-700 to-red-800 p-6 text-white relative">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-lg transition-colors"
@@ -624,7 +696,7 @@ function CreateGuildModal({ onClose }: { onClose: () => void }) {
             <Crown className="w-8 h-8" />
             Tạo Bộ Lạc Mới
           </h2>
-          <p className="text-purple-100 mt-1">Chi phí: 💎 {GUILD_CREATE_COST} Gems</p>
+          <p className="text-orange-100 mt-1">Chi phí: 💎 {GUILD_CREATE_COST} Đá Quý</p>
         </div>
 
         {/* Content */}
@@ -704,7 +776,7 @@ function CreateGuildModal({ onClose }: { onClose: () => void }) {
           {/* Create Button */}
           <button
             onClick={handleCreate}
-            className="w-full py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-lg hover:opacity-90 transition-opacity"
+            className="w-full py-4 bg-gradient-to-r from-orange-600 to-red-600 text-white font-bold rounded-lg hover:opacity-90 transition-opacity"
           >
             Lập Bộ Lạc Ngay
           </button>
@@ -729,22 +801,90 @@ function GuildListModal({ onClose }: { onClose: () => void }) {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+      className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
       >
-        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-6 text-white relative">
+        <div className="bg-gradient-to-r from-orange-700 via-red-700 to-red-900 p-6 text-white relative sticky top-0 z-10">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-lg transition-colors"
           >
             <X className="w-6 h-6" />
           </button>
-          <h2 className="text-3xl font-bold">Tìm Guild</h2>
+          <h2 className="text-3xl font-bold flex items-center gap-2">
+            <Users className="w-8 h-8" />
+            Tìm Kiếm Bộ Lạc
+          </h2>
+          <p className="text-orange-100 mt-1">Gia nhập liên minh, cùng nhau xây dựng cơ đồ</p>
         </div>
 
-        <div className="p-12 text-center">
-          <Users className="w-24 h-24 mx-auto text-gray-300 mb-6" />
-          <h3 className="text-2xl font-bold text-gray-700 mb-2">Đang phát triển</h3>
-          <p className="text-gray-600">Danh sách bộ lạc sẽ có sớm!</p>
+        <div className="p-6">
+          {/* Search Bar */}
+          <div className="flex gap-2 mb-6">
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                placeholder="Tìm tên hoặc mã bộ lạc..."
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+              />
+              <Users className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+            </div>
+            <button className="px-6 py-3 bg-orange-600 text-white font-bold rounded-lg hover:bg-orange-700 transition-colors shadow-md">
+              Tìm Kiếm
+            </button>
+          </div>
+
+          {/* Featured Guilds */}
+          <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <Star className="w-5 h-5 text-yellow-500" />
+            Bộ Lạc Nổi Bật
+          </h3>
+
+          <div className="space-y-4">
+            {[
+              { id: 'g1', name: 'Hồng Bàng', tag: 'HB', members: 48, maxMembers: 50, level: 5, desc: 'Con Rồng Cháu Tiên, đoàn kết là sức mạnh.', icon: '🐉' },
+              { id: 'g2', name: 'Văn Lang', tag: 'VL', members: 32, maxMembers: 40, level: 3, desc: 'Xây dựng đất nước, phát triển nông nghiệp.', icon: '🌾' },
+              { id: 'g3', name: 'Âu Lạc', tag: 'AL', members: 25, maxMembers: 30, level: 2, desc: 'Thành Cổ Loa vững chãi, nỏ thần vô địch.', icon: '🐢' },
+              { id: 'g4', name: 'Chiến Binh', tag: 'WAR', members: 15, maxMembers: 20, level: 1, desc: 'Nơi quy tụ những chiến binh dũng cảm nhất.', icon: '⚔️' },
+            ].map((g) => (
+              <div key={g.id} className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow flex items-center justify-between group">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-gradient-to-br from-orange-100 to-red-50 rounded-lg flex items-center justify-center text-4xl shadow-inner">
+                    {g.icon}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-lg font-bold text-gray-900 group-hover:text-orange-700 transition-colors">{g.name}</h4>
+                      <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-mono rounded border border-gray-200">
+                        [{g.tag}]
+                      </span>
+                      <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs font-bold rounded-full flex items-center gap-1">
+                        <Star className="w-3 h-3" /> Lv.{g.level}
+                      </span>
+                    </div>
+                    <p className="text-gray-500 text-sm mt-1 mb-2 max-w-md truncate">{g.desc}</p>
+                    <div className="flex items-center gap-4 text-xs text-gray-400">
+                      <span className="flex items-center gap-1">
+                        <Users className="w-3 h-3" /> {g.members}/{g.maxMembers}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Shield className="w-3 h-3" /> Tự do
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                <button className="px-6 py-2 bg-white text-orange-600 border-2 border-orange-600 font-bold rounded-lg hover:bg-orange-50 transition-colors">
+                  Xin Gia Nhập
+                </button>
+              </div>
+            ))}
+          </div>
+          
+          <div className="mt-8 text-center">
+             <button className="text-orange-600 font-semibold hover:underline">
+               Xem thêm bộ lạc khác...
+             </button>
+          </div>
         </div>
       </motion.div>
     </motion.div>

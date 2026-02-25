@@ -24,14 +24,14 @@ export default function GameDashboard() {
 
       {/* Provinces */}
       <div>
-        <h2 className="text-2xl font-bold text-red-800 mb-4 text-center">
-          🗺️ Các Tỉnh Thành Việt Nam
+        <h2 className="text-2xl font-bold text-orange-900 mb-4 text-center font-serif">
+          🗺️ Lãnh Thổ Văn Lang
         </h2>
         
         {provinces.length === 0 ? (
           <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-8 text-center">
-            <p className="text-lg text-yellow-800 mb-2">🔄 Đang tải dữ liệu tỉnh thành...</p>
-            <p className="text-sm text-yellow-600">Nếu bạn là người chơi mới, hãy đợi vài giây để hệ thống khởi tạo.</p>
+            <p className="text-lg text-yellow-800 mb-2">🔄 Đang khám phá vùng đất mới...</p>
+            <p className="text-sm text-yellow-600">Hệ thống đang khởi tạo lãnh địa của bạn.</p>
           </div>
         ) : (
           <>
@@ -50,30 +50,33 @@ export default function GameDashboard() {
       </div>
 
       {/* Game Instructions */}
-      <div className="bg-white rounded-lg p-6 border-2 border-yellow-200 shadow-lg">
-        <h3 className="text-xl font-bold text-red-800 mb-4">📜 Hướng Dẫn Nhanh</h3>
+      <div className="bg-orange-50 rounded-lg p-6 border-2 border-orange-200 shadow-lg">
+        <h3 className="text-xl font-bold text-orange-900 mb-4 font-serif">📜 Sắc Lệnh Văn Lang</h3>
         <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-700">
           <div>
-            <h4 className="font-semibold mb-2">🖱️ Click Farming:</h4>
-            <ul className="space-y-1">
-              <li>• Click vào tài nguyên để thu thập</li>
-              <li>• Mỗi click tăng 1-3 tài nguyên</li>
-              <li>• Tỉnh cấp cao = thu thập nhiều hơn</li>
+            <h4 className="font-semibold mb-2 text-orange-800">🖱️ Canh Tác Thủ Công:</h4>
+            <ul className="space-y-1 text-orange-900/80">
+              <li>• Thu thập tài nguyên từ đất trời</li>
+              <li>• Cần cù bù thông minh</li>
+              <li>• Vùng đất trù phú = thu hoạch nhiều hơn</li>
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold mb-2">👥 Nông Dân:</h4>
-            <ul className="space-y-1">
-              <li>• Thuê nông dân để tự động thu thập</li>
-              <li>• Nông dân tự động hiệu quả hơn</li>
-              <li>• Nâng cấp để tăng hiệu suất</li>
+            <h4 className="font-semibold mb-2 text-orange-800">👥 Lạc Dân (Dân Làng):</h4>
+            <ul className="space-y-1 text-orange-900/80">
+              <li>• Chiêu mộ Lạc Dân để tự động sản xuất</li>
+              <li>• Dân đông thì nước mạnh</li>
+              <li>• Nâng cấp đời sống để tăng hiệu suất</li>
             </ul>
           </div>
         </div>
       </div>
 
       {showTutorial && (
-        <Tutorial onComplete={completeTutorial} />
+        <Tutorial onComplete={() => {
+          completeTutorial();
+          setShowTutorial(false);
+        }} />
       )}
     </div>
   );

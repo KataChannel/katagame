@@ -286,6 +286,23 @@ export default function EraPage() {
                             EXP +{era.benefits.expBonus}%
                           </span>
                         </div>
+
+                        {/* Unlocked Heroes */}
+                        {era.benefits.unlockHeroes && era.benefits.unlockHeroes.length > 0 && (
+                          <div className="mt-3 pt-3 border-t border-white/10">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-base text-yellow-300">👑</span>
+                              <span className="text-xs font-semibold text-white/90">Chiêu mộ Anh Hùng:</span>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {era.benefits.unlockHeroes.map((heroEra, i) => (
+                                <span key={i} className="text-[10px] bg-gradient-to-r from-white/10 to-white/5 border border-white/10 px-2 py-1 rounded text-white/90 font-medium">
+                                  {heroEra}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

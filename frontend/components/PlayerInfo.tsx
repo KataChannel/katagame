@@ -9,7 +9,7 @@ const PlayerInfo = () => {
   const progressPercentage = (currentLevelExp / 100) * 100;
 
   return (
-    <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg p-6 text-white shadow-lg">
+    <div className="bg-gradient-to-r from-orange-700 via-red-700 to-red-900 rounded-lg p-6 text-white shadow-lg">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="bg-white/20 rounded-full p-2">
@@ -26,7 +26,7 @@ const PlayerInfo = () => {
         
         <div className="text-right">
           <Trophy className="h-6 w-6 text-yellow-300 mx-auto mb-1" />
-          <div className="text-sm">{player.unlockedProvinces.length}/3 tỉnh</div>
+          <div className="text-sm">{player.unlockedProvinces.length}/3 Vùng Đất</div>
         </div>
       </div>
 

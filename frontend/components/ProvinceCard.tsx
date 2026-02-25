@@ -89,7 +89,7 @@ const ProvinceCard = ({ province: initialProvince }: ProvinceCardProps) => {
       const response = await MVP1ApiClient.upgradeFarmer(provinceId.toString());
       
       if (response?.success && response.data) {
-        toast.success(`Nâng cấp Nông Dân lên Level ${farmerLevel + 1} thành công!`);
+        toast.success(`Chiêu mộ Lạc Dân lên Level ${farmerLevel + 1} thành công!`);
         // Merge response data with current province data for instant UI update
         setProvince({
           ...province,
@@ -240,7 +240,7 @@ const ProvinceCard = ({ province: initialProvince }: ProvinceCardProps) => {
         <div className="bg-green-50 dark:bg-green-950/20 rounded-xl p-3 text-center border border-green-100 dark:border-green-900/30">
           <div className="flex items-center justify-center gap-1.5 mb-2">
             <TrendingUp className="h-3.5 w-3.5 text-green-600 dark:text-green-500" />
-            <span className="text-xs font-bold text-green-700 dark:text-green-400 uppercase tracking-tight">Nông Dân</span>
+            <span className="text-xs font-bold text-green-700 dark:text-green-400 uppercase tracking-tight">Lạc Dân</span>
           </div>
           <div className="text-2xl font-black text-green-800 dark:text-green-300">{farmerLevel}</div>
         </div>
@@ -277,7 +277,7 @@ const ProvinceCard = ({ province: initialProvince }: ProvinceCardProps) => {
       <div className="space-y-3">
         {/* Farmer Upgrade */}
         <UpgradeButton
-          label="Nâng cấp Nông Dân"
+          label="Chiêu mộ Lạc Dân"
           level={farmerLevel}
           cost={farmerCost}
           canAfford={canAffordFarmer}

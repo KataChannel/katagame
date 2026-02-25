@@ -270,6 +270,9 @@ interface GameStore extends GameState {
   addPet: (pet: Pet) => void;
   equipPet: (petId: string, provinceId?: string) => void;
   recordCombat: (result: CombatResult) => void;
+  receiveReward: (rewards: Partial<Resource>) => void;
+  learnedCultureTopics: string[]; // Track learned topics
+  learnTopic: (topicTitle: string, reward: Partial<Resource>) => void; // New action to handle topic learning
   // Notifications - Enhanced with detailed resource breakdown
   notifications: Notification[];
   addNotification: (notification: Omit<Notification, 'id' | 'timestamp'> & Partial<Pick<Notification, 'id' | 'timestamp'>>) => void;
@@ -386,6 +389,37 @@ export const useGameStore = create<GameStore>()(
       friendSystemState: undefined,
       enhancedShopState: undefined,
       customizationState: undefined,
+      learnedCultureTopics: [],
+
+      receiveReward: (rewards) => {
+        set((state) => {
+          const newResources = addResources(state.player.totalResources, rewards as Resource);
+          return {
+            player: {
+              ...state.player,
+              totalResources: newResources,
+              resources: newResources, // Keep both in sync for UI
+            },
+          };
+        });
+      },
+
+      learnTopic: (topicTitle, reward) => {
+        set((state) => {
+          if (state.learnedCultureTopics.includes(topicTitle)) return state;
+          
+          const newResources = addResources(state.player.totalResources, reward as Resource);
+          return {
+            learnedCultureTopics: [...state.learnedCultureTopics, topicTitle],
+            player: {
+              ...state.player,
+              totalResources: newResources,
+              resources: newResources,
+            },
+          };
+        });
+      },
+
       notifications: [],
       globalAnnouncements: [],
 
@@ -403,6 +437,11 @@ export const useGameStore = create<GameStore>()(
           duration: fullNotification.duration,
           timestamp: fullNotification.timestamp,
         });
+
+        // ✅ Log client errors to console
+        if (fullNotification.type === 'error') {
+          console.error('❌ [Client Error]', fullNotification.title, fullNotification.message, fullNotification.details);
+        }
         
         set((state) => ({
           notifications: [...state.notifications, fullNotification],

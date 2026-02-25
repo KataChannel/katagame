@@ -5,6 +5,7 @@ import { ApolloProvider } from "@/lib/ApolloProvider";
 import { DataSyncInitializer } from "./DataSyncInitializer";
 import { NotificationProvider } from "@/components/NotificationProvider";
 import { NotificationDebug } from "@/components/NotificationDebug";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -40,7 +41,8 @@ export default function RootLayout({
               </DataSyncInitializer>
             </NotificationProvider>
             {/* Debug panel - only in development */}
-            {process.env.NODE_ENV === 'development' && <NotificationDebug />}
+            {/* {process.env.NODE_ENV === 'development' && <NotificationDebug />} */}
+            <Toaster richColors position="top-center" />
           </AuthProvider>
         </ApolloProvider>
       </body>

@@ -13,6 +13,7 @@ const createEmptyResource = (): Resource => ({
   lumber: 0,
   stone: 0,
   culture: 0,
+  bazan: 0,
 });
 
 // ============================================================================
@@ -20,109 +21,114 @@ const createEmptyResource = (): Resource => ({
 // ============================================================================
 
 export const enemies: Enemy[] = [
-  // 1. Cướp Biển (Pirate Raider) - Water
+  // 1. Thuồng Luồng (Water Monster) - Water
   {
-    id: 'pirate-raider',
-    name: 'pirate-raider',
-    displayName: 'Cướp Biển',
+    id: 'thuong-luong',
+    name: 'thuong-luong',
+    displayName: 'Thuồng Luồng',
     element: 'water',
     level: 1,
-    hp: 300,
-    maxHp: 300,
-    attack: 40,
-    defense: 20,
+    hp: 350,
+    maxHp: 350,
+    attack: 45,
+    defense: 25,
     loot: {
       gold: 50,
       rice: 20,
       lumber: 10,
       stone: 5,
       culture: 5,
+      bazan: 0,
     },
-    skills: ['splash-attack'],
+    skills: ['water-bite'],
   },
 
-  // 2. Sơn Tặc (Mountain Bandit) - Earth
+  // 2. Giặc Ân (Yin Invader) - Earth/Metal
   {
-    id: 'mountain-bandit',
-    name: 'mountain-bandit',
-    displayName: 'Sơn Tặc',
+    id: 'giac-an',
+    name: 'giac-an',
+    displayName: 'Giặc Ân',
     element: 'earth',
     level: 2,
-    hp: 400,
-    maxHp: 400,
-    attack: 50,
-    defense: 35,
+    hp: 450,
+    maxHp: 450,
+    attack: 55,
+    defense: 40,
     loot: {
       gold: 70,
       rice: 15,
       lumber: 15,
       stone: 30,
-      culture: 5,
+      culture: 10,
+      bazan: 0,
     },
-    skills: ['rock-throw'],
+    skills: ['spear-thrust'],
   },
 
-  // 3. Thợ Săn Hoang Dã (Wild Hunter) - Wood
+  // 3. Hồ Tinh (Fox Spirit) - Wood
   {
-    id: 'wild-hunter',
-    name: 'wild-hunter',
-    displayName: 'Thợ Săn Hoang Dã',
+    id: 'ho-tinh',
+    name: 'ho-tinh',
+    displayName: 'Hồ Tinh (Cáo 9 Đuôi)',
     element: 'wood',
     level: 2,
-    hp: 350,
-    maxHp: 350,
-    attack: 60,
-    defense: 25,
+    hp: 380,
+    maxHp: 380,
+    attack: 65,
+    defense: 30,
     loot: {
       gold: 60,
       rice: 25,
       lumber: 40,
       stone: 10,
-      culture: 5,
+      culture: 15,
+      bazan: 0,
     },
-    skills: ['arrow-shot'],
+    skills: ['charm', 'claw-scratch'],
   },
 
-  // 4. Thợ Rèn Phản Loạn (Rogue Blacksmith) - Metal
+  // 4. Lính Triệu Đà (Zhao Tuo Soldier) - Metal
   {
-    id: 'rogue-blacksmith',
-    name: 'rogue-blacksmith',
-    displayName: 'Thợ Rèn Phản Loạn',
+    id: 'linh-trieu-da',
+    name: 'linh-trieu-da',
+    displayName: 'Lính Triệu Đà',
     element: 'metal',
     level: 3,
-    hp: 450,
-    maxHp: 450,
-    attack: 70,
-    defense: 40,
+    hp: 500,
+    maxHp: 500,
+    attack: 75,
+    defense: 45,
     loot: {
       gold: 100,
       rice: 10,
       lumber: 20,
       stone: 20,
       culture: 10,
+      bazan: 0,
     },
-    skills: ['hammer-strike'],
+    skills: ['sword-slash'],
   },
 
-  // 5. Pháp Sư Lửa (Fire Mage) - Fire
+  // 5. Hỏa Tinh (Fire Spirit) - Fire
   {
-    id: 'fire-mage',
-    name: 'fire-mage',
-    displayName: 'Pháp Sư Lửa',
+    id: 'hoa-tinh',
+    name: 'hoa-tinh',
+    displayName: 'Hỏa Tinh',
     element: 'fire',
     level: 3,
-    hp: 320,
-    maxHp: 320,
-    attack: 85,
-    defense: 30,
+    hp: 340,
+    maxHp: 340,
+    attack: 90,
+    defense: 25,
     loot: {
       gold: 80,
       rice: 20,
       lumber: 15,
       stone: 10,
       culture: 15,
+      bazan: 0,
     },
-    skills: ['fireball'],
+    skills: ['burn'],
   },
 ];
 
@@ -148,6 +154,7 @@ export const eliteEnemies: Enemy[] = [
       lumber: 30,
       stone: 30,
       culture: 30,
+      bazan: 0,
     },
     skills: ['tidal-wave', 'water-prison'],
   },
@@ -169,27 +176,29 @@ export const eliteEnemies: Enemy[] = [
       lumber: 20,
       stone: 100,
       culture: 20,
+      bazan: 0,
     },
     skills: ['earthquake', 'stone-armor'],
   },
 
-  // 8. Yêu Mộc (Tree Spirit)
+  // 8. Mộc Tinh (Tree Spirit)
   {
-    id: 'tree-spirit',
-    name: 'tree-spirit',
-    displayName: 'Yêu Mộc',
+    id: 'moc-tinh',
+    name: 'moc-tinh',
+    displayName: 'Mộc Tinh (Yêu Cây)',
     element: 'wood',
     level: 5,
-    hp: 700,
-    maxHp: 700,
-    attack: 80,
-    defense: 45,
+    hp: 750,
+    maxHp: 750,
+    attack: 85,
+    defense: 50,
     loot: {
       gold: 120,
       rice: 60,
       lumber: 80,
       stone: 20,
       culture: 25,
+      bazan: 0,
     },
     skills: ['vine-whip', 'regeneration'],
   },
@@ -217,20 +226,21 @@ export const bossEnemies: Enemy[] = [
       lumber: 100,
       stone: 100,
       culture: 100,
+      bazan: 0,
     },
     skills: ['tsunami', 'monsoon', 'water-shield'],
   },
 
-  // 10. Chín Đầu Xà (Nine-Headed Serpent)
+  // 10. Ngư Tinh (Giant Fish Monster)
   {
-    id: 'nine-headed-serpent',
-    name: 'nine-headed-serpent',
-    displayName: 'Chín Đầu Xà',
-    element: 'earth',
+    id: 'ngu-tinh',
+    name: 'ngu-tinh',
+    displayName: 'Ngư Tinh (Cá Khổng Lồ)',
+    element: 'water',
     level: 12,
     hp: 2500,
     maxHp: 2500,
-    attack: 120,
+    attack: 130,
     defense: 120,
     loot: {
       gold: 600,
@@ -238,8 +248,9 @@ export const bossEnemies: Enemy[] = [
       lumber: 100,
       stone: 150,
       culture: 150,
+      bazan: 0,
     },
-    skills: ['multi-bite', 'poison-breath', 'regenerate-head'],
+    skills: ['devour', 'tail-smash', 'tsunami'],
   },
 
   // 11. Phù Đổng Thiên Vương (Evil Version - Fire Demon)
@@ -259,6 +270,7 @@ export const bossEnemies: Enemy[] = [
       lumber: 150,
       stone: 150,
       culture: 200,
+      bazan: 0,
     },
     skills: ['inferno', 'flame-burst', 'burning-aura'],
   },
@@ -334,6 +346,7 @@ export function scaleEnemyToLevel(enemy: Enemy, targetLevel: number): Enemy {
       lumber: Math.floor(enemy.loot.lumber * scaleFactor),
       stone: Math.floor(enemy.loot.stone * scaleFactor),
       culture: Math.floor(enemy.loot.culture * scaleFactor),
+      bazan: Math.floor((enemy.loot.bazan || 0) * scaleFactor),
     },
   };
 }

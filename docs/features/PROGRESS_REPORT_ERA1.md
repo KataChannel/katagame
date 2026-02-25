@@ -35,6 +35,7 @@
 - [x] **Story System**: Đã seed các câu chuyện nền tảng (Lạc Long Quân, Bánh Chưng Bánh Giầy, Thánh Gióng).
 - [x] **Event Mythical**: Kích hoạt sự kiện "Đại Chiến Sơn Tinh - Thủy Tinh" với cơ chế chọn phe.
 - [x] **Quản lý Bộ lạc**: Rebranding toàn bộ hệ thống Guild thành "Bộ Lạc" để phù hợp lịch sử.
+- [x] **Hero & Enemy Update**: Cập nhật danh sách Anh Hùng (An Dương Vương) và Quái vật (Thuồng Luồng, Hồ Tinh) phù hợp thời kỳ.
 
 ---
 
