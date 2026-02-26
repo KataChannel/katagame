@@ -10,7 +10,7 @@
 
 ### MVP1 API v1 Structure
 
-Base URL: `http://localhost:11001/api/v1`
+Base URL: `http://localhost:11101/api/v1`
 
 All endpoints require authentication except `/api/v1/game-data` and `/api/v1/config`
 
@@ -24,7 +24,7 @@ All endpoints require authentication except `/api/v1/game-data` and `/api/v1/con
 Request:
 ```bash
 curl -H "Authorization: Bearer <token>" \
-  http://localhost:11001/api/v1/players/profile
+  http://localhost:11101/api/v1/players/profile
 ```
 
 Response:
@@ -354,12 +354,12 @@ Token is obtained via login/registration (see auth.routes.ts)
 
 ### Get All Stories
 ```bash
-curl http://localhost:11001/api/v1/stories
+curl http://localhost:11101/api/v1/stories
 ```
 
 ### Submit Quiz
 ```bash
-curl -X POST http://localhost:11001/api/v1/quizzes/story_day_01/submit \
+curl -X POST http://localhost:11101/api/v1/quizzes/story_day_01/submit \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{"answers": [0, 1, 2]}'
@@ -367,7 +367,7 @@ curl -X POST http://localhost:11001/api/v1/quizzes/story_day_01/submit \
 
 ### Harvest Resources
 ```bash
-curl -X POST http://localhost:11001/api/v1/resources/harvest \
+curl -X POST http://localhost:11101/api/v1/resources/harvest \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{"province_id": 1}'
@@ -375,7 +375,7 @@ curl -X POST http://localhost:11001/api/v1/resources/harvest \
 
 ### Get Game Data
 ```bash
-curl http://localhost:11001/api/v1/game-data
+curl http://localhost:11101/api/v1/game-data
 ```
 
 ---

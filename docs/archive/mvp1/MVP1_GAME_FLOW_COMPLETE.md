@@ -3,9 +3,9 @@
 ## 📊 TỔNG QUAN DỰ ÁN
 
 **Công nghệ đang chạy:**
-- **Frontend:** Next.js 15 (Port 11000) - React 19, TypeScript, Zustand, Tailwind
-- **Backend:** Motia Framework v0.8.2 (Port 11001) - Node.js, PostgreSQL
-- **Database:** PostgreSQL (Port 11003) - 25 tables, 63 tỉnh thành Việt Nam
+- **Frontend:** Next.js 15 (Port 11100) - React 19, TypeScript, Zustand, Tailwind
+- **Backend:** Motia Framework v0.8.2 (Port 11101) - Node.js, PostgreSQL
+- **Database:** PostgreSQL (Port 11103) - 25 tables, 63 tỉnh thành Việt Nam
 - **Authentication:** JWT Token
 - **API:** RESTful - 30+ endpoints MVP1
 

@@ -555,7 +555,7 @@ export const battlePassRewards: BattlePassReward[] = [
     },
     premiumReward: {
       type: 'resource',
-      value: { gold: 11000, stone: 2400, gems: 375 },
+      value: { gold: 11100, stone: 2400, gems: 375 },
     },
   },
   {

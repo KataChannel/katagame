@@ -14,7 +14,7 @@
 3. API client exists but components don't use it
 
 **Backend Status:**
-- API server at port 11001 (NOT CURRENTLY RUNNING)
+- API server at port 11101 (NOT CURRENTLY RUNNING)
 - Requires Docker to run
 - Database: PostgreSQL initialized with schema
 
@@ -185,7 +185,7 @@ These are the endpoints that useApiDataSync can call:
 
 ## Testing Checklist
 
-- [ ] Backend running (`curl http://localhost:11001/api/v1/heroes`)
+- [ ] Backend running (`curl http://localhost:11101/api/v1/heroes`)
 - [ ] Frontend loads without errors
 - [ ] User can login/register
 - [ ] Browser console shows sync logs (✅ Game data synced from API)

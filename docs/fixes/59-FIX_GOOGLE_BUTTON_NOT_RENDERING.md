@@ -187,7 +187,7 @@ useEffect(() => {
 ## 🧪 Testing
 
 ### Manual Test
-1. Open http://localhost:11000
+1. Open http://localhost:11100
 2. Scroll to Google Sign-In button
 3. ✅ Button should be visible (not blank)
 4. Click button

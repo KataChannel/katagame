@@ -220,7 +220,7 @@ docker-compose up -d
 
 Kiểm tra backend chạy:
 ```bash
-curl http://localhost:11001/api/v1/heroes
+curl http://localhost:11101/api/v1/heroes
 ```
 
 Nếu thấy `{"status":200,"data":...}` là OK.

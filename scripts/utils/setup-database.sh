@@ -21,15 +21,15 @@ echo "╚═══════════════════════�
 echo ""
 
 # Load environment variables
-if [ -f .env.local ]; then
-  export $(cat .env.local | grep -v '#' | xargs)
-  echo "✅ Loaded .env.local"
+if [ -f backend/.env ]; then
+  export $(cat backend/.env | grep -v '#' | xargs)
+  echo "✅ Loaded backend/.env"
 else
-  echo "⚠️  .env.local not found, using defaults"
+  echo "⚠️  backend/.env not found, using defaults"
 fi
 
 # Set default database URL if not set
-DATABASE_URL=${DATABASE_URL:-"postgresql://postgres:postgres@localhost:11003/katagame"}
+DATABASE_URL=${DATABASE_URL:-"postgresql://postgres:postgres@localhost:11103/katagame"}
 echo "📌 Using DATABASE_URL: $DATABASE_URL"
 echo ""
 
@@ -38,13 +38,14 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "Step 1: Running migrations..."
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-if command -v psql &> /dev/null; then
-  echo "Running PostgreSQL migrations..."
-  psql "$DATABASE_URL" -f migrations/add_mvp1_tables.sql
-  echo "✅ Migrations completed"
+if [ -d "backend" ]; then
+  echo "Running Prisma migrations..."
+  cd backend
+  npx prisma db push
+  echo "✅ Prisma schema synchronization completed"
+  cd ..
 else
-  echo "⚠️  psql not found. Skipping SQL migrations."
-  echo "   Run manually: psql \"$DATABASE_URL\" -f migrations/add_mvp1_tables.sql"
+  echo "⚠️  backend directory not found. Skipping migrations."
 fi
 
 echo ""
@@ -52,8 +53,8 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "Step 2: Running seed scripts..."
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-# Change to motia directory
-cd motia
+# Change to backend directory
+cd backend
 
 # Install dependencies if needed
 if [ ! -d node_modules ]; then
@@ -63,7 +64,7 @@ fi
 
 # Run all seeds
 echo "🌱 Running comprehensive seed script..."
-npm run seed
+npm run seed:era2:all
 
 echo ""
 echo "╔════════════════════════════════════════════════════════════════════════════╗"

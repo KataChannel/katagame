@@ -123,7 +123,7 @@ UI: Province cards displayed (Hà Nội, Hồ Chí Minh)
    cd frontend && npm run dev
    ```
 
-2. **Open browser**: http://localhost:11000
+2. **Open browser**: http://localhost:11100
 
 3. **Login/Register**: Use any account
 

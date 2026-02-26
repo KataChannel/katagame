@@ -80,7 +80,7 @@ else
   # Create .env.local with defaults
   cat > .env.local << 'EOF'
 # MVP1 Backend API Configuration
-NEXT_PUBLIC_API_URL=http://localhost:11001/api/v1
+NEXT_PUBLIC_API_URL=http://localhost:11101/api/v1
 NEXT_PUBLIC_DEBUG_API=true
 
 # Game configuration
@@ -123,22 +123,22 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 
 # Check if backend is running
-echo -n "Checking if Motia backend is running... "
-if timeout 2 bash -c 'echo > /dev/tcp/localhost/11001' 2>/dev/null; then
-  echo -e "${GREEN}✅ Backend is running on localhost:11001${NC}"
+echo -n "Checking if NestJS backend is running... "
+if timeout 2 bash -c 'echo > /dev/tcp/localhost/11101' 2>/dev/null; then
+  echo -e "${GREEN}✅ Backend is running on localhost:11101${NC}"
   
-  # Try to fetch a sample endpoint
+  # Try to fetch a sample endpoint (GraphQL)
   echo -n "Testing API endpoint... "
-  if curl -s -o /dev/null -w "%{http_code}" http://localhost:11001/api/v1/stories | grep -q "200\|401"; then
+  if curl -s -o /dev/null -w "%{http_code}" http://localhost:11101/graphql | grep -q "200\|400\|401"; then
     echo -e "${GREEN}✅ API is responding${NC}"
   else
     echo -e "${YELLOW}⚠️  API not responding as expected${NC}"
   fi
 else
-  echo -e "${YELLOW}⚠️  Backend not detected on localhost:11001${NC}"
+  echo -e "${YELLOW}⚠️  Backend not detected on localhost:11101${NC}"
   echo ""
   echo "    To start the backend, run:"
-  echo -e "    ${BLUE}cd motia && bun dev${NC}"
+  echo -e "    ${BLUE}cd backend && npm run dev${NC}"
 fi
 
 echo ""
@@ -190,7 +190,7 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 
 echo "1️⃣  Ensure backend is running:"
-echo -e "    ${BLUE}cd ../motia && bun dev${NC}"
+echo -e "    ${BLUE}cd ../backend && npm run dev${NC}"
 echo ""
 
 echo "2️⃣  Review integration guide:"

@@ -104,15 +104,15 @@ docker exec katagame-db psql -U katagame -d katagame -c "SELECT username, level,
 
 ```bash
 # Test Heroes Endpoint
-curl -s http://localhost:11001/api/v1/heroes | jq '.body.data.heroes | length'
+curl -s http://localhost:11101/api/v1/heroes | jq '.body.data.heroes | length'
 
 # Should return: 7 (or number of heroes inserted)
 
 # Test Provinces Endpoint  
-curl -s http://localhost:11001/api/v1/provinces | jq '.body.data.provinces[0]'
+curl -s http://localhost:11101/api/v1/provinces | jq '.body.data.provinces[0]'
 
 # Test Resources Endpoint
-curl -s http://localhost:11001/api/v1/resources | jq '.body.data.resources'
+curl -s http://localhost:11101/api/v1/resources | jq '.body.data.resources'
 ```
 
 **Expected Results:**
@@ -131,7 +131,7 @@ Create `/mnt/chikiet/kataoffical/katagame/test-frontend-api.sh`:
 echo "🧪 Testing Frontend API Integration"
 echo "=================================="
 
-API_URL="http://localhost:11001/api/v1"
+API_URL="http://localhost:11101/api/v1"
 
 echo ""
 echo "1️⃣  Testing /heroes endpoint..."
@@ -371,7 +371,7 @@ Open browser DevTools (F12) and navigate to `http://localhost:3000`:
 
 1. **Check API Calls:**
    - Network tab → Filter by `XHR`
-   - Should see requests to `http://localhost:11001/api/v1/heroes`
+   - Should see requests to `http://localhost:11101/api/v1/heroes`
    - Response should have `heroes` array
 
 2. **Check Local Storage:**
@@ -462,7 +462,7 @@ const { heroes, loading, error } = useHeroes();
 **Solution:**
 ```bash
 # Check backend status
-curl http://localhost:11001/api/v1/heroes
+curl http://localhost:11101/api/v1/heroes
 
 # Restart if needed
 docker-compose up -d

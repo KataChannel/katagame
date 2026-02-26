@@ -9,7 +9,7 @@ echo ""
 
 # 1. Login
 echo "Step 1: Login as testplayer..."
-LOGIN_RESPONSE=$(curl -s -X POST http://localhost:11001/api/v1/auth/login \
+LOGIN_RESPONSE=$(curl -s -X POST http://localhost:11101/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"test@katagame.com","password":"test123"}')
 
@@ -30,7 +30,7 @@ echo ""
 
 # 2. Get Resources
 echo "Step 2: Get current resources..."
-RESOURCES=$(curl -s http://localhost:11001/api/v1/resources/my-resources \
+RESOURCES=$(curl -s http://localhost:11101/api/v1/resources/my-resources \
   -H "Authorization: Bearer $TOKEN")
 
 echo "✅ Resources retrieved:"
@@ -39,7 +39,7 @@ echo ""
 
 # 3. Get Provinces
 echo "Step 3: Get player provinces..."
-PROVINCES=$(curl -s http://localhost:11001/api/v1/provinces/my-provinces \
+PROVINCES=$(curl -s http://localhost:11101/api/v1/provinces/my-provinces \
   -H "Authorization: Bearer $TOKEN")
 
 PROVINCE_COUNT=$(echo $PROVINCES | jq '.body.data.totalProvinces')
@@ -49,7 +49,7 @@ echo ""
 
 # 4. Harvest Resources
 echo "Step 4: Harvest resources from provinces..."
-HARVEST=$(curl -s -X POST http://localhost:11001/api/v1/resources/harvest \
+HARVEST=$(curl -s -X POST http://localhost:11101/api/v1/resources/harvest \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json")
 
@@ -61,7 +61,7 @@ echo ""
 FIRST_PROVINCE_ID=$(echo $PROVINCES | jq -r '.body.data.provinces[0].provinceId')
 echo "Step 5: Upgrade province $FIRST_PROVINCE_ID (Farmer Level)..."
 
-UPGRADE=$(curl -s -X POST "http://localhost:11001/api/v1/provinces/$FIRST_PROVINCE_ID/upgrade/farmer" \
+UPGRADE=$(curl -s -X POST "http://localhost:11101/api/v1/provinces/$FIRST_PROVINCE_ID/upgrade/farmer" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json")
 
@@ -71,7 +71,7 @@ echo ""
 
 # 6. Get Updated Resources
 echo "Step 6: Get updated resources after harvest & upgrade..."
-RESOURCES_AFTER=$(curl -s http://localhost:11001/api/v1/resources/my-resources \
+RESOURCES_AFTER=$(curl -s http://localhost:11101/api/v1/resources/my-resources \
   -H "Authorization: Bearer $TOKEN")
 
 echo "✅ Updated resources:"
@@ -80,7 +80,7 @@ echo ""
 
 # 7. Get Updated Provinces
 echo "Step 7: Get updated provinces..."
-PROVINCES_AFTER=$(curl -s http://localhost:11001/api/v1/provinces/my-provinces \
+PROVINCES_AFTER=$(curl -s http://localhost:11101/api/v1/provinces/my-provinces \
   -H "Authorization: Bearer $TOKEN")
 
 echo "✅ Updated provinces:"

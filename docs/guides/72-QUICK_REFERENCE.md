@@ -178,8 +178,8 @@ Component → Hook → API Client → Backend → Database
 
 ## ✅ Testing Checklist
 
-- [ ] Backend running on port 11001
-- [ ] Frontend running on port 11000
+- [ ] Backend running on port 11101
+- [ ] Frontend running on port 11100
 - [ ] PetsTab shows real pets
 - [ ] Achievements displays correctly
 - [ ] BattleHistory shows battles

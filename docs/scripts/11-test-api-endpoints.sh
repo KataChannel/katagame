@@ -3,7 +3,7 @@
 # MVP 1.0 Week 1 - API Testing Script
 # Quick verification that all endpoints are working
 
-BASE_URL="http://localhost:11001"
+BASE_URL="http://localhost:11101"
 TOKEN=""
 
 # Colors for output

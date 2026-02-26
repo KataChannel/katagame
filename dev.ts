@@ -149,7 +149,7 @@ async function startDatabase(): Promise<boolean> {
   
   if (proc.exitCode === 0) {
     printStatus("Database", "running");
-    console.log(`${c.green}   → PostgreSQL: localhost:11003${c.reset}`);
+    console.log(`${c.green}   → PostgreSQL: localhost:11103${c.reset}`);
     return true;
   } else {
     printStatus("Database", "error");
@@ -175,7 +175,7 @@ async function startBackend(): Promise<Subprocess | null> {
   await new Promise(resolve => setTimeout(resolve, 3000));
   
   printStatus("Backend", "running");
-  console.log(`${c.green}   → GraphQL API: http://localhost:3000/graphql${c.reset}`);
+  console.log(`${c.green}   → GraphQL API: http://localhost:11101/graphql${c.reset}`);
   
   return proc;
 }
@@ -198,7 +198,7 @@ async function startFrontend(): Promise<Subprocess | null> {
   await new Promise(resolve => setTimeout(resolve, 2000));
   
   printStatus("Frontend", "running");
-  console.log(`${c.green}   → Web App: http://localhost:11000${c.reset}`);
+  console.log(`${c.green}   → Web App: http://localhost:11100${c.reset}`);
   
   return proc;
 }

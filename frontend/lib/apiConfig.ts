@@ -4,14 +4,14 @@
  */
 
 // Base URL from environment (NO version path)
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:11001';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:11101';
 
 // API version
 const API_VERSION = 'v1';
 
 /**
  * Get full API base URL with version
- * @returns {string} Full API base URL (e.g., http://localhost:11001/api/v1)
+ * @returns {string} Full API base URL (e.g., http://localhost:11101/api/v1)
  */
 export function getApiBaseUrl(): string {
   return `${BASE_URL}/api/${API_VERSION}`;
@@ -19,7 +19,7 @@ export function getApiBaseUrl(): string {
 
 /**
  * Get base URL without version (for special endpoints)
- * @returns {string} Base URL (e.g., http://localhost:11001)
+ * @returns {string} Base URL (e.g., http://localhost:11101)
  */
 export function getBaseUrl(): string {
   return BASE_URL;
@@ -32,7 +32,7 @@ export function getBaseUrl(): string {
  * 
  * @example
  * buildApiUrl('/heroes/my-heroes') 
- * // Returns: http://localhost:11001/api/v1/heroes/my-heroes
+ * // Returns: http://localhost:11101/api/v1/heroes/my-heroes
  */
 export function buildApiUrl(endpoint: string): string {
   // Ensure endpoint starts with /
@@ -47,7 +47,7 @@ export function buildApiUrl(endpoint: string): string {
  * 
  * @example
  * buildAuthUrl('google')
- * // Returns: http://localhost:11001/api/v1/auth/google
+ * // Returns: http://localhost:11101/api/v1/auth/google
  */
 export function buildAuthUrl(endpoint: string): string {
   const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;

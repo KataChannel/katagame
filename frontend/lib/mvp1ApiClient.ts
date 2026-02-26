@@ -69,7 +69,7 @@ export class MVP1ApiClient {
         throw new Error(data?.body?.message || data.message || `API Error: ${response.status}`);
       }
 
-      // Handle Motia response wrapper format: { status, body: { success, data, message } }
+      // Handle API response wrapper format: { status, body: { success, data, message } }
       if (data?.body) {
         return {
           success: data.body.success,

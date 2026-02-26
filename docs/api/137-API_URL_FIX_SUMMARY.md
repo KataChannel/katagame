@@ -2,7 +2,7 @@
 
 ## Problem
 ```
-❌ http://localhost:11001/api/v1/api/v1/navigation/player
+❌ http://localhost:11101/api/v1/api/v1/navigation/player
 ```
 
 ## Solution
@@ -36,10 +36,10 @@ const url = API_CONFIG.ENDPOINTS.MY_ENDPOINT;
 
 ```bash
 # Correct format (base URL only):
-NEXT_PUBLIC_API_URL=http://localhost:11001
+NEXT_PUBLIC_API_URL=http://localhost:11101
 
 # Wrong (causes duplication):
-NEXT_PUBLIC_API_URL=http://localhost:11001/api/v1  # ❌
+NEXT_PUBLIC_API_URL=http://localhost:11101/api/v1  # ❌
 ```
 
 ## Test
@@ -49,8 +49,8 @@ cd frontend
 bun run dev
 
 # Check URLs in browser DevTools Network tab
-# Should see: http://localhost:11001/api/v1/...
-# NOT: http://localhost:11001/api/v1/api/v1/...
+# Should see: http://localhost:11101/api/v1/...
+# NOT: http://localhost:11101/api/v1/api/v1/...
 ```
 
 ## Status

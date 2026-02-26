@@ -5,7 +5,7 @@
 
 set -e
 
-BASE_URL="http://localhost:11001"
+BASE_URL="http://localhost:11101"
 RESULTS_FILE="test-results.json"
 TOKEN=""
 PLAYER_ID=""

@@ -23,7 +23,7 @@ else
 fi
 
 # Check frontend
-if curl -s http://localhost:11000 > /dev/null 2>&1; then
+if curl -s http://localhost:11100 > /dev/null 2>&1; then
     echo -e "${GREEN}✅ Frontend running${NC}"
 else
     echo -e "${YELLOW}❌ Frontend not running!${NC}"
@@ -85,7 +85,7 @@ echo ""
 echo -e "${BLUE}Step 4: Frontend Test Instructions${NC}"
 echo "--------------------------------------"
 echo ""
-echo "Open browser at: ${GREEN}http://localhost:11000${NC}"
+echo "Open browser at: ${GREEN}http://localhost:11100${NC}"
 echo ""
 echo "1. Login with:"
 echo "   Email: $EMAIL"

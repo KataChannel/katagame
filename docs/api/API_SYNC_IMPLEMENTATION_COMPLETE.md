@@ -61,7 +61,7 @@ Features:
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                     BACKEND API                          │
-│              (port 11001 - Motia framework)              │
+│              (port 11101 - Motia framework)              │
 │                                                           │
 │  GET /api/v1/gameData          → Game state              │
 │  GET /api/v1/playerHeroes      → User's heroes           │

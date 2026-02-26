@@ -27,7 +27,7 @@ if [ -f .env.local ]; then
   export $(cat .env.local | grep -v '#' | xargs)
 fi
 
-DATABASE_URL=${DATABASE_URL:-"postgresql://postgres:postgres@localhost:11003/katagame"}
+DATABASE_URL=${DATABASE_URL:-"postgresql://postgres:postgres@localhost:11103/katagame"}
 echo "📌 Testing Database: $DATABASE_URL"
 echo ""
 

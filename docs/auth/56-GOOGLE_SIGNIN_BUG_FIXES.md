@@ -251,7 +251,7 @@ The COOP header with `same-origin-allow-popups` is supported in all modern brows
 
 3. **Google Client ID**: Properly restricted to allowed origins in Google Cloud Console
    - Client ID: `897974685698-621ekaodhnha7ssfaml6m1u418ab2ucq.apps.googleusercontent.com`
-   - Verify allowed origins include: `localhost:11000` (dev), and production domain
+   - Verify allowed origins include: `localhost:11100` (dev), and production domain
 
 ---
 

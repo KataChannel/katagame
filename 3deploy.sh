@@ -142,7 +142,7 @@ deploy_database() {
     
     docker-compose -f docker-compose.yml up -d postgres
     
-    echo -e "${GREEN}✅ Database đã được deploy tại localhost:11003${NC}"
+    echo -e "${GREEN}✅ Database đã được deploy tại localhost:11103${NC}"
 }
 
 deploy_fullstack() {
@@ -159,9 +159,9 @@ deploy_fullstack() {
     
     echo -e "${GREEN}✅ Full Stack đã được deploy!${NC}"
     echo -e "${CYAN}📍 Services:${NC}"
-    echo -e "   - Frontend: http://localhost:11000"
+    echo -e "   - Frontend: http://localhost:11100"
     echo -e "   - Backend: http://localhost:3000"
-    echo -e "   - Database: localhost:11003"
+    echo -e "   - Database: localhost:11103"
 }
 
 check_health() {
@@ -169,8 +169,8 @@ check_health() {
     echo ""
     
     # Check Frontend
-    echo -e "${BLUE}Frontend (http://localhost:11000):${NC}"
-    if curl -s -o /dev/null -w "%{http_code}" http://localhost:11000 | grep -q "200\|304"; then
+    echo -e "${BLUE}Frontend (http://localhost:11100):${NC}"
+    if curl -s -o /dev/null -w "%{http_code}" http://localhost:11100 | grep -q "200\|304"; then
         echo -e "  ${GREEN}✅ Healthy${NC}"
     else
         echo -e "  ${RED}❌ Unhealthy or Not Running${NC}"
@@ -185,7 +185,7 @@ check_health() {
     fi
     
     # Check Database
-    echo -e "${BLUE}Database (localhost:11003):${NC}"
+    echo -e "${BLUE}Database (localhost:11103):${NC}"
     if docker exec katagame-postgres pg_isready -U postgres &> /dev/null; then
         echo -e "  ${GREEN}✅ Healthy${NC}"
     else

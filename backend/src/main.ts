@@ -7,14 +7,14 @@ async function bootstrap() {
   
   // Enable CORS for frontend
   app.enableCors({
-    origin: ['http://localhost:11000', 'http://localhost:3000'],
+    origin: ['http://localhost:11100', 'http://localhost:3000'],
     credentials: true,
   });
   
   // Enable validation
   app.useGlobalPipes(new ValidationPipe());
   
-  const port = process.env.PORT || 3000;
+  const port = process.env.PORT || 11101;
   await app.listen(port);
   
   console.log(`🚀 NestJS GraphQL Server running on http://localhost:${port}/graphql`);

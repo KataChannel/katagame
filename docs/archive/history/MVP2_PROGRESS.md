@@ -23,7 +23,7 @@
   - `mvp2_schema_enhancements.sql` - Database fields for MVP2 features
 
 ### 2. Database Setup
-- ✅ PostgreSQL container running (port 11003)
+- ✅ PostgreSQL container running (port 11103)
 - ✅ Schema updated with MVP2 fields
 - ⚠️ **Issues**: 
   - Quảng Trị duplicate (appears as ID 38 and 44)

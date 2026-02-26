@@ -1,7 +1,7 @@
 const { Pool } = require('pg');
 
 const pool = new Pool({
-  connectionString: 'postgresql://postgres:postgres@localhost:11003/katagame'
+  connectionString: 'postgresql://postgres:postgres@localhost:11103/katagame'
 });
 
 pool.query('SELECT NOW()', (err, res) => {

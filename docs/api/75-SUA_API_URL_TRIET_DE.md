@@ -10,9 +10,9 @@
 ### Hiện Tượng
 URLs bị lặp `/api/v1` hai lần:
 ```
-❌ http://localhost:11001/api/v1/api/v1/navigation/player
-❌ http://localhost:11001/api/v1/api/v1/provinces/my-provinces
-❌ http://localhost:11001/api/v1/api/v1/heroes/my-heroes
+❌ http://localhost:11101/api/v1/api/v1/navigation/player
+❌ http://localhost:11101/api/v1/api/v1/provinces/my-provinces
+❌ http://localhost:11101/api/v1/api/v1/heroes/my-heroes
 ```
 
 ### Nguyên Nhân Gốc Rễ
@@ -20,10 +20,10 @@ URLs bị lặp `/api/v1` hai lần:
 
 | File | Giả Định | Cách Xây Dựng URL |
 |------|----------|-------------------|
-| mvp1ApiClient.ts | Base = `http://localhost:11001` | Thêm `/api/v1` trong code |
-| navigationService.ts | Base = `http://localhost:11001` | Thêm `/api/v1` trong code |
-| GoogleSignInButton.tsx | Base = `http://localhost:11001/api/v1` | KHÔNG thêm `/api/v1` |
-| AuthPage.tsx | Base = `http://localhost:11001/api/v1` | KHÔNG thêm `/api/v1` |
+| mvp1ApiClient.ts | Base = `http://localhost:11101` | Thêm `/api/v1` trong code |
+| navigationService.ts | Base = `http://localhost:11101` | Thêm `/api/v1` trong code |
+| GoogleSignInButton.tsx | Base = `http://localhost:11101/api/v1` | KHÔNG thêm `/api/v1` |
+| AuthPage.tsx | Base = `http://localhost:11101/api/v1` | KHÔNG thêm `/api/v1` |
 
 **Kết quả**: Khi `.env.local` có `/api/v1`, một số file lại thêm `/api/v1` nữa → Lặp lại!
 
@@ -45,7 +45,7 @@ Tạo **cấu hình tập trung** với:
 ┌─────────────────────────────────────┐
 │    Biến Môi Trường (CHỈ BASE)       │
 │  NEXT_PUBLIC_API_URL                │
-│  http://localhost:11001             │
+│  http://localhost:11101             │
 └──────────────┬──────────────────────┘
                │
                ↓
@@ -80,35 +80,35 @@ Tạo **cấu hình tập trung** với:
 ```typescript
 // Lấy base URL đầy đủ với version
 getApiBaseUrl(): string
-// Trả về: http://localhost:11001/api/v1
+// Trả về: http://localhost:11101/api/v1
 
 // Xây dựng endpoint URL
 buildApiUrl(endpoint: string): string
 // Ví dụ: buildApiUrl('/heroes/my-heroes')
-// Trả về: http://localhost:11001/api/v1/heroes/my-heroes
+// Trả về: http://localhost:11101/api/v1/heroes/my-heroes
 
 // Xây dựng auth URL
 buildAuthUrl(endpoint: string): string
 // Ví dụ: buildAuthUrl('google')
-// Trả về: http://localhost:11001/api/v1/auth/google
+// Trả về: http://localhost:11101/api/v1/auth/google
 ```
 
 **Endpoints được định nghĩa sẵn**:
 ```typescript
 API_CONFIG.ENDPOINTS = {
   // Xác thực
-  AUTH_LOGIN: 'http://localhost:11001/api/v1/auth/login',
-  AUTH_REGISTER: 'http://localhost:11001/api/v1/auth/register',
-  AUTH_GOOGLE: 'http://localhost:11001/api/v1/auth/google',
+  AUTH_LOGIN: 'http://localhost:11101/api/v1/auth/login',
+  AUTH_REGISTER: 'http://localhost:11101/api/v1/auth/register',
+  AUTH_GOOGLE: 'http://localhost:11101/api/v1/auth/google',
   
   // Tướng
-  HEROES_MY: 'http://localhost:11001/api/v1/heroes/my-heroes',
+  HEROES_MY: 'http://localhost:11101/api/v1/heroes/my-heroes',
   
   // Tỉnh thành
-  PROVINCES_MY: 'http://localhost:11001/api/v1/provinces/my-provinces',
+  PROVINCES_MY: 'http://localhost:11101/api/v1/provinces/my-provinces',
   
   // Navigation
-  NAVIGATION_PLAYER: 'http://localhost:11001/api/v1/navigation/player',
+  NAVIGATION_PLAYER: 'http://localhost:11101/api/v1/navigation/player',
   
   // ... và 15+ endpoints khác
 }
@@ -122,7 +122,7 @@ API_CONFIG.ENDPOINTS = {
 
 **Trước**:
 ```typescript
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:11001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:11101';
 fetch(`${API_BASE_URL}/api/v1${endpoint}`, ...)
 ```
 
@@ -137,7 +137,7 @@ fetch(`${API_BASE_URL}${endpoint}`, ...) // /api/v1 đã có trong BASE_URL
 
 **Trước**:
 ```typescript
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:11001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:11101';
 fetch(`${API_BASE_URL}/api/v1/navigation/player`, ...)
 ```
 
@@ -151,7 +151,7 @@ fetch(API_CONFIG.ENDPOINTS.NAVIGATION_PLAYER, ...)
 
 **Trước**:
 ```typescript
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:11001/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:11101/api/v1';
 fetch(`${API_BASE_URL}/auth/google`, ...)
 ```
 
@@ -165,7 +165,7 @@ fetch(API_CONFIG.ENDPOINTS.AUTH_GOOGLE, ...)
 
 **Trước**:
 ```typescript
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:11001/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:11101/api/v1';
 fetch(`${API_BASE_URL}/auth/login`, ...)
 ```
 
@@ -192,13 +192,13 @@ fetch(API_CONFIG.ENDPOINTS.AUTH_LOGIN, ...)
 
 **Trước**:
 ```bash
-NEXT_PUBLIC_API_URL=http://localhost:11001/api/v1
+NEXT_PUBLIC_API_URL=http://localhost:11101/api/v1
 ```
 
 **Sau**:
 ```bash
 # Chỉ base URL (KHÔNG có /api/v1)
-NEXT_PUBLIC_API_URL=http://localhost:11001
+NEXT_PUBLIC_API_URL=http://localhost:11101
 ```
 
 ---
@@ -208,16 +208,16 @@ NEXT_PUBLIC_API_URL=http://localhost:11001
 ### Trước Khi Sửa
 | Endpoint | URL | Trạng thái |
 |----------|-----|------------|
-| Navigation | `http://localhost:11001/api/v1/api/v1/navigation/player` | ❌ 404 |
-| Provinces | `http://localhost:11001/api/v1/api/v1/provinces/my-provinces` | ❌ 404 |
-| Heroes | `http://localhost:11001/api/v1/api/v1/heroes/my-heroes` | ❌ 404 |
+| Navigation | `http://localhost:11101/api/v1/api/v1/navigation/player` | ❌ 404 |
+| Provinces | `http://localhost:11101/api/v1/api/v1/provinces/my-provinces` | ❌ 404 |
+| Heroes | `http://localhost:11101/api/v1/api/v1/heroes/my-heroes` | ❌ 404 |
 
 ### Sau Khi Sửa
 | Endpoint | URL | Trạng thái |
 |----------|-----|------------|
-| Navigation | `http://localhost:11001/api/v1/navigation/player` | ✅ OK |
-| Provinces | `http://localhost:11001/api/v1/provinces/my-provinces` | ✅ OK |
-| Heroes | `http://localhost:11001/api/v1/heroes/my-heroes` | ✅ OK |
+| Navigation | `http://localhost:11101/api/v1/navigation/player` | ✅ OK |
+| Provinces | `http://localhost:11101/api/v1/provinces/my-provinces` | ✅ OK |
+| Heroes | `http://localhost:11101/api/v1/heroes/my-heroes` | ✅ OK |
 
 ---
 
@@ -240,14 +240,14 @@ NEXT_PUBLIC_API_URL=http://localhost:11001
 
 ```bash
 # 1. Kiểm tra config hoạt động
-curl http://localhost:11001/api/v1/heroes
+curl http://localhost:11101/api/v1/heroes
 
 # 2. Kiểm tra navigation endpoint
-curl http://localhost:11001/api/v1/navigation/player \
+curl http://localhost:11101/api/v1/navigation/player \
   -H "Authorization: Bearer YOUR_TOKEN"
 
 # 3. Kiểm tra auth endpoints
-curl http://localhost:11001/api/v1/auth/login \
+curl http://localhost:11101/api/v1/auth/login \
   -X POST \
   -H "Content-Type: application/json" \
   -d '{"email":"test@test.com","password":"test123"}'
@@ -259,7 +259,7 @@ curl http://localhost:11001/api/v1/auth/login \
 2. Vào tab Network
 3. Login hoặc navigate
 4. Kiểm tra tất cả API calls:
-   - ✅ `http://localhost:11001/api/v1/...`
+   - ✅ `http://localhost:11101/api/v1/...`
    - ❌ KHÔNG có lặp `/api/v1/api/v1/...`
 
 ---
@@ -277,7 +277,7 @@ API_CONFIG.ENDPOINTS.AUTH_LOGIN // Auto-complete hoạt động!
 ### 3. Tách Biệt Môi Trường ✅
 ```typescript
 // Development
-NEXT_PUBLIC_API_URL=http://localhost:11001
+NEXT_PUBLIC_API_URL=http://localhost:11101
 
 // Production
 NEXT_PUBLIC_API_URL=https://api.katagame.com
@@ -322,7 +322,7 @@ fetch(API_CONFIG.ENDPOINTS.MY_ENDPOINT, ...)
 ### Development `.env.local`
 ```bash
 # Chỉ base URL (KHÔNG có version!)
-NEXT_PUBLIC_API_URL=http://localhost:11001
+NEXT_PUBLIC_API_URL=http://localhost:11101
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-client-id
 ```
 
@@ -382,7 +382,7 @@ bun run dev
 ### 2. Kiểm Tra Endpoints
 - Mở DevTools → Network tab
 - Test đăng nhập Google
-- Xác nhận URLs đúng: `http://localhost:11001/api/v1/...`
+- Xác nhận URLs đúng: `http://localhost:11101/api/v1/...`
 - Xác nhận KHÔNG lặp: `/api/v1/api/v1/...`
 
 ### 3. Verify Tất Cả Features

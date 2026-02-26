@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Quick MVP 1.0 API Test
-BASE_URL="http://localhost:11001"
+BASE_URL="http://localhost:11101"
 TIMESTAMP=$(date +%s)
 
 echo "🧪 MVP 1.0 Quick API Test"

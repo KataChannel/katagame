@@ -92,7 +92,7 @@ OR (for successful responses)
 ## 🚀 Backend Status
 
 ```
-✅ Server: RUNNING (Port 11001)
+✅ Server: RUNNING (Port 11101)
 ✅ Build: SUCCESS (0 TypeScript errors)
 ✅ Endpoints: 16/16 RESPONDING
 ✅ Response Format: CORRECT

@@ -20,8 +20,8 @@ fi
 echo -e "${GREEN}✓ Frontend stopped${NC}"
 
 # Stop backend
-echo -e "${YELLOW}Stopping Motia backend...${NC}"
-pkill -f "motia dev" 2>/dev/null || true
+echo -e "${YELLOW}Stopping NestJS backend...${NC}"
+pkill -f "nest start" 2>/dev/null || true
 if [ -f /tmp/katagame-backend.pid ]; then
     kill $(cat /tmp/katagame-backend.pid) 2>/dev/null || true
     rm /tmp/katagame-backend.pid

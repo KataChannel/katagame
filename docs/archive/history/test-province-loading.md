@@ -54,7 +54,7 @@ Game data sync completed
 **UI:** Province cards displayed immediately (Hà Nội, Hồ Chí Minh)
 
 ## Test Steps
-1. Open http://localhost:11000
+1. Open http://localhost:11100
 2. Login with existing account OR register new account
 3. Check browser console (F12)
 4. Verify provinces display without "Đang tải..." message

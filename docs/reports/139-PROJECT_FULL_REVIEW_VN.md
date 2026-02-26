@@ -44,15 +44,15 @@ Build Tool: Turbopack
 API Client: Apollo Client 4.0.8
 State: Zustand 5.0.8
 Styling: Tailwind CSS 4
-Port: 11000
+Port: 11100
 ```
 
 #### **Infrastructure**
 ```
 Container: Docker Compose
-Database: PostgreSQL 15-alpine (Port 11003)
-Cache: Redis 7-alpine (Optional, Port 11004)
-Admin: pgAdmin4 (Optional, Port 11002)
+Database: PostgreSQL 15-alpine (Port 11103)
+Cache: Redis 7-alpine (Optional, Port 11104)
+Admin: pgAdmin4 (Optional, Port 11102)
 ```
 
 ---
@@ -564,9 +564,9 @@ docker-compose up -d
 ```
 
 **Services**:
-- PostgreSQL: `localhost:11003`
-- Redis (optional): `localhost:11004`
-- pgAdmin (optional): `localhost:11002`
+- PostgreSQL: `localhost:11103`
+- Redis (optional): `localhost:11104`
+- pgAdmin (optional): `localhost:11102`
 
 ### Manual Setup
 
@@ -596,14 +596,14 @@ npm run dev
 cd frontend
 npm install
 npm run dev
-# Running on http://localhost:11000
+# Running on http://localhost:11100
 ```
 
 ### Environment Variables
 
 **Backend** (`.env`):
 ```env
-DATABASE_URL="postgresql://postgres:postgres@localhost:11003/katagame"
+DATABASE_URL="postgresql://postgres:postgres@localhost:11103/katagame"
 JWT_SECRET="your-secret-key-here"
 JWT_EXPIRES_IN="7d"
 ```
@@ -641,7 +641,7 @@ NEXT_PUBLIC_GRAPHQL_URL="http://localhost:3000/graphql"
 **4. Kill Ports**:
 ```bash
 ./scripts/5killport.sh
-# Kill processes on ports 3000, 11000, 11003
+# Kill processes on ports 3000, 11100, 11103
 ```
 
 ### Manual Testing
@@ -885,7 +885,7 @@ cd backend && npm run dev &
 cd frontend && npm run dev &
 
 # 4. Open browser
-open http://localhost:11000
+open http://localhost:11100
 ```
 
 ### Stop Everything

@@ -278,10 +278,10 @@ The API base URL can be configured via environment variables:
 
 ```env
 # .env.local
-NEXT_PUBLIC_API_URL=http://localhost:11001/api/v1
+NEXT_PUBLIC_API_URL=http://localhost:11101/api/v1
 ```
 
-Default: `http://localhost:11001/api/v1`
+Default: `http://localhost:11101/api/v1`
 
 ## Authentication
 

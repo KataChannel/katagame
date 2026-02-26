@@ -93,7 +93,7 @@ const { heroes } = useGameStore();
 ## Data Flow Summary
 
 ```
-Backend API (port 11001)
+Backend API (port 11101)
     ↓
 mvp1ApiClient.ts (API calls)
     ↓

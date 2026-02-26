@@ -33,8 +33,8 @@ Frontend Layer                 API Layer                   Data Layer
 ┌──────────────────┐     ┌──────────────────┐      ┌──────────────────┐
 │  Next.js 15      │────▶│  Motia Backend   │─────▶│  PostgreSQL      │
 │  React 19        │     │  (Event-Driven)  │      │  (16 Tables)     │
-│  TailwindCSS 4   │     │  Port: 11001     │      │  Port: 11003     │
-│  Port: 11000     │     │                  │      │                  │
+│  TailwindCSS 4   │     │  Port: 11101     │      │  Port: 11103     │
+│  Port: 11100     │     │                  │      │                  │
 │  ────────────────│     │  ────────────────│      │  ────────────────│
 │  • 20+ Components│     │  • 16 Endpoints  │      │  • 50+ Indexes   │
 │  • State (Zustand)    │  • 6 Services    │      │  • 684 lines SQL │
@@ -46,7 +46,7 @@ Frontend Layer                 API Layer                   Data Layer
                                               ┌──────────▼─────────┐
                                               │  Redis (Optional)  │
                                               │  Caching Layer     │
-                                              │  Port: 11004       │
+                                              │  Port: 11104       │
                                               └────────────────────┘
 ```
 
@@ -204,11 +204,11 @@ DEVELOPMENT (docker-compose.yml)
 ┌─────────────────────────────────────────────┐
 │  Docker Compose                             │
 │  ──────────────────────────────────────────  │
-│  └─ PostgreSQL:15       (Port 11003)        │
-│  └─ Redis:7             (Port 11004)        │
-│  └─ PgAdmin             (Port 11002)        │
-│  └─ Frontend            (Port 11000)        │
-│  └─ Backend             (Port 11001)        │
+│  └─ PostgreSQL:15       (Port 11103)        │
+│  └─ Redis:7             (Port 11104)        │
+│  └─ PgAdmin             (Port 11102)        │
+│  └─ Frontend            (Port 11100)        │
+│  └─ Backend             (Port 11101)        │
 └─────────────────────────────────────────────┘
 
 PRODUCTION (docker-compose.prod.yml + overrides)

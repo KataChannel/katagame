@@ -125,27 +125,26 @@ init_database() {
 setup_backend() {
     print_header "Setting Up Backend"
     
-    if [ ! -d "motia" ]; then
-        print_error "motia directory not found"
+    if [ ! -d "backend" ]; then
+        print_error "backend directory not found"
         exit 1
     fi
     
-    cd motia
+    cd backend
     
-    # Create .env.local if it doesn't exist
-    if [ ! -f ".env.local" ]; then
-        print_info "Creating .env.local from .env.example..."
-        cp .env.example .env.local
-        print_success ".env.local created"
+    # Create .env if it doesn't exist
+    if [ ! -f ".env" ]; then
+        print_info "Creating .env from .env.example..."
+        if [ -f ".env.example" ]; then
+            cp .env.example .env
+        else
+            echo "DATABASE_URL=postgresql://postgres:postgres@localhost:11103/katagame" > .env
+            echo "PORT=11101" >> .env
+            echo "REDIS_URL=redis://localhost:11104" >> .env
+        fi
+        print_success ".env created"
     else
-        print_info ".env.local already exists"
-    fi
-    
-    # Update DATABASE_URL for docker-compose
-    if grep -q "DATABASE_URL=postgresql://postgres:postgres@localhost" .env.local; then
-        print_info "Updating DATABASE_URL for Docker Compose..."
-        sed -i 's|DATABASE_URL=postgresql://postgres:postgres@localhost:15432/katagame|DATABASE_URL=postgresql://postgres:postgres@postgres:5432/katagame|' .env.local
-        print_success "DATABASE_URL updated"
+        print_info ".env already exists"
     fi
     
     # Install dependencies
@@ -170,17 +169,17 @@ print_services() {
     
     echo ""
     echo -e "${GREEN}Available URLs:${NC}"
-    echo -e "  Backend API:  ${BLUE}http://localhost:3001${NC}"
-    echo -e "  API Docs:     ${BLUE}http://localhost:3001/api/v1/docs${NC}"
-    echo -e "  Database:     ${BLUE}postgres://localhost:5432/katagame${NC}"
+    echo -e "  Backend API:  ${BLUE}http://localhost:11101/graphql${NC}"
+    echo -e "  GraphQL:      ${BLUE}http://localhost:11101/graphql${NC}"
+    echo -e "  Database:     ${BLUE}postgres://localhost:11103/katagame${NC}"
     
     # Check for optional services
     if docker-compose ps redis &> /dev/null | grep -q "redis"; then
-        echo -e "  Redis:        ${BLUE}redis://localhost:6379${NC}"
+        echo -e "  Redis:        ${BLUE}redis://localhost:11104${NC}"
     fi
     
     if docker-compose ps pgadmin &> /dev/null | grep -q "pgadmin"; then
-        echo -e "  PgAdmin:      ${BLUE}http://localhost:5050${NC} (admin@katagame.local / admin)"
+        echo -e "  PgAdmin:      ${BLUE}http://localhost:11102${NC} (admin@katagame.local / admin)"
     fi
     
     echo ""
@@ -192,15 +191,15 @@ print_next_steps() {
     
     echo ""
     echo "1. Start the backend:"
-    echo -e "   ${BLUE}cd motia${NC}"
+    echo -e "   ${BLUE}cd backend${NC}"
     echo -e "   ${BLUE}npm run dev${NC}"
     echo ""
     echo "2. In another terminal, start the frontend:"
-    echo -e "   ${BLUE}cd katagame${NC}"
+    echo -e "   ${BLUE}cd frontend${NC}"
     echo -e "   ${BLUE}npm run dev${NC}"
     echo ""
     echo "3. Test the API:"
-    echo -e "   ${BLUE}curl http://localhost:3001/api/v1/players/leaderboard${NC}"
+    echo -e "   ${BLUE}curl http://localhost:11101/graphql${NC}"
     echo ""
     echo "4. View database:"
     echo -e "   ${BLUE}docker-compose exec postgres psql -U postgres -d katagame${NC}"

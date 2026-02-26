@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: katagame
     ports:
-      - "11003:5432"
+      - "11103:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -24,7 +24,7 @@ services:
     image: redis:7-alpine
     container_name: katagame-redis
     ports:
-      - "11004:6379"
+      - "11104:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -45,7 +45,7 @@ services:
       PGADMIN_DEFAULT_EMAIL: admin@katagame.local
       PGADMIN_DEFAULT_PASSWORD: admin
     ports:
-      - "11002:80"
+      - "11102:80"
     depends_on:
       postgres:
         condition: service_healthy

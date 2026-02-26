@@ -5,22 +5,22 @@
 PROBLEM
 -------
 Google Sign-In was calling wrong URL:
-  ❌ http://localhost:11001/auth/google (404 Not Found)
+  ❌ http://localhost:11101/auth/google (404 Not Found)
 
 SOLUTION
 --------
 Fixed .env.local file:
-  ✅ http://localhost:11001/api/v1/auth/google
+  ✅ http://localhost:11101/api/v1/auth/google
 
 WHAT WAS CHANGED
 ----------------
 File: /frontend/.env.local
 
 Before:
-  NEXT_PUBLIC_API_URL=http://localhost:11001
+  NEXT_PUBLIC_API_URL=http://localhost:11101
 
 After:
-  NEXT_PUBLIC_API_URL=http://localhost:11001/api/v1
+  NEXT_PUBLIC_API_URL=http://localhost:11101/api/v1
 
 HOW TO APPLY
 ------------
@@ -33,7 +33,7 @@ VERIFICATION
 ------------
 Open browser DevTools → Network tab
 Click "Sign in with Google"
-Should see: POST http://localhost:11001/api/v1/auth/google
+Should see: POST http://localhost:11101/api/v1/auth/google
 Status: 200 OK (not 404!)
 
 FILES MODIFIED

@@ -27,8 +27,8 @@
 | Animation | Framer Motion | 12.23.24 | Animations |
 | Icons | Lucide React | - | Icon set |
 
-**Port**: 11000  
-**Dev Command**: `npm run dev -p 11000 --turbopack`
+**Port**: 11100  
+**Dev Command**: `npm run dev -p 11100 --turbopack`
 
 ### Project Structure
 
@@ -1230,9 +1230,9 @@ describe('POST /auth/login', () => {
 **Development** (docker-compose.yml)
 ```yaml
 Services:
-- PostgreSQL 15 (Port 11003)
-- Redis 7 (Port 11004)
-- PgAdmin (Port 11002)
+- PostgreSQL 15 (Port 11103)
+- Redis 7 (Port 11104)
+- PgAdmin (Port 11102)
 
 Volumes: Named volumes for persistence
 Networks: katagame-network (bridge)

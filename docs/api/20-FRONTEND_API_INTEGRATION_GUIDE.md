@@ -7,7 +7,7 @@
 ## 📊 HIỆN TRẠNG PHÂN TÍCH
 
 ### ✅ Đã có sẵn:
-1. **Backend API** chạy trên `http://localhost:11001/api/v1`
+1. **Backend API** chạy trên `http://localhost:11101/api/v1`
 2. **API Client** (`mvp1ApiClient.ts`) - toàn bộ methods đã được tạo
 3. **Database Schema** - đầy đủ (684 lines)
 4. **Components** - 40+ components sử dụng mock data từ lib files
@@ -335,26 +335,26 @@ export default function ProvinceCard() {
 ### 4.1 Test heroes endpoint:
 
 ```bash
-curl -s http://localhost:11001/api/v1/heroes | jq
+curl -s http://localhost:11101/api/v1/heroes | jq
 ```
 
 ### 4.2 Test provinces endpoint:
 
 ```bash
-curl -s http://localhost:11001/api/v1/provinces | jq
+curl -s http://localhost:11101/api/v1/provinces | jq
 ```
 
 ### 4.3 Test with authentication:
 
 ```bash
 # Get token first
-TOKEN=$(curl -s -X POST http://localhost:11001/api/v1/auth/login \
+TOKEN=$(curl -s -X POST http://localhost:11101/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","password":"password"}' | jq -r '.data.token')
 
 # Use token
 curl -s -H "Authorization: Bearer $TOKEN" \
-  http://localhost:11001/api/v1/resources/my-resources | jq
+  http://localhost:11101/api/v1/resources/my-resources | jq
 ```
 
 ---
@@ -406,7 +406,7 @@ EOF
 
 # 3. Test API
 echo "✅ Testing API..."
-curl -s http://localhost:11001/api/v1/provinces | jq
+curl -s http://localhost:11101/api/v1/provinces | jq
 
 echo "✅ Done! Frontend can now use real API data."
 ```

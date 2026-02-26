@@ -83,6 +83,19 @@ type EraTimeline {
   timeline: [EraInfo!]!
 }
 
+type GachaResponse {
+  newPityCount: Int!
+  results: [GachaResult!]!
+  totalSpent: Int!
+}
+
+type GachaResult {
+  hero: Hero!
+  isDuplicate: Boolean!
+  playerHero: PlayerHero
+  reward: String
+}
+
 type GrantExpResult {
   leveledUp: Boolean!
   levelsGained: Int!
@@ -162,8 +175,13 @@ input MarkStoryReadInput {
 type Mutation {
   addResources(bazan: Float = 0, gold: Float = 0, lumber: Float = 0, rice: Float = 0, stone: Float = 0): MutationResponse!
   assignPetToHero(heroId: String!, petId: String!): AssignPetResult!
+  buyMonthlyPass: Player!
+  buyPvPShopItem(itemId: String!): JSON!
+  buyShield(durationHours: Int!): Player!
+  claimMonthlyPassReward: Player!
   craftRelic(relicId: String!): PlayerRelic!
   deployHero(input: DeployHeroInput!): PlayerHero!
+  finishUpgrade(provinceId: Int!): PlayerProvince!
   googleAuth(credential: String!): AuthResponse!
   grantExpToHero(expAmount: Int!, heroId: String!): GrantExpResult!
   grantExpToPet(expAmount: Int!, petId: String!): Pet!
@@ -172,10 +190,13 @@ type Mutation {
   login(email: String!, password: String!): AuthResponse!
   markStoryRead(input: MarkStoryReadInput!): String!
   placeRelic(playerRelicId: String!, provinceId: Int!): PlayerRelic!
+  pullHeroGacha(count: Int! = 1): GachaResponse!
+  raidOpponent(defenderId: String!): RaidResult!
   recruitHero(input: RecruitHeroInput!): PlayerHero!
   register(email: String!, password: String!, username: String!): AuthResponse!
   resetPlayerData: MutationResponse!
   submitQuiz(input: SubmitQuizInput!): QuizSubmission!
+  timeSkipUpgrade(provinceId: Int!): PlayerProvince!
   unassignPetFromHero(heroId: String!): Boolean!
   unlockProvince(input: UnlockProvinceInput!): PlayerProvince!
   updatePlayer(data: PlayerUpdateInput!): Player!
@@ -187,6 +208,28 @@ type Mutation {
 type MutationResponse {
   message: String
   success: Boolean!
+}
+
+type Opponent {
+  combatPower: Int!
+  createdAt: DateTime
+  email: String!
+  experience: Int
+  id: ID!
+  lastLogin: DateTime
+  lastRewardClaim: DateTime
+  level: Int
+  maxStamina: Int
+  premiumExpiresAt: DateTime
+  premiumPassActive: Boolean
+  region: String
+  reputation: Int
+  resources: JSON
+  shieldExpiresAt: DateTime
+  stamina: Int
+  status: String
+  updatedAt: DateTime
+  username: String!
 }
 
 input PaginationInput {
@@ -251,12 +294,15 @@ type Player {
   experience: Int
   id: ID!
   lastLogin: DateTime
+  lastRewardClaim: DateTime
   level: Int
   maxStamina: Int
   premiumExpiresAt: DateTime
   premiumPassActive: Boolean
   region: String
+  reputation: Int
   resources: JSON
+  shieldExpiresAt: DateTime
   stamina: Int
   status: String
   updatedAt: DateTime
@@ -324,12 +370,15 @@ type PlayerProvince {
   farmerLevel: Int
   heroId: ID
   id: ID!
+  isUpgrading: Boolean
   playerId: ID!
   province: Province!
   provinceId: Int!
   resourceLevel: Int
   spiralLayers: Int
   updatedAt: DateTime!
+  upgradeEndsAt: DateTime
+  upgradingType: String
 }
 
 input PlayerProvinceWhereInput {
@@ -348,6 +397,7 @@ type PlayerProvinceWithSkills {
   farmerLevel: Int
   heroId: ID
   id: ID!
+  isUpgrading: Boolean
   passiveBuffs: [PassiveBuff!]!
   playerId: ID!
   province: Province!
@@ -356,6 +406,8 @@ type PlayerProvinceWithSkills {
   skillCooldown: SkillCooldownStatus
   spiralLayers: Int
   updatedAt: DateTime!
+  upgradeEndsAt: DateTime
+  upgradingType: String
 }
 
 type PlayerRelic {
@@ -515,6 +567,8 @@ type Query {
   allRelics: [Relic!]!
   availableStories: [StoryWithUnlockStatus!]!
   eraTimeline: EraTimeline!
+  getPvPOpponents: [Opponent!]!
+  getPvPShopItems: JSON!
   hero(id: String!): Hero!
   heroes(pagination: PaginationInput, where: HeroWhereInput): [Hero!]!
   me: Player
@@ -603,6 +657,14 @@ type QuizSubmission {
   submittedAt: DateTime!
   timeTaken: Int
   totalQuestions: Int
+}
+
+type RaidResult {
+  attackerCp: Int!
+  defenderCp: Int!
+  loot: JSON
+  message: String!
+  success: Boolean!
 }
 
 input RecruitHeroInput {

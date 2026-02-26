@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Kata Game - Development Environment Launcher
-# Starts PostgreSQL, Motia backend, and Next.js frontend
+# Starts PostgreSQL, NestJS backend, and Next.js frontend
 
 set -e
 
@@ -24,7 +24,7 @@ else
         docker start katagame-postgres
     else
         echo -e "${RED}✗ PostgreSQL container 'katagame-postgres' not found!${NC}"
-        echo "Create it with: docker run -d --name katagame-postgres -p 11003:5432 -e POSTGRES_PASSWORD=postgres postgres:15"
+        echo "Create it with: docker run -d --name katagame-postgres -p 11103:5432 -e POSTGRES_PASSWORD=postgres postgres:15"
         exit 1
     fi
     sleep 3
@@ -32,20 +32,20 @@ else
 fi
 echo ""
 
-# Start Motia backend
-echo -e "${YELLOW}2. Starting Motia backend (port 11001)...${NC}"
-cd motia
+# Start NestJS backend
+echo -e "${YELLOW}2. Starting NestJS backend (port 11101)...${NC}"
+cd backend
 if [ ! -d "node_modules" ]; then
     echo -e "${YELLOW}Installing backend dependencies...${NC}"
     npm install
 fi
 
-# Kill any existing Motia processes
-pkill -f "motia dev" 2>/dev/null || true
+# Kill any existing NestJS processes
+pkill -f "nest start" 2>/dev/null || true
 sleep 1
 
 # Start backend in background
-nohup npx motia dev -p 11001 > /tmp/katagame-backend.log 2>&1 &
+nohup npm run dev > /tmp/katagame-backend.log 2>&1 &
 BACKEND_PID=$!
 echo $BACKEND_PID > /tmp/katagame-backend.pid
 echo -e "${GREEN}✓ Backend started (PID: $BACKEND_PID)${NC}"
@@ -53,7 +53,7 @@ echo -e "  Logs: /tmp/katagame-backend.log"
 echo ""
 
 # Start Next.js frontend
-echo -e "${YELLOW}3. Starting Next.js frontend (port 11000)...${NC}"
+echo -e "${YELLOW}3. Starting Next.js frontend (port 11100)...${NC}"
 cd ../frontend
 if [ ! -d "node_modules" ]; then
     echo -e "${YELLOW}Installing frontend dependencies...${NC}"
@@ -83,21 +83,21 @@ echo ""
 
 # Check backend
 if ps -p $BACKEND_PID > /dev/null; then
-    echo -e "${GREEN}✓ Backend:  http://localhost:11001${NC}"
+    echo -e "${GREEN}✓ Backend:  http://localhost:11101/graphql${NC}"
 else
     echo -e "${RED}✗ Backend failed to start. Check /tmp/katagame-backend.log${NC}"
 fi
 
 # Check frontend
 if ps -p $FRONTEND_PID > /dev/null; then
-    echo -e "${GREEN}✓ Frontend: http://localhost:11000${NC}"
+    echo -e "${GREEN}✓ Frontend: http://localhost:11100${NC}"
 else
     echo -e "${RED}✗ Frontend failed to start. Check /tmp/katagame-frontend.log${NC}"
 fi
 
 # Check PostgreSQL
 if docker ps | grep -q katagame-postgres; then
-    echo -e "${GREEN}✓ Database: postgresql://localhost:11003/katagame${NC}"
+    echo -e "${GREEN}✓ Database: postgresql://localhost:11103/katagame${NC}"
 else
     echo -e "${RED}✗ PostgreSQL not running${NC}"
 fi
@@ -105,9 +105,9 @@ fi
 echo ""
 echo "=== Development Environment Ready ==="
 echo ""
-echo "Frontend: http://localhost:11000"
-echo "Backend:  http://localhost:11001"
-echo "Workbench: http://localhost:11001 (Motia UI)"
+echo "Frontend: http://localhost:11100"
+echo "Backend:  http://localhost:11101/graphql"
+echo "GraphQL: http://localhost:11101/graphql (Apollo Studio)"
 echo ""
 echo "To stop all services: ./stop.sh"
 echo "To view logs:"

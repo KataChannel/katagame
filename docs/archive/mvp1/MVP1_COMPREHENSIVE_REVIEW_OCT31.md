@@ -92,7 +92,7 @@ query myQuizSubmissions(storyId): [QuizSubmission]
   "state_management": "Zustand 5.0.8",
   "animations": "Framer Motion 12.23.24",
   "styling": "Tailwind CSS 4",
-  "port": 11000
+  "port": 11100
 }
 ```
 
@@ -1023,7 +1023,7 @@ cp .env.local.example .env.local
 
 # Start development server
 npm run dev
-# App: http://localhost:11000
+# App: http://localhost:11100
 ```
 
 ### Database Management
@@ -1242,7 +1242,7 @@ services:
     environment:
       NEXT_PUBLIC_GRAPHQL_URI: http://backend:3000/graphql
     ports:
-      - "11000:11000"
+      - "11100:11100"
 ```
 
 ---

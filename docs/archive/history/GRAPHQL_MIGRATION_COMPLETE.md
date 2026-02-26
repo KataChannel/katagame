@@ -96,7 +96,7 @@ curl http://localhost:3000/graphql -H "Content-Type: application/json" \
 ```
 
 ### Frontend
-- ✅ Next.js development server running on `http://localhost:11000`
+- ✅ Next.js development server running on `http://localhost:11100`
 - ✅ Apollo Client configured and ready
 - ✅ All TypeScript compilation errors resolved (0 errors)
 - ✅ All imports updated successfully
@@ -117,7 +117,7 @@ Backend runs on: `http://localhost:3000/graphql`
 cd frontend
 npm run dev
 ```
-Frontend runs on: `http://localhost:11000`
+Frontend runs on: `http://localhost:11100`
 
 ### GraphQL Playground
 Open browser: `http://localhost:3000/graphql`

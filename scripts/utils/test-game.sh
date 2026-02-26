@@ -24,8 +24,8 @@ else
 fi
 
 # Check Frontend
-echo -n "Frontend (port 11000): "
-if curl -s http://localhost:11000 > /dev/null 2>&1; then
+echo -n "Frontend (port 11100): "
+if curl -s http://localhost:11100 > /dev/null 2>&1; then
     echo -e "${GREEN}✅ Running${NC}"
 else
     echo -e "${YELLOW}❌ Not running${NC}"
@@ -33,7 +33,7 @@ else
 fi
 
 # Check Database
-echo -n "Database (port 11003): "
+echo -n "Database (port 11103): "
 if docker exec katagame-postgres psql -U postgres -d katagame -c "SELECT 1" > /dev/null 2>&1; then
     echo -e "${GREEN}✅ Running${NC}"
 else
@@ -134,7 +134,7 @@ echo -e "${GREEN}✅ Test Complete!${NC}"
 echo "======================================"
 echo ""
 echo "Open your browser at:"
-echo "  Frontend: http://localhost:11000"
+echo "  Frontend: http://localhost:11100"
 echo "  GraphQL Playground: http://localhost:3000/graphql"
 echo ""
 echo "Test credentials:"

@@ -13,7 +13,7 @@ echo "╚═══════════════════════�
 echo ""
 
 PROJECT_ROOT="/chikiet/kataoffical/katagame"
-BACKEND_PATH="$PROJECT_ROOT/motia"
+BACKEND_PATH="$PROJECT_ROOT/backend"
 DB_SCHEMA="$PROJECT_ROOT/katagame_database_schema.sql"
 
 # Color codes
@@ -51,19 +51,18 @@ else
 fi
 
 # Check 3: Verify all 15 endpoints
-echo -n "3️⃣  API endpoints (15/15)... "
-ENDPOINT_COUNT=$(find "$BACKEND_PATH/steps/game" -name "*.step.ts" -type f | grep -E "(auth-|hero-|battle-|player-|resource-|achievement-|save-game)" | wc -l)
-if [ "$ENDPOINT_COUNT" -ge 15 ]; then
-  echo -e "${GREEN}✅ All found ($ENDPOINT_COUNT files)${NC}"
+echo -n "3️⃣  API endpoints (GraphQL)... "
+if [ -f "$BACKEND_PATH/src/schema.gql" ]; then
+  echo -e "${GREEN}✅ Found schema.gql${NC}"
   CHECKS_PASSED=$((CHECKS_PASSED + 1))
 else
-  echo -e "${YELLOW}⚠️  Found $ENDPOINT_COUNT (expected 15+)${NC}"
+  echo -e "${YELLOW}⚠️  schema.gql not found${NC}"
   CHECKS_FAILED=$((CHECKS_FAILED + 1))
 fi
 
-# Check 4: Verify response wrapper utility
-echo -n "4️⃣  Response wrapper utility... "
-if [ -f "$BACKEND_PATH/src/utils/response.wrapper.ts" ]; then
+# Check 4: Verify Prisma schema
+echo -n "4️⃣  Prisma schema... "
+if [ -f "$BACKEND_PATH/prisma/schema.prisma" ]; then
   echo -e "${GREEN}✅ Found${NC}"
   CHECKS_PASSED=$((CHECKS_PASSED + 1))
 else

@@ -15,7 +15,7 @@
 ### Công Nghệ
 ```
 Backend:  NestJS 11 + GraphQL + Prisma 6.18 + PostgreSQL 16 (Port 3000)
-Frontend: Next.js 16 + React 19 + Apollo Client + Zustand (Port 11000)
+Frontend: Next.js 16 + React 19 + Apollo Client + Zustand (Port 11100)
 Database: 25 tables, 63 tỉnh, 5 anh hùng, 30 câu chuyện
 Auth:     JWT + Google OAuth
 ```
@@ -195,7 +195,7 @@ Day 26-30: Việt Nam Hiện Đại (1986-2024)
 
 **Bước 1: Đăng Ký (5 phút)**
 ```
-1. Truy cập http://localhost:11000
+1. Truy cập http://localhost:11100
 2. Click "Đăng Ký"
 3. Nhập: username, email, password
 4. Hoặc: Login bằng Google
@@ -496,12 +496,12 @@ NEXT_PUBLIC_GRAPHQL_URI=http://localhost:3000/graphql
 npm run dev
 
 # Frontend sẽ chạy tại:
-# http://localhost:11000
+# http://localhost:11100
 ```
 
 ### Bước 4: Test Game
 ```
-1. Mở http://localhost:11000
+1. Mở http://localhost:11100
 2. Click "Đăng Ký" → Nhập thông tin
 3. Login → Vào game
 4. Kiểm tra:

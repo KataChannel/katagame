@@ -372,14 +372,14 @@ npm install
 npx prisma generate
 npm run dev
 
-# 3. Start Frontend (port 11000)
+# 3. Start Frontend (port 11100)
 cd frontend
 npm install
 npm run dev
 ```
 
 ### URLs
-- Frontend: http://localhost:11000
+- Frontend: http://localhost:11100
 - GraphQL: http://localhost:3000/graphql
 - Prisma Studio: `npm run db:studio`
 

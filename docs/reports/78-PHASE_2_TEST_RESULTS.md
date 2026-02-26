@@ -151,31 +151,31 @@ Response Body:
 
 ```bash
 # Test login endpoint
-curl -X POST http://localhost:11001/api/v1/auth/login \
+curl -X POST http://localhost:11101/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","password":"Test1234"}'
 
 # Test player update (no token)
-curl -X PUT http://localhost:11001/api/v1/players/update \
+curl -X PUT http://localhost:11101/api/v1/players/update \
   -H "Content-Type: application/json" \
   -d '{"username":"testuser"}'
 
 # Test battle start (invalid token)
-curl -X POST http://localhost:11001/api/v1/battles/start \
+curl -X POST http://localhost:11101/api/v1/battles/start \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer invalid" \
   -d '{}'
 
 # Test resource harvest (invalid token)
-curl -X GET http://localhost:11001/api/v1/resources/harvest \
+curl -X GET http://localhost:11101/api/v1/resources/harvest \
   -H "Authorization: Bearer invalid"
 
 # Test hero list (invalid token)
-curl -X GET http://localhost:11001/api/v1/heroes/list \
+curl -X GET http://localhost:11101/api/v1/heroes/list \
   -H "Authorization: Bearer invalid"
 
 # Test achievements list (invalid token)
-curl -X GET http://localhost:11001/api/v1/achievements/list \
+curl -X GET http://localhost:11101/api/v1/achievements/list \
   -H "Authorization: Bearer invalid"
 ```
 

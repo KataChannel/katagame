@@ -50,7 +50,7 @@ Created **automatic API data sync layer** that:
 ## Architecture Overview
 
 ```
-BACKEND API (port 11001)
+BACKEND API (port 11101)
     ↓
 MVP1ApiClient.ts
     ↓
@@ -243,7 +243,7 @@ export default function HeroesTab() {
     ┌────────────────────────────────────┐
     │      Backend Server                 │
     │      (Motia Framework)              │
-    │      (port 11001)                   │
+    │      (port 11101)                   │
     │                                     │
     │  GET /api/v1/gameData               │
     │  GET /api/v1/playerHeroes           │
@@ -251,9 +251,9 @@ export default function HeroesTab() {
     │  GET /api/v1/playerResources        │
     │                                     │
     │  Connected to:                      │
-    │  - PostgreSQL (port 11003)          │
-    │  - Redis (port 11004)               │
-    │  - PgAdmin (port 11002)             │
+    │  - PostgreSQL (port 11103)          │
+    │  - Redis (port 11104)               │
+    │  - PgAdmin (port 11102)             │
     └────────────────────────────────────┘
 ```
 
@@ -295,7 +295,7 @@ When everything is working, you'll see:
 
 ### Execution
 - [ ] Run: `docker-compose up -d`
-- [ ] Verify: `curl http://localhost:11001/api/v1/heroes`
+- [ ] Verify: `curl http://localhost:11101/api/v1/heroes`
 - [ ] Run: `npm run dev`
 - [ ] Open: http://localhost:3000
 
@@ -337,7 +337,7 @@ When everything is working, you'll see:
 ```
 Cause: Backend not running
 Fix: docker-compose up -d
-Check: curl http://localhost:11001/api/v1/heroes
+Check: curl http://localhost:11101/api/v1/heroes
 ```
 
 ### Issue: "Auth required" error

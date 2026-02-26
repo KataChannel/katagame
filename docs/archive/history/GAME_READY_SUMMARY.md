@@ -27,7 +27,7 @@
 ## System Status
 
 - ✅ **Backend**: http://localhost:3000/graphql
-- ✅ **Frontend**: http://localhost:11000  
+- ✅ **Frontend**: http://localhost:11100  
 - ✅ **Database**: PostgreSQL with game data
 
 ---
@@ -39,7 +39,7 @@
 ./test-frontend-flow.sh
 
 # Result: Email & password to login
-# Login at http://localhost:11000
+# Login at http://localhost:11100
 # See 2 provinces unlocked!
 ```
 

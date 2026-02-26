@@ -10,9 +10,9 @@
 ### Original Issue
 URLs were being duplicated:
 ```
-❌ http://localhost:11001/api/v1/api/v1/navigation/player
-❌ http://localhost:11001/api/v1/api/v1/provinces/my-provinces
-❌ http://localhost:11001/api/v1/api/v1/heroes/my-heroes
+❌ http://localhost:11101/api/v1/api/v1/navigation/player
+❌ http://localhost:11101/api/v1/api/v1/provinces/my-provinces
+❌ http://localhost:11101/api/v1/api/v1/heroes/my-heroes
 ```
 
 ### Root Cause Analysis
@@ -22,12 +22,12 @@ Different files had different assumptions:
 
 | File | Assumption | Pattern |
 |------|------------|---------|
-| mvp1ApiClient.ts | Base URL = `http://localhost:11001` | `${BASE}/api/v1${endpoint}` |
-| navigationService.ts | Base URL = `http://localhost:11001` | `${BASE}/api/v1/navigation/...` |
-| GoogleSignInButton.tsx | Base URL = `http://localhost:11001/api/v1` | `${BASE}/auth/google` |
-| AuthPage.tsx | Base URL = `http://localhost:11001/api/v1` | `${BASE}/auth/login` |
+| mvp1ApiClient.ts | Base URL = `http://localhost:11101` | `${BASE}/api/v1${endpoint}` |
+| navigationService.ts | Base URL = `http://localhost:11101` | `${BASE}/api/v1/navigation/...` |
+| GoogleSignInButton.tsx | Base URL = `http://localhost:11101/api/v1` | `${BASE}/auth/google` |
+| AuthPage.tsx | Base URL = `http://localhost:11101/api/v1` | `${BASE}/auth/login` |
 
-**Result**: When `.env.local` had `NEXT_PUBLIC_API_URL=http://localhost:11001/api/v1`, some files added another `/api/v1` → duplication!
+**Result**: When `.env.local` had `NEXT_PUBLIC_API_URL=http://localhost:11101/api/v1`, some files added another `/api/v1` → duplication!
 
 ---
 
@@ -47,7 +47,7 @@ Created **centralized API configuration** with:
 ┌─────────────────────────────────────┐
 │      Environment Variable           │
 │  NEXT_PUBLIC_API_URL (BASE ONLY)    │
-│  http://localhost:11001             │
+│  http://localhost:11101             │
 └──────────────┬──────────────────────┘
                │
                ↓
@@ -83,35 +83,35 @@ Created **centralized API configuration** with:
 ```typescript
 // Get full API base URL with version
 getApiBaseUrl(): string
-// Returns: http://localhost:11001/api/v1
+// Returns: http://localhost:11101/api/v1
 
 // Build endpoint URL
 buildApiUrl(endpoint: string): string
 // Example: buildApiUrl('/heroes/my-heroes')
-// Returns: http://localhost:11001/api/v1/heroes/my-heroes
+// Returns: http://localhost:11101/api/v1/heroes/my-heroes
 
 // Build auth URL
 buildAuthUrl(endpoint: string): string
 // Example: buildAuthUrl('google')
-// Returns: http://localhost:11001/api/v1/auth/google
+// Returns: http://localhost:11101/api/v1/auth/google
 ```
 
 **Pre-defined Endpoints**:
 ```typescript
 API_CONFIG.ENDPOINTS = {
   // Auth
-  AUTH_LOGIN: 'http://localhost:11001/api/v1/auth/login',
-  AUTH_REGISTER: 'http://localhost:11001/api/v1/auth/register',
-  AUTH_GOOGLE: 'http://localhost:11001/api/v1/auth/google',
+  AUTH_LOGIN: 'http://localhost:11101/api/v1/auth/login',
+  AUTH_REGISTER: 'http://localhost:11101/api/v1/auth/register',
+  AUTH_GOOGLE: 'http://localhost:11101/api/v1/auth/google',
   
   // Heroes
-  HEROES_MY: 'http://localhost:11001/api/v1/heroes/my-heroes',
+  HEROES_MY: 'http://localhost:11101/api/v1/heroes/my-heroes',
   
   // Provinces
-  PROVINCES_MY: 'http://localhost:11001/api/v1/provinces/my-provinces',
+  PROVINCES_MY: 'http://localhost:11101/api/v1/provinces/my-provinces',
   
   // Navigation
-  NAVIGATION_PLAYER: 'http://localhost:11001/api/v1/navigation/player',
+  NAVIGATION_PLAYER: 'http://localhost:11101/api/v1/navigation/player',
   
   // ... and 15 more endpoints
 }
@@ -125,7 +125,7 @@ API_CONFIG.ENDPOINTS = {
 
 **Before**:
 ```typescript
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:11001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:11101';
 // ...
 fetch(`${API_BASE_URL}/api/v1${endpoint}`, ...)
 ```
@@ -142,7 +142,7 @@ fetch(`${API_BASE_URL}${endpoint}`, ...) // /api/v1 already in BASE_URL
 
 **Before**:
 ```typescript
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:11001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:11101';
 fetch(`${API_BASE_URL}/api/v1/navigation/player`, ...)
 ```
 
@@ -157,7 +157,7 @@ fetch(API_CONFIG.ENDPOINTS.NAVIGATION_PLAYER, ...)
 
 **Before**:
 ```typescript
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:11001/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:11101/api/v1';
 fetch(`${API_BASE_URL}/auth/google`, ...)
 ```
 
@@ -171,7 +171,7 @@ fetch(API_CONFIG.ENDPOINTS.AUTH_GOOGLE, ...)
 
 **Before**:
 ```typescript
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:11001/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:11101/api/v1';
 fetch(`${API_BASE_URL}/auth/login`, ...)
 fetch(`${API_BASE_URL}/auth/register`, ...)
 ```
@@ -202,13 +202,13 @@ fetch(API_CONFIG.ENDPOINTS.AUTH_REGISTER, ...)
 
 **Before**:
 ```bash
-NEXT_PUBLIC_API_URL=http://localhost:11001/api/v1
+NEXT_PUBLIC_API_URL=http://localhost:11101/api/v1
 ```
 
 **After**:
 ```bash
 # Base URL only (NO /api/v1 path!)
-NEXT_PUBLIC_API_URL=http://localhost:11001
+NEXT_PUBLIC_API_URL=http://localhost:11101
 ```
 
 ---
@@ -218,18 +218,18 @@ NEXT_PUBLIC_API_URL=http://localhost:11001
 ### Before Fix
 | Endpoint | URL | Status |
 |----------|-----|--------|
-| Navigation | `http://localhost:11001/api/v1/api/v1/navigation/player` | ❌ 404 |
-| Provinces | `http://localhost:11001/api/v1/api/v1/provinces/my-provinces` | ❌ 404 |
-| Heroes | `http://localhost:11001/api/v1/api/v1/heroes/my-heroes` | ❌ 404 |
-| Google Auth | `http://localhost:11001/auth/google` | ❌ 404 |
+| Navigation | `http://localhost:11101/api/v1/api/v1/navigation/player` | ❌ 404 |
+| Provinces | `http://localhost:11101/api/v1/api/v1/provinces/my-provinces` | ❌ 404 |
+| Heroes | `http://localhost:11101/api/v1/api/v1/heroes/my-heroes` | ❌ 404 |
+| Google Auth | `http://localhost:11101/auth/google` | ❌ 404 |
 
 ### After Fix
 | Endpoint | URL | Status |
 |----------|-----|--------|
-| Navigation | `http://localhost:11001/api/v1/navigation/player` | ✅ OK |
-| Provinces | `http://localhost:11001/api/v1/provinces/my-provinces` | ✅ OK |
-| Heroes | `http://localhost:11001/api/v1/heroes/my-heroes` | ✅ OK |
-| Google Auth | `http://localhost:11001/api/v1/auth/google` | ✅ OK |
+| Navigation | `http://localhost:11101/api/v1/navigation/player` | ✅ OK |
+| Provinces | `http://localhost:11101/api/v1/provinces/my-provinces` | ✅ OK |
+| Heroes | `http://localhost:11101/api/v1/heroes/my-heroes` | ✅ OK |
+| Google Auth | `http://localhost:11101/api/v1/auth/google` | ✅ OK |
 
 ---
 
@@ -252,14 +252,14 @@ NEXT_PUBLIC_API_URL=http://localhost:11001
 
 ```bash
 # 1. Check config is working
-curl http://localhost:11001/api/v1/heroes
+curl http://localhost:11101/api/v1/heroes
 
 # 2. Check navigation endpoint
-curl http://localhost:11001/api/v1/navigation/player \
+curl http://localhost:11101/api/v1/navigation/player \
   -H "Authorization: Bearer YOUR_TOKEN"
 
 # 3. Check auth endpoints
-curl http://localhost:11001/api/v1/auth/login \
+curl http://localhost:11101/api/v1/auth/login \
   -X POST \
   -H "Content-Type: application/json" \
   -d '{"email":"test@test.com","password":"test123"}'
@@ -271,7 +271,7 @@ curl http://localhost:11001/api/v1/auth/login \
 2. Go to Network tab
 3. Login or navigate
 4. Check all API calls use correct URLs:
-   - ✅ `http://localhost:11001/api/v1/...`
+   - ✅ `http://localhost:11101/api/v1/...`
    - ❌ NO duplicates like `/api/v1/api/v1/...`
 
 ---
@@ -289,7 +289,7 @@ API_CONFIG.ENDPOINTS.AUTH_LOGIN // Auto-complete works!
 ### 3. Environment Separation ✅
 ```typescript
 // Development
-NEXT_PUBLIC_API_URL=http://localhost:11001
+NEXT_PUBLIC_API_URL=http://localhost:11101
 
 // Production
 NEXT_PUBLIC_API_URL=https://api.katagame.com
@@ -341,7 +341,7 @@ fetch(API_CONFIG.ENDPOINTS.MY_ENDPOINT, ...)
 ### Development `.env.local`
 ```bash
 # Base URL only (NO version path!)
-NEXT_PUBLIC_API_URL=http://localhost:11001
+NEXT_PUBLIC_API_URL=http://localhost:11101
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-client-id
 ```
 
